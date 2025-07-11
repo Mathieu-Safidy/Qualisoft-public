@@ -7,6 +7,10 @@
     background-color: #7ee2a7 !important;
 }
 
+.bg-default-p {
+    background-color: #a8a8a8 !important;
+}
+
 .bg-primary-p {
     background-color: #7ee2d9;
 }
@@ -85,6 +89,7 @@
     transition: width 0.4s ease;
     cursor: pointer;
     background-color: white;
+    box-shadow: var(--bs-box-shadow) !important;
 }
 
 .sidebar.collapsed>aside>.menu.active {
@@ -126,6 +131,23 @@
   --bs-btn-disabled-border-color: #7ee2a7;
 }
 
+.btn-default-p {
+  --bs-btn-color: black;
+  --bs-btn-bg: rgb(91, 199, 136);
+  --bs-btn-border-color: rgb(91, 199, 136);
+  --bs-btn-hover-color: black;
+  --bs-btn-hover-bg: #000;
+  --bs-btn-hover-border-color: #000;
+  --bs-btn-focus-shadow-rgb: 60, 153, 110;
+  --bs-btn-active-color: black;
+  --bs-btn-active-bg: rgb(91, 199, 136);
+  --bs-btn-active-border-color: #13653f;
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: rgb(91, 199, 136);
+  --bs-btn-disabled-border-color: rgb(91, 199, 136);
+}
+/* rgba(126, 226, 167 , 1) */
 .btn-success-p:hover {
     color: black !important;
 }

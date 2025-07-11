@@ -1,5 +1,8 @@
-
-    <div class="row bg-light px-3">
-        <app-sidebar class="col-auto sidebar bg-sidebar-p min-vh-82 rounded-3 p-3 shadow-lg sidebar-moov" id="sidebar"></app-sidebar>
-        <app-container class="col px-3 sidebar-moov" id="body-corps"></app-container>
+<div class="row bg-light px-3">
+    <app-sidebar class="col-auto sidebar bg-sidebar-p min-vh-82 rounded-3 p-3 shadow-lg sidebar-moov" id="sidebar"></app-sidebar>
+    <div class="col px-3 sidebar-moov" id="body-corps">
+        <div class="px-5">
+            <router-outlet />
+        </div>
     </div>
+</div>

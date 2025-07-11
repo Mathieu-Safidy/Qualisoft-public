@@ -1,27 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const ctx = document.getElementById('myChart');
+    // const ctx = document.getElementById('myChart');
 
-    const myChart = new Chart(ctx, {
-        type: 'line', // 'line', 'pie', etc. aussi possibles
-        data: {
-            labels: ['Janvier', 'Février', 'Mars', 'Avril'],
-            datasets: [{
-                label: 'Ventes',
-                data: [12, 19, 3, 5],
-                backgroundColor: '#7EE2A7', // Couleur entreprise
-                borderColor: '#53b67c',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+    // const myChart = new Chart(ctx, {
+    //     type: 'line', // 'line', 'pie', etc. aussi possibles
+    //     data: {
+    //         labels: ['Janvier', 'Février', 'Mars', 'Avril'],
+    //         datasets: [{
+    //             label: 'Ventes',
+    //             data: [12, 19, 3, 5],
+    //             backgroundColor: '#7EE2A7', // Couleur entreprise
+    //             borderColor: '#53b67c',
+    //             borderWidth: 1
+    //         }]
+    //     },
+    //     options: {
+    //         responsive: true,
+    //         scales: {
+    //             y: {
+    //                 beginAtZero: true
+    //             }
+    //         }
+    //     }
+    // });
 
     const bread = document.getElementById('bread');
     const sidebar = document.getElementById('sidebar');

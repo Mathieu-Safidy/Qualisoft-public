@@ -1,0 +1,141 @@
+<div class="p-3 rounded-3">
+  <form>
+    <div class="mb-3 row justify-content-center px-4 pt-1">
+      <!-- <label
+        for="table-filtering-search"
+        class="col-xs-3 col-sm-auto col-form-label"
+        >Full text search:</label
+      > -->
+      <label
+        for="table-filtering-search"
+        class="col-xs-3 col-sm-auto col-form-label"
+        >--</label
+      >
+      <div class="col-xs-3 col-sm-auto">
+        <input
+          id="table-filtering-search"
+          class="form-control text-center sha"
+          type="text"
+          placeholder="Rechercher . . ."
+          [formControl]="filter"
+        />
+      </div>
+      <label
+        for="table-filtering-search"
+        class="col-xs-3 col-sm-auto col-form-label"
+        >--</label
+      >
+    </div>
+  </form>
+
+  <table class="table">
+    <thead class="">
+      <tr class="border-0">
+        <th scope="col" class="border-0"><p></p></th>
+        <th
+          scope="col"
+          class="px-3 border-0"
+          sortable="name"
+          (sort)="onSort($event)"
+        >
+          <p class="border-0">Country</p>
+        </th>
+        <th
+          scope="col"
+          class="px-3 border-0"
+          sortable="area"
+          (sort)="onSort($event)"
+        >
+          <p>Area</p>
+        </th>
+        <th
+          scope="col"
+          class="px-3 border-0"
+          sortable="population"
+          (sort)="onSort($event)"
+        >
+          <p class="border-0">Population</p>
+        </th>
+        <th class="border-0"></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (country of countries$ | async; track country.name; let i = $index) {
+      <tr class="shadow menu-row">
+        <th scope="row" class="p-3 ps-5">{{ i + 1 }}</th>
+        <td class="p-3">
+          <img
+            [src]="'https://upload.wikimedia.org/wikipedia/commons/' + country.flag"
+            [alt]="'The flag of ' + country.name"
+            class="me-2"
+            style="width: 20px"
+          />
+          <ngb-highlight [result]="country.name" [term]="filter.value" />
+        </td>
+        <td class="p-3">
+          <ngb-highlight
+            [result]="country.area | number"
+            [term]="filter.value"
+          />
+        </td>
+        <td class="p-3">
+          <ngb-highlight
+            [result]="country.population | number"
+            [term]="filter.value"
+          />
+        </td>
+        <td class="py-3 px-5 d-flex justify-content-end">
+          <fa-icon icon="chevron-right"></fa-icon>
+        </td>
+      </tr>
+      } @empty {
+      <tr>
+        <td colspan="4" style="text-align: center">No countries found</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+  <nav
+    aria-label="Page navigation"
+    *ngIf="filteredSortedCountries.length > pageSize"
+    class="mt-3"
+  >
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [class.disabled]="page === 1">
+        <a
+          href="#"
+          class="page-link"
+          (click)="goToPage(page - 1); $event.preventDefault()"
+        >
+          Précédent
+        </a>
+      </li>
+
+      <li
+        class="page-item"
+        *ngFor="let p of [].constructor(Math.ceil(filteredSortedCountries.length / pageSize)); let i = index"
+        [class.active]="page === i + 1"
+      >
+        <a
+          href="#"
+          class="page-link"
+          (click)="goToPage(i + 1); $event.preventDefault()"
+          >{{ i + 1 }}</a
+        >
+      </li>
+
+      <li
+        class="page-item"
+        [class.disabled]="page === Math.ceil(filteredSortedCountries.length / pageSize)"
+      >
+        <a
+          href="#"
+          class="page-link"
+          (click)="goToPage(page + 1); $event.preventDefault()"
+        >
+          Suivant
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
