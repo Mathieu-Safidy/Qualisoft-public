@@ -251,7 +251,7 @@ export class Stepper {
     if (!formulaire3 || formulaire3.length === 0) {
       this.ajouterLigne(colonneForm);
     }
-
+    
     this.updateFiltered3();
 
     // this.detailService.filtre('ligne1', 'plan1', 'fonction1').subscribe((resultats: Operations[]) => {
@@ -294,8 +294,14 @@ export class Stepper {
   }
 
   ajouterLigne(colonne: string[] = []) {
-    console.log('ajouter ligne', colonne)
-    return this.typeErreur.push(this.genererGroup(colonne));
+    // console.log('ajouter ligne', colonne)
+    let group = this.genererGroup(colonne);
+    const colonneNonVide = colonne.filter(res => res != "" && res != null && res != undefined);
+    if (colonneNonVide.length === 1) {
+      const col = colonneNonVide[0]; 
+      group.get(col)?.setValue(true);
+    }
+    return this.typeErreur.push(group);
   }
 
   substractLigne(event: number) {
@@ -315,6 +321,6 @@ export class Stepper {
     };
     console.log('Formulaire complet :', data , 'colonne ',this.colone_form3);
 
-    this.router.navigate(['/Acceuil/recap'] , {state: { data: data }});
+    this.router.navigate(['/Dashboard/recap'] , {state: { data: data }});
   }
 }

@@ -27,45 +27,47 @@
       >
     </div>
   </form>
-
-  <table class="table">
-    <thead>
-      <tr class="border-0">
-        <th
-          *ngFor="let col of columns"
-          scope="col"
-          class="px-3 border-0"
-          [sortable]="col.isSortable ? keyToString(col.key) : ''"
-          [direction]="currentSort.column === col.key ? currentSort.direction : ''"
-          (sort)="onSort($event)"
+  <div id="projectList" class="p-2">
+    <table class="table">
+      <thead>
+        <tr class="border-0">
+          <th
+            *ngFor="let col of columns"
+            scope="col"
+            class="px-3 border-0"
+            [sortable]="col.isSortable ? keyToString(col.key) : ''"
+            [direction]="currentSort.column === col.key ? currentSort.direction : ''"
+            (sort)="onSort($event)"
+          >
+            {{ col.label }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let row of pagedData$ | async; let i = index"
+          class="shadow menu-row"
+          (click)="onRowClicked?.(row)"
         >
-          {{ col.label }}
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        *ngFor="let row of pagedData$ | async; let i = index"
-        class="shadow menu-row"
-        (click)="onRowClicked?.(row)"
-      >
-        <td *ngFor="let col of columns" class="p-3">
-          <ng-container *ngIf="col.format; else defaultCell">
-            {{ col.format(row[col.key], row) }}
-          </ng-container>
-          <ng-template #defaultCell> {{ row[col.key] }} </ng-template>
-        </td>
-        <td class="py-3 px-5 d-flex justify-content-end">
-          <fa-icon icon="chevron-right"></fa-icon>
-        </td>
-      </tr>
-      <tr *ngIf="(pagedData$ | async)?.length === 0">
-        <td [attr.colspan]="columns.length" style="text-align: center">
-          Aucune donnée trouvée
-        </td>
-      </tr>
-    </tbody>
-  </table>
+          <td *ngFor="let col of columns" class="p-3">
+            <ng-container *ngIf="col.format; else defaultCell">
+              {{ col.format(row[col.key], row) }}
+            </ng-container>
+            <ng-template #defaultCell> {{ row[col.key] }} </ng-template>
+          </td>
+          <td class="py-3 px-5 d-flex justify-content-end">
+            <fa-icon icon="chevron-right"></fa-icon>
+          </td>
+        </tr>
+        <tr *ngIf="(pagedData$ | async)?.length === 0">
+          <td [attr.colspan]="columns.length" style="text-align: center">
+            Aucune donnée trouvée
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <nav
     aria-label="Page navigation"
     *ngIf="filteredSortedData.length > pageSize"

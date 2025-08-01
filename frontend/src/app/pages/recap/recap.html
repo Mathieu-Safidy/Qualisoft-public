@@ -5,16 +5,8 @@
       <p><span class="fw-medium">Ligne : </span> {{ ligne }}</p>
       <p><span class="fw-medium">Plan : </span> {{ plan }}</p>
       <p><span class="fw-medium">Fonction : </span> {{ fonction }}</p>
-      <p>
-        <span class="fw-medium">Type de traitement : </span> {{ type_traite }}
-      </p>
-      <p>
-        <span class="fw-medium">Description de traitement : </span> {{
-        descriptiont_traite }}
-      </p>
-      <div class="row bg-info-subtle p-3 rounded-3 mb-3">
-        <p>{{ descriptiont_traite }}</p>
-      </div>
+      
+
       <p><span class="fw-medium">Nom du client :</span> {{ client_nom }}</p>
       <p>
         <span class="fw-medium">Nom de l'interlocuteur client :</span> {{
@@ -31,6 +23,17 @@
       <p>
         <span class="fw-medium">CP responsable :</span> {{ cp_responsable }}
       </p>
+      <p>
+        <span class="fw-medium">Type de traitement : </span> {{ type_traite }}
+      </p>
+      <div class="row mb-3 border border-black p-3 rounded-3">
+        <p>
+          <span class="fw-medium">Description de traitement : </span>
+        </p>
+        <div class="bg-info-subtle p-3 rounded-3 mb-3">
+          <p>{{ descriptiont_traite }}</p>
+        </div>
+      </div>
 
       <div class="row mb-5 mt-5 border border-black p-3 rounded-3">
         <p><span class="fw-medium">Objectif qualite : </span></p>

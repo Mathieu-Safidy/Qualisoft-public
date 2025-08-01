@@ -30,7 +30,7 @@
             <td>
               <!-- <input type="text" name="typeErreur" class="col-12 form-control" id="" formControlName="typeErreur"> -->
               <input 
-                    type="text" name="typeErreur" class="col-12 form-control" id="" formControlName="typeErreur"
+                    type="text" name="typeErreur" class="col-2 form-control" id="" formControlName="typeErreur"
                     matInput
                     [matAutocomplete]="autErreur"
                 />
@@ -41,18 +41,19 @@
                 </mat-autocomplete>
             </td>
             <td>
-              <select name="" id="" name="degre" class="col-12 form-control" id="" formControlName="degre">
+              <select name="" id="" name="degre" class="col-2 form-control" id="" formControlName="degre">
                 <option value="0">Mineure</option>
                 <option value="1">Majeure</option>
               </select>
-              <!-- <input type="text" name="degre" class="col-12 form-control" id="" formControlName="degre"> -->
+              <!-- <input type="text" name="degre" class="col-2 form-control" id="" formControlName="degre"> -->
             </td>
-            <td><input type="text" name="coef" class="col-12 form-control" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" id="" formControlName="coef"></td>
-            <td><input type="text" name="raccourci" class="col-12 form-control" id="" formControlName="raccourci"></td>
-            <ng-container *ngFor="let col of colonne">
+            <td><input type="text" name="coef" class="col-2 form-control" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" id="" formControlName="coef"></td>
+            <td><input type="text" name="raccourci" class="col-2 form-control" id="" formControlName="raccourci"></td>
+            <ng-container *ngFor="let col of lister()">
               <td class="text-center align-middle">
                  <div class="d-flex justify-content-center align-items-center">
-                   <input type="checkbox" name="control" class="col-12 form-check-input " id=""  formControlName="{{ col }}">
+                   <input *ngIf="col !== ''"  type="checkbox" name="control" class="col-2 form-check-input " id="" style="width: 30px;height: 30px;"  formControlName="{{ col }}" >
+                   <input *ngIf="col == ''" type="checkbox" name="control" class="col-2 form-check-input " id="" style="width: 30px;height: 30px;"  >
                  </div>
               </td>
             </ng-container>

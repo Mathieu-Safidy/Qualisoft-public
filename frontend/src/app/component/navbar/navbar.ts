@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../service/auth-service';
 
 @Component({
   selector: 'app-navbar',
@@ -8,6 +9,14 @@ import { RouterModule } from '@angular/router';
   styleUrl: './navbar.css'
 })
 export class Navbar {
+
+  constructor(private authService : AuthService , private router : Router , private route: ActivatedRoute) {}
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate([''], { relativeTo: this.route } );
+  }
+
   ngAfterViewInit(): void {
     const bread = document.getElementById('bread');
     const sidebar = document.getElementById('sidebar');

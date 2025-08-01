@@ -11,16 +11,26 @@ import { Stepper } from './component/stepper/stepper';
 import { Login } from './pages/login/login';
 import { DetailProjectResolver } from './service/DetailProjectResolver';
 import { Recap } from './pages/recap/recap';
+import { authGuard } from './guard/auth-guard';
 
 
 export const routes: Routes = [
+    // {
+    //     path: '',
+    //     component: Login
+    // },
     {
         path: '',
-        component: Login
+        component: Login, // ton layout principal
     },
     {
-        path: 'Acceuil',
+        path: 'login',
+        component: Login, // ton layout principal
+    },
+    {
+        path: 'Dashboard',
         component: Corp, // ton layout principal
+        canActivate: [authGuard],
         children: [
             { path: '', component: Acceuil }, // => /
             { path: 'recap' , component: Recap }, // => /recap
@@ -35,16 +45,41 @@ export const routes: Routes = [
                         }
                     },
                     { 
-                        path: 'projet/:id', 
+                        path: 'projet/:id/:fonction', 
                         component: Stepper, 
                         resolve: {
                             data : DetailProjectResolver
                         }
                     },
-                    { path: 'projet/:id/objectif', component: ObjectifQualite } // => /parametrage/projet/detail
+                    { path: 'projet/:id/:fonction/objectif', component: ObjectifQualite } // => /parametrage/projet/detail
                 ]
             }, // => /parametrage
              // => /login
         ]
     },
+    // {
+    //     path: 'parametrage',
+    //     component: Parametrage,
+    //     children: [
+    //         {
+    //             path: '', component: ProjectList,
+    //             resolve: {
+    //                 projects: ApiDataResolver
+    //             }
+    //         },
+    //         {
+    //             path: 'projet/:id',
+    //             component: Stepper,
+    //             resolve: {
+    //                 data: DetailProjectResolver
+    //             }
+    //         },
+    //         { path: 'projet/:id/objectif', component: ObjectifQualite } // => /parametrage/projet/detail
+    //     ]
+
+    // }, 
+    // { 
+    //     path: 'recap',
+    //     component: Recap
+    // }
 ];

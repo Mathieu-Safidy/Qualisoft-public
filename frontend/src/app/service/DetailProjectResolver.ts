@@ -19,7 +19,7 @@ export class DetailProjectResolver implements Resolve<any> {
   resolve(route: ActivatedRouteSnapshot): Observable<any> {
     const plan = route.paramMap.get('id') ?? '';
     const ligne = '';
-    const fonction = '';
+    const fonction = route.paramMap.get('fonction') ?? '';
 
 
     let { lignes, plans, fonctions } = this.getFilter(ligne, plan, fonction);

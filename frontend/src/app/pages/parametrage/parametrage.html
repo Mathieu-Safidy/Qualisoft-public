@@ -1,5 +1,5 @@
 <div class="">
-    <div class="row p-3 ">
+    <div class="row p-3 pb-0 ">
         <div class="bg-white p-4 px-0 shadow rounded-3 text-black">
             <div class="row ps-3">
                 <div class="col-4">
@@ -12,24 +12,6 @@
                 </div>
                 <div class="col-4"></div>
             </div>
-            <!-- <mat-horizontal-stepper>
-                <mat-step [stepControl]="form1">
-                    <app-project-list [form]="form1"></app-project-list>
-                    
-                                    <mat-step [stepControl]="form2">
-                                        <app-step2 [form]="form2"></app-step2>
-                                        <button mat-button matStepperPrevious>Précédent</button>
-                                        <button mat-button matStepperNext [disabled]="form2.invalid">Suivant</button>
-                                    </mat-step>
-                    
-                                    <mat-step [stepControl]="form3">
-                                        <app-step3 [form]="form3"></app-step3>
-                                        <button mat-button matStepperPrevious>Précédent</button>
-                                        <button mat-button (click)="submit()" [disabled]="form3.invalid">Envoyer</button>
-                                    </mat-step>
-                    <button mat-button matStepperNext [disabled]="form1.invalid">Suivant</button>
-                </mat-step>
-            </mat-horizontal-stepper> -->
 
             <router-outlet></router-outlet>
         </div>

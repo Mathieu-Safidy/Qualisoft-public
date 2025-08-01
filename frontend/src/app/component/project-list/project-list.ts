@@ -5,6 +5,7 @@ import { ProjectService } from '../../service/ProjectService';
 import { Projet } from '../../interface/Projet';
 import { ChangeDetectorRef } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { VueGlobal } from '../../interface/VueGlobal';
 
 @Component({
   selector: 'app-project-list',
@@ -18,13 +19,14 @@ export class ProjectList {
 
   private projectService = inject(ProjectService);
 
-  mesDonnees: Projet[] = [];
+  mesDonnees: VueGlobal[] = [];
 
-  colonnes: ColumnDef<Projet>[] = [
-    { key: 'id_cgu', label: 'CGU', isSortable: true, isSearchable: true },
+  colonnes: ColumnDef<VueGlobal>[] = [
+    { key: 'id_cgu', label: 'CGU'},
     { key: 'id_plan', label: 'Plan', isSortable: true, isSearchable: true },
-    { key: 'libelle', label: 'Libellé', isSortable: true, isSearchable: true },
-    { key: 'date_susp', label: 'Date suspension', isSortable: true },
+    { key: 'lib_plan', label: 'Libellé plan', isSortable: true, isSearchable: true },
+    { key: 'id_fonction', label: 'Fonction', isSortable: true, isSearchable: true },
+    { key: 'lib_fonction', label: 'Libellé fonction', isSortable: true, isSearchable: true  },
   ];
 
   constructor(private router: Router, private route: ActivatedRoute, private cdr: ChangeDetectorRef) {
@@ -43,7 +45,7 @@ export class ProjectList {
 
   goToDetail = (row: any) => {
     // console.log('Navigating to detail for row:', row);
-    this.router.navigate(['projet', row.id_plan], { relativeTo: this.route });
+    this.router.navigate(['projet', row.id_plan , row.id_fonction], { relativeTo: this.route });
   }
 
 

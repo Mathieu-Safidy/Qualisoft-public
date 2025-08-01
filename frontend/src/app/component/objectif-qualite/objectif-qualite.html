@@ -1,7 +1,7 @@
 <div class="px-3 py-4">
   <div class="row mb-3">
     <div class="col-10">
-      <button type="button" (click)="checkValid()">check</button>
+      <!-- <button type="button" (click)="checkValid()">check</button> -->
     </div>
     <div class="col-2 text-end">
         <button type="button" class="btn btn-success" (click)="addItem()"> <fa-icon icon="plus-circle" ></fa-icon> Add</button>
@@ -74,12 +74,12 @@
                  </select>
                 </div>
                 <div class="col-1 text-center">
-                  <input formControlName="seuilQualite" class="form-control" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" value="{{ fg.get('seuilQualite')?.value }}" />
+                  <input formControlName="seuilQualite" class="form-control text-end" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" value="{{ fg.get('seuilQualite')?.value }}" />
                 </div>
                 <div class="col-2 text-center">
                   <!-- <input formControlName="typeControl" class="form-control"  value="{{ fg.get('typeControl')?.value }}" /> -->
                   <select formControlName="typeControl" class="form-control">
-                    <option value="">Type de contrôle</option>
+                    <!-- <option value="" class="text-body-tertiary"><span class="text-body-tertiary">--Type de contrôle--</span></option> -->
                     <option value="0">Interne</option>
                    <option value="1">BCQ</option>
                    <option value="2">Externe</option>
@@ -92,7 +92,7 @@
                 </select>
               </div>
               <div class="col-1 text-end pe-0">
-                  <input formControlName="critereRejet" class="form-control " (keypress)="filterInput($event)" (blur)="formatCritereRejet(i)" value="{{ fg.get('critereRejet')?.value }}" />
+                  <input formControlName="critereRejet" class="form-control text-end " (keypress)="filterInput($event)" (blur)="formatCritereRejet(i)" value="{{ fg.get('critereRejet')?.value }}" />
               </div>
               <div class="col-1 text-end">
                 <button type="button" class="btn btn-danger " (click)="removeItem(i)"> <fa-icon icon="minus-circle" ></fa-icon></button>

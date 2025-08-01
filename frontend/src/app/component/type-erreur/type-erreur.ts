@@ -40,6 +40,8 @@ export class TypeErreur {
     console.log('formErreur control = ', this.form.controls['formErreur']);
     console.log('formGroup.length = ', this.formGroup.length);
 
+
+
     // this.filteredOperations = this.formGroup.map((fg, i) =>
     //   fg.get('typeErreur')!.valueChanges.pipe(
     //     startWith(''),
@@ -50,6 +52,23 @@ export class TypeErreur {
     //   )
     // );
     // console.log("Form dans erreur", this.form);
+  }
+
+  lister(): string[] {
+    if (this.colonne.length === 1) {
+      const col = this.colonne[0]; // la seule colonne
+      // console.log('this.form1', this.form , this.formGroup[0].get(col));
+      this.formGroup[0].get(col)?.setValue(true);
+      // console.log('this.form2', this.form , this.formGroup[0].get(col));
+    }
+    if (this.colonne.length < 4) {
+      let reste = 4 - this.colonne.length
+      console.log(reste);
+      for (let index = 0; index < reste; index++) {
+        this.colonne.push("");
+      }
+    }
+    return this.colonne;
   }
 
 
