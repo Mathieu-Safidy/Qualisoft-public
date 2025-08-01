@@ -1,3 +1,4 @@
+
 import {
   Component,
   Directive,
@@ -15,14 +16,17 @@ import { map, startWith } from 'rxjs/operators';
 import { NgbHighlight } from '@ng-bootstrap/ng-bootstrap';
 import { FaIconComponent, FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
-interface Country {
-  name: string;
-  flag: string;
-  area: number;
-  population: number;
-}
 
-export type SortColumn = keyof Country | '';
+// Type générique pour la liste
+export type ColumnDef<T> = {
+  key: keyof T;
+  label: string;
+  isSortable?: boolean;
+  isSearchable?: boolean;
+  format?: (value: any, row: T) => string;
+};
+
+export type SortColumn<T> = keyof T | '';
 export type SortDirection = 'asc' | 'desc' | '';
 
 const rotate: { [key: string]: SortDirection } = { asc: 'desc', desc: '', '': 'asc' };
@@ -30,17 +34,12 @@ const rotate: { [key: string]: SortDirection } = { asc: 'desc', desc: '', '': 'a
 const compare = (v1: string | number, v2: string | number) =>
   v1 < v2 ? -1 : v1 > v2 ? 1 : 0;
 
-export interface SortEvent {
-  column: SortColumn;
+export interface SortEvent<T = any> {
+  column: SortColumn<T>;
   direction: SortDirection;
 }
 
-const COUNTRIES: Country[] = [
-  { name: 'Russia', flag: 'f/f3/Flag_of_Russia.svg', area: 17075200, population: 146989754 },
-  { name: 'Canada', flag: 'c/cf/Flag_of_Canada.svg', area: 9976140, population: 36624199 },
-  { name: 'United States', flag: 'a/a4/Flag_of_the_United_States.svg', area: 9629091, population: 324459463 },
-  { name: 'China', flag: 'f/fa/Flag_of_the_People%27s_Republic_of_China.svg', area: 9596960, population: 1409517397 },
-];
+
 
 // Directive tri
 @Directive({
@@ -53,7 +52,7 @@ const COUNTRIES: Country[] = [
   },
 })
 export class NgbdSortableHeader {
-  @Input() sortable: SortColumn = '';
+  @Input() sortable: string = '';
   @Input() direction: SortDirection = '';
   @Output() sort = new EventEmitter<SortEvent>();
 
@@ -66,99 +65,139 @@ export class NgbdSortableHeader {
 @Component({
   selector: 'app-liste',
   standalone: true,
-  imports: [DecimalPipe, AsyncPipe, ReactiveFormsModule, NgbHighlight, NgbdSortableHeader, CommonModule, FaIconComponent , FontAwesomeModule],
+  imports: [AsyncPipe, ReactiveFormsModule, NgbdSortableHeader, CommonModule, FaIconComponent, FontAwesomeModule],
   providers: [DecimalPipe],
   templateUrl: './liste.html',
   styleUrls: ['./liste.css'],
 })
-export class Liste {
-  private originalCountries = COUNTRIES;
-  private currentSort: SortEvent = { column: '', direction: '' };
+export class Liste<T extends Record<string, any> = any> {
+  getPageNumbers(): number[] {
+    const totalPages = Math.ceil(this.filteredSortedData.length / this.pageSize);
+    const maxPages = 10;
+    let start = Math.max(1, this.page - Math.floor(maxPages / 2));
+    let end = start + maxPages - 1;
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - maxPages + 1);
+    }
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+  ngOnChanges(changes: any) {
+    // console.log('ngOnChanges called', changes);
+    this.originalData = this.data;
+    // console.log('originalData set', this.originalData);
+    this.filter.valueChanges.pipe(startWith('')).subscribe((text) => {
+      // console.log('filter valueChanges', text);
+      const filtered = this.sortData(this.search(text));
+      this.filteredSortedData = filtered;
+      this.page = 1;
+      this.updatePagedData();
+      // console.log('filteredSortedData after filter', this.filteredSortedData);
+    });
+    // Initialisation
+    const filtered = this.sortData(this.search(this.filter.value));
+    this.filteredSortedData = filtered;
+    this.updatePagedData();
+    // console.log('filteredSortedData after initialisation', this.filteredSortedData);
+  }
+  keyToString(key: keyof T): string {
+    return String(key);
+  }
+  @Input() data: T[] = [];
+  @Input() columns: ColumnDef<T>[] = [];
+  @Input() pageSize = 10;
+  @Input() onRowClicked?: (row: any) => void;
+
 
   filter = new FormControl('', { nonNullable: true });
-  countries$ = new Observable<Country[]>();
+  pagedData$ = new Observable<T[]>();
+  filteredSortedData: T[] = [];
+  page = 1;
+  Math = Math;
+  public currentSort: SortEvent<T> = { column: '', direction: '' };
+  private originalData: T[] = [];
 
   @ViewChildren(NgbdSortableHeader) headers!: QueryList<NgbdSortableHeader>;
 
-  // Pagination
-  page = 1;
-  pageSize = 10; // éléments par page
-  filteredSortedCountries: Country[] = [];
-  Math = Math
+  constructor(private pipe: DecimalPipe) { }
 
-  constructor(private pipe: DecimalPipe) {}
+  // ngOnInit() {
+  //   this.originalData = this.data;
+  //   this.filter.valueChanges.pipe(startWith('')).subscribe((text) => {
+  //     const filtered = this.sortData(this.search(text));
+  //     this.filteredSortedData = filtered;
+  //     this.page = 1;
+  //     this.updatePagedData();
+  //   });
+  //   // Initialisation
+  //   const filtered = this.sortData(this.search(this.filter.value));
+  //   this.filteredSortedData = filtered;
+  //   this.updatePagedData();
+  // }
 
-  ngOnInit() {
-    this.filter.valueChanges
-      .pipe(startWith(''))
-      .subscribe((text) => {
-        const filtered = this.sortData(this.search(text));
-        this.filteredSortedCountries = filtered;
-        this.page = 1; // toujours repartir à la première page
-        this.updatePagedData();
-      });
-  }
-
-
-  onSort({ column, direction }: SortEvent) {
+  onSort({ column, direction }: SortEvent<T>) {
+    console.log('onSort called', column, direction);
     this.headers.forEach((header) => {
       if (header.sortable !== column) header.direction = '';
     });
-
     this.currentSort = { column, direction };
-
-    // recherche + tri
     const filtered = this.search(this.filter.value);
     const sorted = this.sortData(filtered);
-    this.filteredSortedCountries = sorted;
-    this.page = 1; // reset page
+    this.filteredSortedData = sorted;
+    this.page = 1;
     this.updatePagedData();
-
-    this.countries$ = new Observable((observer) => {
+    this.pagedData$ = new Observable((observer) => {
       observer.next(this.getPagedData(sorted));
       observer.complete();
     });
   }
 
-  private search(text: string): Country[] {
-    const term = text.toLowerCase();
-    return this.originalCountries.filter(
-      (country) =>
-        country.name.toLowerCase().includes(term) ||
-        this.pipe.transform(country.area)?.includes(term) ||
-        this.pipe.transform(country.population)?.includes(term),
+  private search(text: string): T[] {
+    const term = text?.toLowerCase() || '';
+    return this.originalData.filter((row) =>
+      this.columns.some((col) => {
+        if (col.isSearchable === false) return false;
+        const value = row[col.key];
+        if (typeof value === 'string') return value.toLowerCase().includes(term);
+        if (typeof value === 'number') return this.pipe.transform(value)?.includes(term);
+        if (value && (value as any) instanceof Date) return (value as Date).toLocaleDateString().toLowerCase().includes(term);
+        return false;
+      })
     );
   }
 
-  private sortData(countries: Country[]): Country[] {
+  private sortData(data: T[]): T[] {
     const { column, direction } = this.currentSort;
-    if (!column || !direction) return countries;
-    return [...countries].sort((a, b) => {
+    if (!column || !direction) return data;
+    return [...data].sort((a, b) => {
       const res = compare(a[column], b[column]);
       return direction === 'asc' ? res : -res;
     });
   }
 
-  private getPagedData(data: Country[]): Country[] {
+  private getPagedData(data: T[]): T[] {
     const start = (this.page - 1) * this.pageSize;
     return data.slice(start, start + this.pageSize);
   }
 
   goToPage(page: number) {
-    if (page < 1 || page > Math.ceil(this.filteredSortedCountries.length / this.pageSize)) return;
+    if (page < 1 || page > Math.ceil(this.filteredSortedData.length / this.pageSize)) return;
     this.page = page;
-    this.countries$ = new Observable((observer) => {
-      observer.next(this.getPagedData(this.filteredSortedCountries));
+    this.pagedData$ = new Observable((observer) => {
+      observer.next(this.getPagedData(this.filteredSortedData));
       observer.complete();
     });
   }
+
   updatePagedData() {
-    const paged = this.getPagedData(this.filteredSortedCountries);
-    this.countries$ = new Observable((obs) => {
+    const paged = this.getPagedData(this.filteredSortedData);
+    this.pagedData$ = new Observable((obs) => {
       obs.next(paged);
       obs.complete();
     });
   }
-
-
 }

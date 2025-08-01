@@ -1,0 +1,85 @@
+<div class="container-fluid bg-success-p">
+  <div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card p-5 pt-4 shadow-lg position-relative border-0 border-black">
+      <div class="card-img text-white position-absolute top-0 start-50 translate-middle " style="width: 90px;">
+        <div class="col-10 bg-white rounded-2 p-2 shadow border-1 border-black">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 40 40" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                <path d="M0 0 C13.2 0 26.4 0 40 0 C40 13.2 40 26.4 40 40 C34.72 40 29.44 40 24 40 C24 37.69 24 35.38 24 33 C26.97 33 29.94 33 33 33 C33 24.42 33 15.84 33 7 C24.42 7 15.84 7 7 7 C7 7.99 7 8.98 7 10 C4.69 10 2.38 10 0 10 C0 6.7 0 3.4 0 0 Z" fill="#7DE1A6" transform="translate(4,4)"/>
+                <path d="M0 0 C2.31 0 4.62 0 7 0 C7 6.93 7 13.86 7 21 C11.95 21 16.9 21 22 21 C22 23.31 22 25.62 22 28 C14.74 28 7.48 28 0 28 C0 18.76 0 9.52 0 0 Z" fill="#242424" transform="translate(4,16)"/>
+                <circle cx="24" cy="24" r="4" fill="#242424"/>
+            </svg>
+
+        </div>
+      </div>
+      <div class="card-body">
+        <h1 class="text-center mb-4">Bienvenue</h1>
+        <form action="" [formGroup]="formulaire" (submit)="login()">
+
+          <div class="">
+            <div class="text-danger  small mt-1 mb-2" *ngIf="formulaire.get('identfiant')?.touched && formulaire.get('identfiant')?.invalid">
+              <div *ngIf="formulaire.get('identfiant')?.errors?.['required']">L'identfiant est requis</div>
+            </div>
+            <div class="input-group mb-4">
+              <span class="input-group-text ">
+                <fa-icon icon="user" class=""></fa-icon>
+              </span>
+              <div class="form-floating ">
+                <input
+                type="text"
+                name=""
+                id="floatingInput"
+                class="form-control"
+                placeholder=""
+                formControlName="identfiant"
+                />
+                <label for="floatingInput">Identifiant</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="">
+            <div class="text-danger  small mt-1 mb-2" *ngIf="formulaire.get('password')?.touched && formulaire.get('password')?.invalid">
+              <div *ngIf="formulaire.get('password')?.errors?.['required']">Le mot de passe est requis</div>
+            </div>
+            <div class="input-group mb-4">
+              <span class="input-group-text ">
+                <fa-icon icon="user" class=""></fa-icon>
+              </span>
+              <div class="form-floating ">
+                <input
+                type="password"
+                name=""
+                id="floatingInput"
+                class="form-control"
+                placeholder=""
+                formControlName="password"
+                />
+                <label for="floatingInput">Mot de passe</label>
+              </div>
+            </div>
+          </div>
+
+          
+
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" value="" id="checkDefault">
+            <label class="form-check-label" for="checkDefault">
+              Se souvenir de moi 
+            </label>
+          </div>
+          <div class="row mb-3">
+            <div class="text-center">
+              <button
+                class="btn btn-dark form-control btn-default-invert-p text-white"
+                type="submit"
+
+              >
+                Se connecter
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

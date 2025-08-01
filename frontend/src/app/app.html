@@ -1,5 +1,6 @@
-<main class="container-fluid bg-light">
-    <app-navbar></app-navbar>
-    <app-corps></app-corps>
-    <app-footer></app-footer>
-</main>
+
+<router-outlet></router-outlet>
+ <!-- <app-corps *ngIf="loggedIn else logginPage"></app-corps>
+ <ng-template #logginPage>
+     <app-login (loginStatus)="handleLoginStatus($event)"></app-login>
+ </ng-template> -->

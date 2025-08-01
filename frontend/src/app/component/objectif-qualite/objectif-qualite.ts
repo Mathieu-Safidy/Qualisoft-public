@@ -1,0 +1,332 @@
+import { ChangeDetectorRef, Component, Input, SimpleChanges, ViewChild } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, SelectControlValueAccessor, Validators } from '@angular/forms';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CommonModule } from '@angular/common';
+import { FaIconComponent, FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { MatAutocomplete, MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { Operation } from '../../interface/Operation';
+import { map, Observable, startWith } from 'rxjs';
+import { DetailProjectService } from '../../service/DetailProjectService';
+import { Operations } from '../../class/Operations';
+import { Unite } from '../../interface/Unite';
+
+@Component({
+  selector: 'app-objectif-qualite',
+  standalone: true,
+  imports: [
+    CommonModule,
+    DragDropModule,
+    ReactiveFormsModule,
+    FaIconComponent,
+    FontAwesomeModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule
+  ],
+  templateUrl: './objectif-qualite.html',
+  styleUrl: './objectif-qualite.css'
+})
+export class ObjectifQualite {
+  trackByIndex(index: number, fg: FormGroup) {
+    return fg.get('id')?.value || index;
+  }
+  items = [''];
+
+  filteredOperations !: Observable<Operation[]>[];
+  @Input() form !: FormGroup;
+  @Input() operations !: Operation[];
+  @Input() formPrecedent !: FormGroup;
+  @Input() unites !: Unite[];
+
+  operationSelected!: { index: number, value: string }[];
+  filteredOperation: Operation[][] = [];
+  // @ViewChild('autOperation') autOperation!: MatAutocomplete;
+
+
+  constructor(private fb: FormBuilder, private cdref: ChangeDetectorRef, private detailService: DetailProjectService) {
+    this.operationSelected = [{ index: 0, value: '-1' }];
+  }
+
+  get formGroups(): FormGroup[] {
+    const formArray = this.form.controls["formArray"];
+    return (formArray as FormArray).controls as FormGroup[];
+  }
+
+  get formArray() {
+    const formArray = this.form.controls["formArray"];
+    return formArray as FormArray;
+  }
+
+  get formul() {
+    return this.form;
+  }
+
+  ngOnInit() {
+    this.filteredOperations = this.formGroups.map((fg) =>
+      fg.get('operation')!.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filter(value || ''))
+      )
+    );
+
+    this.formArray.valueChanges.subscribe((values: any[]) => {
+      // this.operationSelected = values.map((v, i) => ({ index: i, value: v.operationAControler }));
+      // console.log('ici', this.operationSelected);
+      // this.updateFilteredOperations();
+    });
+    this.updateFilteredOperations(1);
+
+  }
+
+  ngAfterViewInit(): void {
+
+
+  }
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['operations']) {
+      console.log('Opérations mises à jour', this.operations);
+      // mettre à jour les champs internes ici
+    }
+  }
+
+  checkValid() {
+    const formArray = this.formArray as FormArray<FormGroup>;
+    if (!formArray) {
+      console.log('Le formulaire principal ou le FormArray est introuvable.');
+      return;
+    }
+
+    formArray.controls.forEach((group, index) => {
+      const invalidControls = Object.keys(group.controls).filter(controlName => {
+        const control = group.get(controlName);
+        return control && control.invalid;
+      });
+
+      if (invalidControls.length > 0) {
+        console.log(`FormGroup à l'index ${index} a des champs invalides :`, invalidControls);
+        invalidControls.forEach(controlName => {
+          const control = group.get(controlName);
+          console.log(`- Champ "${controlName}" :`, control?.errors);
+        });
+      } else {
+        console.log(`FormGroup à l'index ${index} est valide.`);
+      }
+    });
+
+    console.log('Formulaire principal valide :', this.form.valid);
+  }
+
+  private _filter(value: string): Operation[] {
+    // console.log(this.operations)
+    // console.log('value', this.operations.length, 'test', (this.operations?.length === 0));
+    if (this.operations?.length <= 0) return [];
+    const filterValue = value.toLowerCase();
+    // console.log('filterValue', this.operations);
+    return this.operations.filter(option =>
+      option.libelle?.toLowerCase().includes(filterValue)
+    );
+  }
+
+  // private _filterIndex(value: string, index: number): Operation[] {
+  //   const filterValue = value.toLowerCase();
+  //   const selectedOtherOps = this.operationSelected
+  //     .filter(sel => sel.index !== index)
+  //     .map(sel => sel.value);
+
+  //   return this.operations
+  //     .filter(op =>
+  //       op.libelle.toLowerCase().includes(filterValue) &&
+  //       !selectedOtherOps.includes(op.id_operation)
+  //     );
+  // }
+
+
+
+  displayOperation = (id: string): string => {
+    if (!this.operations) return '';
+    const operations = this.operations.find(l => l.id_operation === id);
+    return operations ? operations.libelle : '';
+  };
+
+  selectOperation(event: MatAutocompleteSelectedEvent, index: number) {
+    let value = event.option.value;
+    // Supprime l'entrée existante à cet index s'il y en a une
+    this.operationSelected = this.operationSelected.filter(sel => sel.index !== index);
+
+    this.operationSelected.push({ index: index, value: value });
+
+    console.log('ato', this.operationSelected);
+    this.updateFilteredOperations(index);
+  }
+
+  updateAllOperation() {
+    this.formGroups.forEach((fg, i) => {
+      this.updateFilteredOperations(i);
+    })
+  }
+
+  listControl(index: number): Operation[] {
+    console.log('index', index)
+    if (this.operationSelected) {
+      console.log('select', this.operationSelected);
+      const selectedValuesExceptCurrent = this.operationSelected
+        .filter(sel => sel.index !== index - 1 && sel.index !== 0)
+        .map(sel => sel.value);
+
+      const currentOperation = this.formGroups[index - 1]?.get('operation')?.value;
+
+      const previousOperation = this.formGroups
+        .map((fg, i) => fg ? [i, fg.get('operation')?.value] : [])
+        .filter(val => val !== null && val !== undefined);
+
+      const excluded = previousOperation
+        .map((value, idx) => (currentOperation && ((value[1]).includes(currentOperation.toString())) ? value[0] : null))
+        .filter(idx => idx !== null)
+
+      const operationExclu = this.formGroups.map((fg, i) => excluded.includes(i) ? fg.get('operationAControler')?.value : null)
+        .filter((value => value !== null && value !== undefined))
+
+      const operationExcluNonC = this.formGroups.map((fg, i) => excluded.includes(i) ? fg.get('operation')?.value : null)
+        .filter((value => value !== null && value !== undefined))
+
+      const allExcluded = Array.from(new Set([...operationExclu, ...operationExcluNonC]));
+
+      const operationNew = this.operations.map((value, ici) => !allExcluded.includes(value.id_operation) ? value : null)
+        .filter((value => value !== null && value !== undefined))
+
+      console.log('exclu ', excluded, 'previous', previousOperation, 'current', currentOperation, 'index', index, ' operation exclu ', operationExclu, 'new operation', operationNew)
+
+      return operationNew;
+    }
+    return [];
+  }
+
+  updateFilteredOperations(index: number) {
+    this.filteredOperation[index - 1] = this.listControl(index);
+    console.log(this.filteredOperation)
+  }
+
+  formatSeuilQualite(index: number): void {
+    const ctrl = this.formGroups.at(index)?.get('seuilQualite');
+    let value = ctrl?.value;
+
+    if (value !== null && value !== undefined) {
+      value = value.toString().replace(',', '.');
+      let num = parseFloat(value);
+      if (!isNaN(num)) {
+        num = Math.round(num * 100) / 100;
+        if (num > 100) {
+          alert("La valeur ne peut pas dépasser 100%");
+          num = 0;
+        } else if (num < 0) {
+          alert("La valeur ne peut pas être négative");
+          num = 0;
+        }
+        ctrl?.setValue(num);
+      }
+    }
+  }
+
+  formatCritereRejet(index: number): void {
+    const ctrl = this.formGroups.at(index)?.get('critereRejet');
+    let value = ctrl?.value;
+
+    if (value !== null && value !== undefined) {
+      value = value.toString().replace(',', '.');
+      let num = parseFloat(value);
+      if (!isNaN(num)) {
+        num = Math.round(num * 100) / 100;
+        if (num > 100) {
+          alert("La valeur ne peut pas dépasser 100");
+          num = 0;
+        } else if (num < 0) {
+          alert("La valeur ne peut pas être négative");
+          num = 0;
+        }
+        ctrl?.setValue(num);
+      }
+    }
+  }
+
+  filterInput(event: KeyboardEvent): void {
+    const allowed = /[0-9.,]/;
+    if (!allowed.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+
+
+  // drop(event: CdkDragDrop<FormGroup[]>) {
+  //   moveItemInArray(this.formArray.controls, event.previousIndex, event.currentIndex);
+  // }
+  drop(event: CdkDragDrop<FormGroup[]>) {
+    if (event.previousIndex === event.currentIndex) return;
+
+    const formArray = this.formArray;
+    const item = formArray.at(event.previousIndex);
+
+    formArray.removeAt(event.previousIndex);
+    formArray.insert(event.currentIndex, item);
+    // console.log(formArray.controls.map(fg => fg.value));
+    // this.filteredOperations = this.formGroups.map((fg) =>
+    //   fg.get('operation')!.valueChanges.pipe(
+    //     startWith(''),
+    //     map(value => this._filter(value || ''))
+    //   )
+    // );
+    this.cdref.detectChanges();
+
+  }
+
+
+
+  addItem() {
+    const fg = this.fb.group({
+      id: [crypto.randomUUID()],
+      operation: ['', Validators.required],
+      unite: ['', Validators.required],
+      seuilQualite: ['', Validators.required],
+      typeControl: ['', Validators.required],
+      operationAControler: ['', Validators.required],
+      critereRejet: ['', Validators.required]
+    });
+    const formArray = this.form.get('formArray') as FormArray | null;
+    if (formArray) {
+      formArray.push(fg);
+    }
+    const index = this.formArray.length - 1
+    this.filteredOperations[index] = fg.get('operation')!.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value || ''))
+    );
+  }
+
+  removeItem(index: number) {
+    // const formArray = this.form.get('formArray') as FormArray | null;
+    const formArray = this.formArray
+    console.log('avant', formArray.controls)
+    if (formArray) {
+      formArray.removeAt(index);
+    }
+    console.log('apres', formArray.controls)
+
+  }
+
+  submit() {
+    const formArray = this.form.get('formArray');
+    if (formArray && formArray.invalid) {
+      formArray.markAllAsTouched(); // active les messages d’erreur
+      // sinon tu récupères les données valides :
+      const data = formArray.getRawValue(); // ou .value si tu ne veux pas les champs disabled
+      console.log('Données à envoyer', data);
+
+      // ici : appel API, console, ou autre traitement
+      return;
+    }
+
+  }
+
+}

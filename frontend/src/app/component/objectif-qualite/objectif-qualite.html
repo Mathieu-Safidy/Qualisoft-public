@@ -1,0 +1,106 @@
+<div class="px-3 py-4">
+  <div class="row mb-3">
+    <div class="col-10">
+      <button type="button" (click)="checkValid()">check</button>
+    </div>
+    <div class="col-2 text-end">
+        <button type="button" class="btn btn-success" (click)="addItem()"> <fa-icon icon="plus-circle" ></fa-icon> Add</button>
+    </div>
+  </div>
+  <div class="card p-3 pt-0">
+    
+    <div class="row mb-3 card-header">
+        <div class="col-1 text-center d-flex justify-content-center"></div>
+        <div class="col-2 text-center fw-bold  d-flex justify-content-center">
+            <div class=" rounded-2 align-content-center ">
+                Operation de control
+            </div>
+        </div>
+        <div class="col-2 text-center fw-bold  d-flex justify-content-center">
+            <div class=" rounded-2 align-content-center ">
+                Unite
+            </div>
+        </div>
+        <div class="col-1 text-center fw-bold  d-flex justify-content-center">
+            <div class=" rounded-2 align-content-center ">
+                Seuil qualite
+            </div>
+        </div>
+        <div class="col-2 text-center fw-bold  d-flex justify-content-center">
+            <div class=" rounded-2 align-content-center ">
+                Type de control
+            </div>
+        </div>
+        <div class="col-2 text-center fw-bold  d-flex justify-content-center">
+            <div class=" rounded-2 align-content-center ">
+                Operation a controler
+            </div>
+        </div>
+        <div class="col-1 text-center fw-bold  d-flex justify-content-center">
+            <div class=" rounded-2 align-content-center ">
+                Critere de rejet
+            </div>
+        </div>
+        <div class="col-1 text-center fw-bold  d-flex justify-content-center">
+            <div class=" rounded-2 align-content-center ">
+                minus
+            </div>
+        </div>
+    </div>
+    <div class="list card-body p-3" >
+      <form [formGroup]="form">
+        <div class="" formArrayName="formArray"  cdkDropList (cdkDropListDropped)="drop($event)">
+          <div *ngFor="let fg of formArray.controls;  let i = index; trackByIndex: trackByIndex ; " [formGroupName]="i" cdkDrag class="row border border-2 mb-3 p-3 px-0 rounded-3 bg-light shadow">
+            <div class="col-1 drag-icon text-center py-2 px-0">⠿ {{ i + 1 }}</div>
+              <div class="col-2 text-center">
+                <input 
+                    formControlName="operation"
+                    class="form-control"
+                    type="text"
+                    matInput
+                    [matAutocomplete]="autOperation"
+                />
+                <mat-autocomplete #autOperation="matAutocomplete" [displayWith]="displayOperation" (optionSelected)="selectOperation($event,i+1)"> 
+                  <mat-option *ngFor="let operation of filteredOperations[i] | async " [value]="operation.id_operation">
+                    {{ operation.libelle }}
+                  </mat-option>
+                </mat-autocomplete>
+
+              </div>
+              <div class="col-2 text-center">
+                <!-- <input formControlName="unite" class="form-control" value="{{ fg.get('unite')?.value }}" /> -->
+                 <select formControlName="unite" class="form-control" >
+                  <option *ngFor="let item of unites" [value]="item.id_type_qte_act">{{ item.libelle }}</option>
+                 </select>
+                </div>
+                <div class="col-1 text-center">
+                  <input formControlName="seuilQualite" class="form-control" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" value="{{ fg.get('seuilQualite')?.value }}" />
+                </div>
+                <div class="col-2 text-center">
+                  <!-- <input formControlName="typeControl" class="form-control"  value="{{ fg.get('typeControl')?.value }}" /> -->
+                  <select formControlName="typeControl" class="form-control">
+                    <option value="">Type de contrôle</option>
+                    <option value="0">Interne</option>
+                   <option value="1">BCQ</option>
+                   <option value="2">Externe</option>
+                 </select>
+              </div>
+              <div class="col-2 text-center">
+                <!-- <input formControlName="operationAControler" class="form-control"  value="{{ fg.get('operationAControler')?.value }}" /> -->
+                <select formControlName="operationAControler" class="form-control" >
+                 <option *ngFor="let item of filteredOperation[i]" [value]="item.id_operation">{{ item.libelle }}</option>
+                </select>
+              </div>
+              <div class="col-1 text-end pe-0">
+                  <input formControlName="critereRejet" class="form-control " (keypress)="filterInput($event)" (blur)="formatCritereRejet(i)" value="{{ fg.get('critereRejet')?.value }}" />
+              </div>
+              <div class="col-1 text-end">
+                <button type="button" class="btn btn-danger " (click)="removeItem(i)"> <fa-icon icon="minus-circle" ></fa-icon></button>
+              </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

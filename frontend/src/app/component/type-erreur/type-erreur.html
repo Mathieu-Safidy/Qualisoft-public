@@ -1,0 +1,66 @@
+<div class="mt-4">
+  <div class="table-responsive">
+    <div class="row">
+        <div class="col-10"></div>
+        <div class="col-2 text-end">
+            <button (click)="triggerAdd()" class="btn btn-success  "><fa-icon icon="plus-circle" class="me-2" ></fa-icon>Add</button>
+        </div>
+    </div>
+    <form action="" [formGroup]="form">
+      <table
+        class="table p-3 "
+      >
+        <thead class="table-light">
+          <tr class="text-center">
+            <th>Type d'erreur</th>
+            <th>Degre</th>
+            <th>Coef</th>
+            <th>Raccourci</th>
+            <ng-container *ngFor="let item of colonne">
+              <th>{{ item }}</th>
+            </ng-container>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider p-3" formArrayName="formErreur">
+          <tr
+            *ngFor="let item of formGroup ; let i = index"
+            class="p-3"
+            [formGroupName]="i"
+          >
+            <td>
+              <!-- <input type="text" name="typeErreur" class="col-12 form-control" id="" formControlName="typeErreur"> -->
+              <input 
+                    type="text" name="typeErreur" class="col-12 form-control" id="" formControlName="typeErreur"
+                    matInput
+                    [matAutocomplete]="autErreur"
+                />
+                <mat-autocomplete #autErreur="matAutocomplete" > 
+                  <mat-option *ngFor="let erreur of filteredOperations[i] | async " [value]="erreur.type_erreur">
+                    {{ erreur.type_erreur }}
+                  </mat-option>
+                </mat-autocomplete>
+            </td>
+            <td>
+              <select name="" id="" name="degre" class="col-12 form-control" id="" formControlName="degre">
+                <option value="0">Mineure</option>
+                <option value="1">Majeure</option>
+              </select>
+              <!-- <input type="text" name="degre" class="col-12 form-control" id="" formControlName="degre"> -->
+            </td>
+            <td><input type="text" name="coef" class="col-12 form-control" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" id="" formControlName="coef"></td>
+            <td><input type="text" name="raccourci" class="col-12 form-control" id="" formControlName="raccourci"></td>
+            <ng-container *ngFor="let col of colonne">
+              <td class="text-center align-middle">
+                 <div class="d-flex justify-content-center align-items-center">
+                   <input type="checkbox" name="control" class="col-12 form-check-input " id=""  formControlName="{{ col }}">
+                 </div>
+              </td>
+            </ng-container>
+            <td><button type="button" class="btn btn-danger" (click)="trigerRemove(i)">-</button></td>
+          </tr>
+        </tbody>
+        <tfoot></tfoot>
+      </table>
+    </form>
+  </div>
+</div>

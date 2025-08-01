@@ -3,8 +3,10 @@
     class=""
     
   >
-    <div class="menu active p-2 ps-3 mb-3 fw-light"  >
-      <a class="row flex-nowrap text-decoration-none text-black"  (click)="onClickLink($event)" routerLinkActive="active" routerLink='/'>
+    <div class="menu p-2 ps-3 mb-3 fw-light"  >
+      <a class="row flex-nowrap text-decoration-none text-black"  
+      
+       routerLinkActive="active" routerLink='/Acceuil' [routerLinkActiveOptions]="{ exact: true }">
         <div class="col-auto d-flex align-items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -23,7 +25,8 @@
       </a>
     </div>
     <div class="menu p-2 ps-3 mb-3 fw-light" >
-      <a class="row flex-nowrap text-decoration-none text-black" (click)="onClickLink($event)" routerLinkActive="active" routerLink='/parametrage'>
+      <a class="row flex-nowrap text-decoration-none text-black" 
+       routerLinkActive="active" routerLink='parametrage' [routerLinkActiveOptions]="{ exact: true }" >
         <div class="col-auto d-flex align-items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -42,7 +45,9 @@
       </a>
     </div>
     <div class="menu p-2 ps-3 mb-3 fw-light" >
-      <a class="row flex-nowrap text-decoration-none text-black" (click)="onClickLink($event)" routerLinkActive="active" routerLink='/'>
+      <a class="row flex-nowrap text-decoration-none text-black" 
+      
+       routerLinkActive="active" routerLink='recap' [routerLinkActiveOptions]="{ exact: true }">
         <div class="col-auto d-flex align-items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -57,7 +62,7 @@
             />
           </svg>
         </div>
-        <div class="index col">Statistique</div>
+        <div class="index col">Recapitulation</div>
       </a>
     </div>
   </aside>
