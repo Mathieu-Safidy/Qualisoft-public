@@ -1,5 +1,5 @@
 <div class="mt-4">
-  <div class="table-responsive">
+  <div class="table-responsive typer_table" >
     <div class="row">
         <div class="col-10"></div>
         <div class="col-2 text-end">
@@ -17,7 +17,7 @@
             <th>Coef</th>
             <th>Raccourci</th>
             <ng-container *ngFor="let item of colonne">
-              <th>{{ item }}</th>
+              <th class="checker">{{ item }}</th>
             </ng-container>
           </tr>
         </thead>
@@ -50,14 +50,14 @@
             <td><input type="text" name="coef" class="col-2 form-control" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" id="" formControlName="coef"></td>
             <td><input type="text" name="raccourci" class="col-2 form-control" id="" formControlName="raccourci"></td>
             <ng-container *ngFor="let col of lister()">
-              <td class="text-center align-middle">
+              <td class="text-center align-middle checker">
                  <div class="d-flex justify-content-center align-items-center">
-                   <input *ngIf="col !== ''"  type="checkbox" name="control" class="col-2 form-check-input " id="" style="width: 30px;height: 30px;"  formControlName="{{ col }}" >
-                   <input *ngIf="col == ''" type="checkbox" name="control" class="col-2 form-check-input " id="" style="width: 30px;height: 30px;"  >
+                   <input *ngIf="col !== ''"  type="checkbox" name="control" class=" form-check-input " id="" style="width: 30px;height: 30px;"  formControlName="{{ col }}" (click)="lister()[1] == '' ? $event.preventDefault() : null">
+                   <input *ngIf="col == ''" type="checkbox" name="control" class=" form-check-input " id="" style="width: 30px;height: 30px;"  disabled >
                  </div>
               </td>
             </ng-container>
-            <td><button type="button" class="btn btn-danger" (click)="trigerRemove(i)">-</button></td>
+            <td><button type="button" class="btn btn-danger form-control" (click)="trigerRemove(i)">Suprimer</button></td>
           </tr>
         </tbody>
         <tfoot></tfoot>

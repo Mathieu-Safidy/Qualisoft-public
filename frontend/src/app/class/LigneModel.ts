@@ -71,5 +71,9 @@ export class LigneModel implements Ligne {
         return Array.from(uniques.values());
     }
 
+    
+    // find(lignes: Ligne[], id: string) : Ligne | undefined{
+    //     return lignes.find(ligne => ligne.id_ligne === id);
+    // }
 
 }

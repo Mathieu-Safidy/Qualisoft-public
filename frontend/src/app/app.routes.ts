@@ -33,7 +33,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
         children: [
             { path: '', component: Acceuil }, // => /
-            { path: 'recap' , component: Recap }, // => /recap
+            {
+                path: 'recap', component: Recap,
+                resolve: {
+                    data: DetailProjectResolver
+                }
+            }, // => /recap
             {
                 path: 'parametrage',
                 component: Parametrage,
@@ -44,17 +49,17 @@ export const routes: Routes = [
                             projects: ApiDataResolver
                         }
                     },
-                    { 
-                        path: 'projet/:id/:fonction', 
-                        component: Stepper, 
+                    {
+                        path: 'projet/:id/:fonction',
+                        component: Stepper,
                         resolve: {
-                            data : DetailProjectResolver
+                            data: DetailProjectResolver
                         }
                     },
                     { path: 'projet/:id/:fonction/objectif', component: ObjectifQualite } // => /parametrage/projet/detail
                 ]
             }, // => /parametrage
-             // => /login
+            // => /login
         ]
     },
     // {

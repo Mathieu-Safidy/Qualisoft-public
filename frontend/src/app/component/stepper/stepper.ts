@@ -242,7 +242,7 @@ export class Stepper {
   generate() {
     const formArray = this.form2.get('formArray') as FormArray;
     const values = formArray.value;
-    this.colone_form3 = values.map((item: any) => item.operationAControler);
+    this.colone_form3 = values.map((item: any) => item.operation);
     const colonneForm = this.operations.map((operation: Operation) => (operation && this.colone_form3.includes(operation.id_operation)) ? operation.libelle : null).filter(ind => ind !== null && ind !== undefined);
     this.colone_form3 = colonneForm;
     console.log('colonne', colonneForm, 'values', values, 'colonneForm', this.colone_form3);

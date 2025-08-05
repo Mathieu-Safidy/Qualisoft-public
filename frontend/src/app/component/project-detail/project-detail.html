@@ -22,6 +22,7 @@
                             formControlName="ligne"
                             [matAutocomplete]="autoLigne"
                             placeholder="Choisir une ligne"
+                            readonly="true"
                         />
                         <mat-autocomplete #autoLigne="matAutocomplete" [displayWith]="displayLigne" (optionSelected)="onLigneChange($event)">
                             <mat-option *ngFor="let ligne of filteredOptionsLigne | async" [value]="ligne.id_ligne">
@@ -36,7 +37,7 @@
                     </div>
                     <div class="col-9">
                         <select class="form-control" id="plan" name="plan" formControlName="plan">
-                            <option value="">Sélectionner un plan</option>
+                            <option value="">----Sélectionner un plan---- </option>
                             <option *ngFor="let item of plan" [value]="item.id_plan">{{ item.libelle }}</option>
                         </select>
                     </div>
@@ -64,6 +65,7 @@
                             formControlName="fonction"
                             [matAutocomplete]="autoFonction"
                             placeholder="Choisir une fonction"
+                            readonly="true"
                         />
                         <mat-autocomplete #autoFonction="matAutocomplete" [displayWith]="displayFonction" (optionSelected)="functionChange($event)">
                             <mat-option *ngFor="let fonction of filteredOptions | async" [value]="fonction.id_fonction">
@@ -80,7 +82,7 @@
                         <label for="desc">Descriptif de traitement</label>
                     </div>
                     <div class="col-9">
-                        <input type="text" class="form-control" name="" id="desc" placeholder="Descriptif de traitement" formControlName="description_traite">
+                        <input type="text" class="form-control" name="" id="desc" placeholder="---- Descriptif de traitement ----" formControlName="description_traite">
                     </div>
                 </div>
                 <div class="row mb-2">
@@ -89,7 +91,7 @@
                     </div>
                     <div class="col-9">
                         <select class="form-control" id="fonction" name="type-traitement" formControlName="type_traite">
-                            <option value="">Selectionner un type de traitement</option>
+                            <option value="">---- Selectionner un type de traitement ----</option>
                             <option *ngFor="let type of typeTraitement " [value]="type.id_type_traitement">{{ type.libelle }}</option>
                         </select>
                     </div>
@@ -99,7 +101,7 @@
                         <label for="client_name">Nom du client</label>
                     </div>
                     <div class="col-9">
-                        <input type="text" class="form-control" name="" id="client_name" placeholder="Nom du client" formControlName="client_nom">
+                        <input type="text" class="form-control" name="" id="client_name" placeholder="---- Nom du client ----" formControlName="client_nom">
                     </div>
                 </div>
                 <div class="row mb-2">
@@ -107,7 +109,7 @@
                         <label for="interlocuteur_client">Nom de l'interlocuteur du client</label>
                     </div>
                     <div class="col-9">
-                        <input type="text" class="form-control" name="" id="interlocuteur_client" placeholder="Interlocuteur client" formControlName="interlocuteur_nom">
+                        <input type="text" class="form-control" name="" id="interlocuteur_client" placeholder="---- Interlocuteur client ----" formControlName="interlocuteur_nom">
                     </div>
                 </div>
                 <div class="row mb-2">
@@ -115,7 +117,7 @@
                         <label for="interlocuteur_client_contact">Contact interlocuteur</label>
                     </div>
                     <div class="col-9">
-                        <input type="text" class="form-control" name="" id="interlocuteur_client_contact" placeholder="Contact interlocuteur" formControlName="contact_interlocuteur">
+                        <input type="text" class="form-control" name="" id="interlocuteur_client_contact" placeholder="---- Contact interlocuteur ----" formControlName="contact_interlocuteur">
                     </div>
                 </div>
                 <div class="row mb-2">
@@ -123,7 +125,7 @@
                         <label for="cp_responsable">CP responsable</label>
                     </div>
                     <div class="col-9">
-                        <input type="text" class="form-control" list="cp_responsable_list" name="" id="cp_responsable" placeholder="Contact interlocuteur" formControlName="cp_responsable">
+                        <input type="text" class="form-control" list="cp_responsable_list" name="" id="cp_responsable" placeholder="---- Contact interlocuteur ----" formControlName="cp_responsable">
                     </div>
                     <datalist id="cp_responsable_list">
                         <option value="CP1">Rakoto</option>

@@ -52,7 +52,7 @@ export class DetailProjectService {
     }
 
     getErreurType() {
-        return this.http.get<Erreur[]>('http://localhost:4000/erreurs');
+        return this.http.get<Erreur[]>('http://localhost:5000/api/erreur');
     }
 
     filtre(ligne?: string , plan?: string, fonction?: string): Observable<VueGlobal[]> {

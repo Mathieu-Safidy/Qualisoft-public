@@ -2,10 +2,9 @@
   <div class="row p-3">
     <div class="bg-white p-5 shadow rounded-3 text-black">
       <h1 class="text-center">Récapitulatif</h1>
-      <p><span class="fw-medium">Ligne : </span> {{ ligne }}</p>
-      <p><span class="fw-medium">Plan : </span> {{ plan }}</p>
-      <p><span class="fw-medium">Fonction : </span> {{ fonction }}</p>
-      
+      <p><span class="fw-medium">Ligne : </span> {{ getLigne() }}</p>
+      <p><span class="fw-medium">Plan : </span> {{ getPlan() }}</p>
+      <p><span class="fw-medium">Fonction : </span> {{ getFonction() }}</p>
 
       <p><span class="fw-medium">Nom du client :</span> {{ client_nom }}</p>
       <p>
@@ -24,7 +23,7 @@
         <span class="fw-medium">CP responsable :</span> {{ cp_responsable }}
       </p>
       <p>
-        <span class="fw-medium">Type de traitement : </span> {{ type_traite }}
+        <span class="fw-medium">Type de traitement : </span> {{ getTypeTraitement() }}
       </p>
       <div class="row mb-3 border border-black p-3 rounded-3">
         <p>
@@ -41,22 +40,20 @@
           <table class="table table-info">
             <thead>
               <tr>
-                <th scope="col">Operation de control</th>
-                <th scope="col">Unite</th>
-                <th scope="col">Seuil qualite</th>
-                <th scope="col">Type de control</th>
-                <th scope="col">Operation de control</th>
-                <th scope="col">Critere de rejet</th>
+                <th class="text-center" scope="col">Operation de control</th>
+                <th class="text-center" scope="col">Unite</th>
+                <th class="text-center" scope="col">Seuil qualite</th>
+                <th class="text-center" scope="col">Type de control</th>
+                <th class="text-center" scope="col">Critere de rejet</th>
               </tr>
             </thead>
             <tbody>
               <tr class="" *ngFor="let objectif of objectif_qualite">
-                <td scope="row">{{ objectif.operation }}</td>
-                <td>{{ objectif.unite }}</td>
-                <td>{{ objectif.seuil_qualite }}</td>
-                <td>{{ objectif.type_de_control }}</td>
-                <td>{{ objectif.type_de_control }}</td>
-                <td>{{ objectif.critere_de_rejet }}</td>
+                <td scope="row" class="text-center">{{ getOperation(objectif.operation) }}</td>
+                <td class="text-center">{{ getUnite(objectif.unite) }}</td>
+                <td class="text-center">{{ objectif.seuil_qualite }}</td>
+                <td class="text-center">{{ getTypeControl(objectif.type_de_control) }}</td>
+                <td class="text-center">{{ objectif.critere_de_rejet }}</td>
               </tr>
             </tbody>
           </table>
@@ -69,27 +66,34 @@
           <table class="table table-info">
             <thead>
               <tr>
-                <th scope="col">Type d'erreur</th>
-                <th scope="col">Degre</th>
-                <th scope="col">Coef</th>
-                <th scope="col">Raccourci</th>
+                <th class="text-center" scope="col">Type d'erreur</th>
+                <th class="text-center" scope="col">Degre</th>
+                <th class="text-center" scope="col">Coef</th>
+                <th class="text-center" scope="col">Raccourci</th>
                 <ng-container *ngFor="let col of colonne_plus">
-                  <th scope="col">{{ col }}</th>
+                  <th class="text-center" scope="col">{{ col }}</th>
                 </ng-container>
               </tr>
             </thead>
             <tbody>
               <tr class="" *ngFor="let erreur of type_erreur ; let i = index">
-                <td scope="row">{{ erreur.type_erreur }}</td>
-                <td>{{ erreur.degre }}</td>
-                <td>{{ erreur.coef }}</td>
-                <td>{{ erreur.raccourci }}</td>
+                <td scope="row" class="text-center">{{ erreur.type_erreur }}</td>
+                <td class="text-center">{{ getDegre(erreur.degre) }}</td>
+                <td class="text-center">{{ erreur.coef }}</td>
+                <td class="text-center">{{ erreur.raccourci }}</td>
                 <ng-container *ngFor="let item of colonne_plus">
-                  <td>{{ value_plus[item] }}</td>
+                  <td class="text-center">{{ value_plus[item] }}</td>
                 </ng-container>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-4"></div>
+        <div class="col-4 text-center">
+          <button class="btn btn-lg btn-primary" *ngIf="testAllNotEmpty()">Valider</button>
         </div>
       </div>
     </div>

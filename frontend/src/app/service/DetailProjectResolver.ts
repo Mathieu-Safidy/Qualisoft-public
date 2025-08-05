@@ -35,13 +35,15 @@ export class DetailProjectResolver implements Resolve<any> {
     typetraitement.subscribe(data => console.log('Type Traitemen :', data));
     let erreurType = this.detailService.getErreurType();
 
+    let unite = this.detailService.getUnite();
     return forkJoin({
       ligne: lignes,
       plan: plans,
       fonction: fonctions,
       operation: operations,
       typetraitements: typetraitement,
-      erreurs: erreurType
+      erreurs: erreurType,
+      unites: unite
     });
   }
 
