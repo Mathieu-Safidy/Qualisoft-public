@@ -32,7 +32,7 @@ export class DetailProjectResolver implements Resolve<any> {
 
     let typetraitement = this.detailService.getTypeTraitement();
 
-    typetraitement.subscribe(data => console.log('Type Traitemen :', data));
+    // typetraitement.subscribe(data => console.log('Type Traitemen :', data));
     let erreurType = this.detailService.getErreurType();
 
     let unite = this.detailService.getUnite();

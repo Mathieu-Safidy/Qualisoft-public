@@ -1,10 +1,16 @@
 import { Component, Inject } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
 import { ProjectDetail } from '../project-detail/project-detail';
 import { ObjectifQualite } from '../objectif-qualite/objectif-qualite';
-import { TypeErreur } from "../type-erreur/type-erreur";
+import { TypeErreur } from '../type-erreur/type-erreur';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Ligne } from '../../interface/Ligne';
 import { Fonction } from '../../interface/Fonction';
@@ -30,18 +36,17 @@ import { StepperSelectionEvent } from '@angular/cdk/stepper';
     MatButtonModule,
     ProjectDetail,
     ObjectifQualite,
-    TypeErreur
+    TypeErreur,
   ],
   templateUrl: './stepper.html',
-  styleUrl: './stepper.css'
+  styleUrl: './stepper.css',
 })
 export class Stepper {
-
   // private detailService = Inject(DetailProjectService);
 
-  form1 !: FormGroup;
-  form2 !: FormGroup;
-  form3 !: FormGroup;
+  form1!: FormGroup;
+  form2!: FormGroup;
+  form3!: FormGroup;
 
   colone_form3: string[] = [];
 
@@ -53,23 +58,28 @@ export class Stepper {
     plan: [],
     operation: [],
     typetraitements: [],
-    erreurs: []
+    erreurs: [],
   };
 
-  ligne !: Ligne[];
-  fonction !: Fonction[];
-  plan !: Projet[];
-  typeTraitement !: TypeTraitement[];
-  erreurs !: Erreur[];
-  operations !: Operation[];
-  unites !: Unite[];
+  ligne!: Ligne[];
+  fonction!: Fonction[];
+  plan!: Projet[];
+  typeTraitement!: TypeTraitement[];
+  erreurs!: Erreur[];
+  operations!: Operation[];
+  unites!: Unite[];
 
   // selectedPlan = '';
   selectedLigne = '';
-  filteredOperations !: Observable<Erreur[]>[];
+  filteredOperations!: Observable<Erreur[]>[];
   // selectedFonction = '';
 
-  constructor(private fb: FormBuilder, private route: ActivatedRoute, private detailService: DetailProjectService , private router : Router) {
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private detailService: DetailProjectService,
+    private router: Router
+  ) {
     // this.form1 = this.fb.group({
     //   ligne: ['', Validators.required],
     //   plan: ['', Validators.required],
@@ -93,7 +103,7 @@ export class Stepper {
     //   ))
     // });
     this.form3 = this.fb.group({
-      formErreur: this.fb.array([])
+      formErreur: this.fb.array([]),
     });
   }
 
@@ -109,9 +119,11 @@ export class Stepper {
     let plan = event.plan;
     this.selectedLigne = ligne;
     let fonction = '';
-    let fonctions = this.detailService.filtre(ligne, plan, fonction).pipe(
-      map((response: VueGlobal[]) => new FonctionModele().cast(response))
-    );
+    let fonctions = this.detailService
+      .filtre(ligne, plan, fonction)
+      .pipe(
+        map((response: VueGlobal[]) => new FonctionModele().cast(response))
+      );
     // this.fonction = fonctions;
   }
 
@@ -129,14 +141,15 @@ export class Stepper {
   // }
 
   get formGroup3() {
-    return (this.form3.controls["formErreur"] as FormArray).controls as FormGroup[];
+    return (this.form3.controls['formErreur'] as FormArray)
+      .controls as FormGroup[];
   }
 
   updateFiltered3() {
     this.filteredOperations = this.formGroup3.map((fg, i) =>
       fg.get('typeErreur')!.valueChanges.pipe(
         startWith(''),
-        map(value => {
+        map((value) => {
           console.log('valueChanges déclenché pour ligne', i, 'valeur:', value);
           return this._filter(value || '');
         })
@@ -158,7 +171,7 @@ export class Stepper {
 
     // console.log('resolver: ', this.ligne, this.plan, this.fonction, this.data.operation);
 
-    let id = this.route.snapshot.paramMap.get('id') || "";
+    let id = this.route.snapshot.paramMap.get('id') || '';
     let defaultLine = this.ligne[0]?.id_ligne || '';
     let defaultFonction = this.fonction[0]?.id_fonction || '';
     let defaultOperation = this.operations[0]?.id_operation || '';
@@ -176,65 +189,79 @@ export class Stepper {
     });
 
     this.form2 = this.fb.group({
-      formArray: this.fb.array(this.items.map(item => this.fb.group({
-        id: [crypto.randomUUID()],
-        operation: ['', Validators.required],
-        unite: ['', Validators.required],
-        seuilQualite: ['', [
-          Validators.required,
-          Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-          Validators.min(0),
-          Validators.max(100)
-        ]],
-        typeControl: ['', Validators.required],
-        operationAControler: ['', Validators.required],
-        critereRejet: ['', Validators.required]
-      })
-      ))
+      formArray: this.fb.array(
+        this.items.map((item) =>
+          this.fb.group({
+            id: [crypto.randomUUID()],
+            operation: ['', Validators.required],
+            unite: ['', Validators.required],
+            seuilQualite: [
+              '',
+              [
+                Validators.required,
+                Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
+                Validators.min(0),
+                Validators.max(100),
+              ],
+            ],
+            typeControl: ['', Validators.required],
+            operationAControler: ['', Validators.required],
+            critereRejet: ['', Validators.required],
+          })
+        )
+      ),
     });
 
-    console.log(typeof this.detailService.filtre)
-    this.form1.statusChanges.subscribe(status => {
+    console.log(typeof this.detailService.filtre);
+    this.form1.statusChanges.subscribe((status) => {
       if (status === 'VALID') {
         const donne = this.form1.value;
-        this.detailService.filtre(donne.ligne, donne.plan, donne.fonction).subscribe((res: VueGlobal[]) => {
+        this.detailService
+          .filtre(donne.ligne, donne.plan, donne.fonction)
+          .subscribe(async (res: VueGlobal[]) => {
+            this.operations = new Operations().cast(res);
 
-          this.operations = new Operations().cast(res);
-
-          this.detailService.getUnite().subscribe(res => {
-            this.unites = res
+            const unite = await this.detailService.getUnite();
+            // this.detailService.getUnite().subscribe(res => {
+            this.unites = unite;
 
             let defaultOperation = this.operations[0]?.id_operation || '';
             let defaultUnite = this.unites[0]?.id_type_qte_act || '';
             this.form2 = this.fb.group({
-              formArray: this.fb.array(this.items.map(item => this.fb.group({
-                id: [crypto.randomUUID()],
-                operation: ['', Validators.required],
-                unite: ['', Validators.required],
-                seuilQualite: ['', [
-                  Validators.required,
-                  Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-                  Validators.min(0),
-                  Validators.max(100)
-                ]],
-                typeControl: ['', Validators.required],
-                operationAControler: ['', Validators.required],
-                critereRejet: ['', Validators.required]
-              })
-              ))
+              formArray: this.fb.array(
+                this.items.map((item) =>
+                  this.fb.group({
+                    id: [crypto.randomUUID()],
+                    operation: ['', Validators.required],
+                    unite: ['', Validators.required],
+                    seuilQualite: [
+                      '',
+                      [
+                        Validators.required,
+                        Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
+                        Validators.min(0),
+                        Validators.max(100),
+                      ],
+                    ],
+                    typeControl: ['', Validators.required],
+                    operationAControler: ['', Validators.required],
+                    critereRejet: ['', Validators.required],
+                  })
+                )
+              ),
             });
-          })
-        });
+            // })
+          });
       }
-    })
+    });
     // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
   }
 
   private _filter(value: string): Erreur[] {
-    console.log('erreur ', this.erreurs)
+    console.log('erreur ', this.erreurs);
     if (this.erreurs?.length <= 0) return [];
     const filterValue = value.toLowerCase();
-    return this.erreurs.filter(option =>
+    return this.erreurs.filter((option) =>
       option.type_erreur?.toLowerCase().includes(filterValue)
     );
   }
@@ -243,22 +270,34 @@ export class Stepper {
     const formArray = this.form2.get('formArray') as FormArray;
     const values = formArray.value;
     this.colone_form3 = values.map((item: any) => item.operation);
-    const colonneForm = this.operations.map((operation: Operation) => (operation && this.colone_form3.includes(operation.id_operation)) ? operation.libelle : null).filter(ind => ind !== null && ind !== undefined);
+    const colonneForm = this.operations
+      .map((operation: Operation) =>
+        operation && this.colone_form3.includes(operation.id_operation)
+          ? operation.libelle
+          : null
+      )
+      .filter((ind) => ind !== null && ind !== undefined);
     this.colone_form3 = colonneForm;
-    console.log('colonne', colonneForm, 'values', values, 'colonneForm', this.colone_form3);
+    console.log(
+      'colonne',
+      colonneForm,
+      'values',
+      values,
+      'colonneForm',
+      this.colone_form3
+    );
 
     let formulaire3 = this.form3.controls['formErreur'] as FormArray;
     if (!formulaire3 || formulaire3.length === 0) {
       this.ajouterLigne(colonneForm);
     }
-    
+
     this.updateFiltered3();
 
     // this.detailService.filtre('ligne1', 'plan1', 'fonction1').subscribe((resultats: Operations[]) => {
     //   console.log('resultats', resultats);
     //   this.operations = resultats;
     // });
-
   }
 
   // filtre() {
@@ -275,9 +314,9 @@ export class Stepper {
   }
 
   remplirFormArray() {
-    this.colone_form3.forEach(item => {
-      this.typeErreur.push(this.fb)
-    })
+    this.colone_form3.forEach((item) => {
+      this.typeErreur.push(this.fb);
+    });
   }
 
   genererGroup(colonne: string[] = []): FormGroup {
@@ -285,9 +324,9 @@ export class Stepper {
       typeErreur: ['', Validators.required],
       degre: ['', Validators.required],
       coef: ['', Validators.required],
-      raccourci: ['', Validators.required]
+      raccourci: ['', Validators.required],
     };
-    colonne.forEach(col => {
+    colonne.forEach((col) => {
       group[col] = [''];
     });
     return this.fb.group(group);
@@ -296,9 +335,11 @@ export class Stepper {
   ajouterLigne(colonne: string[] = []) {
     // console.log('ajouter ligne', colonne)
     let group = this.genererGroup(colonne);
-    const colonneNonVide = colonne.filter(res => res != "" && res != null && res != undefined);
+    const colonneNonVide = colonne.filter(
+      (res) => res != '' && res != null && res != undefined
+    );
     if (colonneNonVide.length === 1) {
-      const col = colonneNonVide[0]; 
+      const col = colonneNonVide[0];
       group.get(col)?.setValue(true);
     }
     return this.typeErreur.push(group);
@@ -317,10 +358,10 @@ export class Stepper {
       ...this.form1.value,
       ...this.form2.value,
       ...this.form3.value,
-      colonne:this.colone_form3
+      colonne: this.colone_form3,
     };
-    console.log('Formulaire complet :', data , 'colonne ',this.colone_form3);
+    console.log('Formulaire complet :', data, 'colonne ', this.colone_form3);
 
-    this.router.navigate(['/Dashboard/recap'] , {state: { data: data }});
+    this.router.navigate(['/Dashboard/recap'], { state: { data: data } });
   }
 }
