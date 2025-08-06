@@ -1,0 +1,22 @@
+table {
+  width: 100%;
+  max-width: 100%; /* Ne pas dépasser la largeur du conteneur */
+  table-layout: fixed; /* Forcer la taille des colonnes */
+  overflow: hidden; /* Cache le dépassement */
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+td, th {
+  overflow: hidden;
+  text-overflow: ellipsis; /* Ajoute "..." si le texte est trop long */
+}
+.typer_table {
+    overflow-x: hidden;
+}
+
+.checker {
+    padding: 0;
+    width: 110px;
+    max-width: 10rem;
+    overflow: hidden;
+}

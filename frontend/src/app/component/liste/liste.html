@@ -1,0 +1,114 @@
+<div class="p-3 rounded-3">
+  <form>
+    <div class="mb-3 row justify-content-center px-4 pt-1">
+      <!-- <label
+        for="table-filtering-search"
+        class="col-xs-3 col-sm-auto col-form-label"
+        >Full text search:</label
+      > -->
+      <label
+        for="table-filtering-search"
+        class="col-xs-3 col-sm-auto col-form-label"
+        >--</label
+      >
+      <div class="col-xs-3 col-sm-auto">
+        <input
+          id="table-filtering-search"
+          class="form-control text-center sha"
+          type="text"
+          placeholder="Rechercher . . ."
+          [formControl]="filter"
+        />
+      </div>
+      <label
+        for="table-filtering-search"
+        class="col-xs-3 col-sm-auto col-form-label"
+        >--</label
+      >
+    </div>
+  </form>
+  <div id="projectList" class="p-2">
+    <table class="table">
+      <thead>
+        <tr class="border-0">
+          <th
+            *ngFor="let col of columns"
+            scope="col"
+            class="px-3 border-0"
+            [sortable]="col.isSortable ? keyToString(col.key) : ''"
+            [direction]="currentSort.column === col.key ? currentSort.direction : ''"
+            (sort)="onSort($event)"
+          >
+            {{ col.label }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let row of pagedData$ | async; let i = index"
+          class="shadow menu-row"
+          (click)="onRowClicked?.(row)"
+        >
+          <td *ngFor="let col of columns" class="p-3">
+            <ng-container *ngIf="col.format; else defaultCell">
+              {{ col.format(row[col.key], row) }}
+            </ng-container>
+            <ng-template #defaultCell> {{ row[col.key] }} </ng-template>
+          </td>
+          <td class="py-3 px-5 d-flex justify-content-end">
+            <fa-icon icon="chevron-right"></fa-icon>
+          </td>
+        </tr>
+        <tr *ngIf="(pagedData$ | async)?.length === 0">
+          <td [attr.colspan]="columns.length" style="text-align: center">
+            Aucune donnée trouvée
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <nav
+    aria-label="Page navigation"
+    *ngIf="filteredSortedData.length > pageSize"
+    class="mt-3"
+  >
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [class.disabled]="page === 1">
+        <a
+          href="#"
+          class="page-link"
+          (click)="goToPage(page - 1); $event.preventDefault()"
+        >
+          Précédent
+        </a>
+      </li>
+
+      <li
+        class="page-item"
+        *ngFor="let i of getPageNumbers()"
+        [class.active]="page === i"
+      >
+        <a
+          href="#"
+          class="page-link"
+          (click)="goToPage(i); $event.preventDefault()"
+          >{{ i }}</a
+        >
+      </li>
+
+      <li
+        class="page-item"
+        [class.disabled]="page === Math.ceil(filteredSortedData.length / pageSize)"
+      >
+        <a
+          href="#"
+          class="page-link"
+          (click)="goToPage(page + 1); $event.preventDefault()"
+        >
+          Suivant
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>

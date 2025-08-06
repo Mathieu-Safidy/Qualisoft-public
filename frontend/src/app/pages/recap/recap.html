@@ -1,0 +1,101 @@
+<div class="">
+  <div class="row p-3">
+    <div class="bg-white p-5 shadow rounded-3 text-black">
+      <h1 class="text-center">Récapitulatif</h1>
+      <p><span class="fw-medium">Ligne : </span> {{ getLigne() }}</p>
+      <p><span class="fw-medium">Plan : </span> {{ getPlan() }}</p>
+      <p><span class="fw-medium">Fonction : </span> {{ getFonction() }}</p>
+
+      <p><span class="fw-medium">Nom du client :</span> {{ client_nom }}</p>
+      <p>
+        <span class="fw-medium">Nom de l'interlocuteur client :</span> {{
+        interlocuteur_nom }}
+      </p>
+      <p>
+        <span class="fw-medium me-1">Contact de l'interlocuteur client :</span>
+        <a
+          href="mailto:{{
+        interlocuteur_contact }}"
+          >{{ interlocuteur_contact }}</a
+        >
+      </p>
+      <p>
+        <span class="fw-medium">CP responsable :</span> {{ cp_responsable }}
+      </p>
+      <p>
+        <span class="fw-medium">Type de traitement : </span> {{ getTypeTraitement() }}
+      </p>
+      <div class="row mb-3 border border-black p-3 rounded-3">
+        <p>
+          <span class="fw-medium">Description de traitement : </span>
+        </p>
+        <div class="bg-info-subtle p-3 rounded-3 mb-3">
+          <p>{{ descriptiont_traite }}</p>
+        </div>
+      </div>
+
+      <div class="row mb-5 mt-5 border border-black p-3 rounded-3">
+        <p><span class="fw-medium">Objectif qualite : </span></p>
+        <div class="table-responsive bg-info-subtle pt-2 rounded-3">
+          <table class="table table-info">
+            <thead>
+              <tr>
+                <th class="text-center" scope="col">Operation de control</th>
+                <th class="text-center" scope="col">Unite</th>
+                <th class="text-center" scope="col">Seuil qualite</th>
+                <th class="text-center" scope="col">Type de control</th>
+                <th class="text-center" scope="col">Critere de rejet</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="" *ngFor="let objectif of objectif_qualite">
+                <td scope="row" class="text-center">{{ getOperation(objectif.operation) }}</td>
+                <td class="text-center">{{ getUnite(objectif.unite) }}</td>
+                <td class="text-center">{{ objectif.seuil_qualite }}</td>
+                <td class="text-center">{{ getTypeControl(objectif.type_de_control) }}</td>
+                <td class="text-center">{{ objectif.critere_de_rejet }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="row mb-3 border border-black p-3 rounded-3">
+        <p><span class="fw-medium">Type Erreur : </span></p>
+        <div class="table-responsive bg-info-subtle pt-2 rounded-3">
+          <table class="table table-info">
+            <thead>
+              <tr>
+                <th class="text-center" scope="col">Type d'erreur</th>
+                <th class="text-center" scope="col">Degre</th>
+                <th class="text-center" scope="col">Coef</th>
+                <th class="text-center" scope="col">Raccourci</th>
+                <ng-container *ngFor="let col of colonne_plus">
+                  <th class="text-center" scope="col">{{ col }}</th>
+                </ng-container>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="" *ngFor="let erreur of type_erreur ; let i = index">
+                <td scope="row" class="text-center">{{ erreur.type_erreur }}</td>
+                <td class="text-center">{{ getDegre(erreur.degre) }}</td>
+                <td class="text-center">{{ erreur.coef }}</td>
+                <td class="text-center">{{ erreur.raccourci }}</td>
+                <ng-container *ngFor="let item of colonne_plus">
+                  <td class="text-center">{{ value_plus[item] }}</td>
+                </ng-container>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-4"></div>
+        <div class="col-4 text-center">
+          <button class="btn btn-lg btn-primary" *ngIf="testAllNotEmpty()">Valider</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

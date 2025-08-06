@@ -1,0 +1,8 @@
+.titre.btn {
+    border: 1px solid black !important;
+}
+
+.titre.btn:hover {
+    background-color: black;
+    color: white !important;
+}

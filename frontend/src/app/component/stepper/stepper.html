@@ -1,0 +1,87 @@
+<mat-horizontal-stepper [linear]="">
+  <mat-step [stepControl]="form1" class="" label="Detail de projet">
+    <app-project-detail
+      [form]="form1"
+      [isStepper]="true"
+      [ligne]="ligne"
+      [fonction]="fonction"
+      [typeTraitement]="typeTraitement"
+      [plan]="plan"
+      (ligneChange)="onLigneChange($event)"
+    ></app-project-detail>
+    <div class="row mt-3">
+      <div class="col-9"></div>
+      <div class="col-3 text-end">
+        <button
+          class="btn border rounded-3 bg-primary text-white"
+          mat-button
+          matStepperNext
+          [disabled]="form1.invalid"
+        >
+          Suivant
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step [stepControl]="form2" label="Objectif qualité">
+    <app-objectif-qualite
+      *ngIf="operations.length > 0"
+      [form]="form2"
+      [formPrecedent]="form1"
+      [operations]="operations"
+      [unites]="unites"
+    ></app-objectif-qualite>
+    <div class="row mt-3">
+      <div class="col-9">
+        <button mat-button matStepperPrevious class="btn border rounded-3">
+          Précédent
+        </button>
+      </div>
+      <div class="col-3 text-end">
+        <button
+          mat-button
+          matStepperNext
+          [disabled]="form2.invalid"
+          (click)="generate()"
+          class="btn border rounded-3 bg-primary text-white"
+        >
+          Suivant
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step [stepControl]="form3" label="Type d'erreur">
+    <app-type-erreur
+      *ngIf="erreurs.length > 0"
+      [filteredOperations]="filteredOperations"
+      [form]="form3"
+      [colonne]="colone_form3"
+      [erreurs]="erreurs"
+      (addLigne)="addLigne()"
+      (removeLigne)="substractLigne($event)"
+    ></app-type-erreur>
+    <div class="row mt-3">
+      <div class="col-9">
+        <button
+          mat-button
+          matStepperPrevious
+          class="btn border rounded-3"
+        >
+        Précédent
+      </button>
+      </div>
+      <div class="col-3 text-end">
+        <button
+          class="btn border rounded-3 bg-primary text-white"
+          mat-button
+          (click)="submit()"
+          [disabled]="form3.invalid"
+        >
+          Envoyer
+        </button>
+      </div>
+    </div>
+  </mat-step>
+</mat-horizontal-stepper>
