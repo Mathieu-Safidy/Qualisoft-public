@@ -25,31 +25,31 @@ export class DetailProjectService {
   //     return this.http.get()
   // }
 
-  async getLigne() {
-    // return this.http.get<Ligne[]>('http://localhost:3000/lignes', {
-    //   withCredentials: true,
-    // });
-    const ligne: Ligne[] = (await this.http.get('/lignes')) as Ligne[];
-    return ligne;
-  }
+  // async getLigne() {
+  //   // return this.http.get<Ligne[]>('http://localhost:3000/lignes', {
+  //   //   withCredentials: true,
+  //   // });
+  //   const ligne: Ligne[] = (await this.http.get('/lignes')) as Ligne[];
+  //   return ligne;
+  // }
 
-  async getLigneByPlan(plan: string) {
-    // return this.http.get<VueGlobal[]>('http://localhost:3000/', {
-    //   withCredentials: true,
-    // });
-    const ligne: Ligne[] = (await this.http.get('/')) as Ligne[];
-    return ligne;
-  }
+  // async getLigneByPlan(plan: string) {
+  //   // return this.http.get<VueGlobal[]>('http://localhost:3000/', {
+  //   //   withCredentials: true,
+  //   // });
+  //   const ligne: Ligne[] = (await this.http.get('/')) as Ligne[];
+  //   return ligne;
+  // }
 
-  async getFonction() {
-    // return this.http.get<Fonction[]>('http://localhost:3000/fonctions', {
-    //   withCredentials: true,
-    // });
-    const fonction: Fonction[] = (await this.http.get(
-      '/fonctions'
-    )) as Fonction[];
-    return fonction;
-  }
+  // async getFonction() {
+  //   // return this.http.get<Fonction[]>('http://localhost:3000/fonctions', {
+  //   //   withCredentials: true,
+  //   // });
+  //   const fonction: Fonction[] = (await this.http.get(
+  //     '/fonctions'
+  //   )) as Fonction[];
+  //   return fonction;
+  // }
 
   async getOperation() {
     // return this.http.get<Operation[]>('http://localhost:3000/operations', {
@@ -61,19 +61,19 @@ export class DetailProjectService {
     return operation;
   }
 
-  async getProjects() {
-    // return this.http.get<Projet[]>('http://localhost:3000/projets', {
-    //   withCredentials: true,
-    // });
-    const projets: Projet[] = (await this.http.get('/projets')) as Projet[];
-    return projets;
-  }
+  // async getProjects() {
+  //   // return this.http.get<Projet[]>('http://localhost:3000/projets', {
+  //   //   withCredentials: true,
+  //   // });
+  //   const projets: Projet[] = (await this.http.get('/projets')) as Projet[];
+  //   return projets;
+  // }
 
   async getUnite() {
     // return this.http.get<Unite[]>('http://localhost:3000/unite', {
     //   withCredentials: true,
     // });
-    const unite: Unite[] = (await this.http.get('/unite')) as Unite[];
+    const unite: Unite[] = (await this.http.get('/unites')) as Unite[];
     return unite;
   }
 
@@ -83,7 +83,7 @@ export class DetailProjectService {
     //   { withCredentials: true }
     // );
     const typeTraitement: TypeTraitement[] = (await this.http.get(
-      '/typeTraitement'
+      '/typeTraitements'
     )) as TypeTraitement[];
     return typeTraitement;
   }
@@ -92,7 +92,7 @@ export class DetailProjectService {
     // return this.http.get<Erreur[]>('http://localhost:5000/api/erreur', {
     //   withCredentials: true,
     // });
-    const erreurType: Erreur[] = (await this.http.get('/erreur')) as Erreur[];
+    const erreurType: Erreur[] = (await this.http.get('/erreurs')) as Erreur[];
     return erreurType;
   }
 
@@ -103,7 +103,7 @@ export class DetailProjectService {
     //   body
     // )) as VueGlobal[];
     // return vueGlobal;
-    const url = `${environment.apiBack}/api/filtre`
+    const url = `${environment.apiBack}/api/filtres`
     return this._http.post<VueGlobal[]>(url, body, {
       withCredentials: true,
     });

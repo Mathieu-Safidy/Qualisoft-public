@@ -258,7 +258,7 @@ export class Stepper {
   }
 
   private _filter(value: string): Erreur[] {
-    console.log('erreur ', this.erreurs);
+    // console.log('erreur ', this.erreurs);
     if (this.erreurs?.length <= 0) return [];
     const filterValue = value.toLowerCase();
     return this.erreurs.filter((option) =>
@@ -351,6 +351,7 @@ export class Stepper {
 
   addLigne() {
     this.ajouterLigne(this.colone_form3);
+    this.updateFiltered3();
   }
 
   submit() {

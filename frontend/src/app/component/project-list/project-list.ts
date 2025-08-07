@@ -34,7 +34,8 @@ export class ProjectList {
   }
 
   ngOnInit() {
-    this.mesDonnees = this.route.snapshot.data['projects'];
+    this.mesDonnees = this.route.snapshot.data['projects'].projects;
+    console.log(this.mesDonnees);
     // this.projectService.getProjects().subscribe(data => {
     //   this.mesDonnees = data;
     //   this.cdr.markForCheck(); // si besoin de forcer la détection de changement
