@@ -1,7 +1,7 @@
 // api-data.resolver.ts
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { forkJoin, map, Observable, of, shareReplay, switchMap } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, map, Observable, of, shareReplay, switchMap } from 'rxjs';
 import { ProjectService } from './ProjectService'; // <-- ton service
 import { DetailProjectService } from './DetailProjectService';
 import { LigneModel } from '../class/LigneModel';
@@ -36,6 +36,24 @@ export class DetailProjectResolver implements Resolve<any> {
     let erreurType = this.detailService.getErreurType();
 
     let unite = this.detailService.getUnite();
+
+    let verif = lignes.pipe(
+      map(lignesArr => (lignesArr.length > 0 ? lignesArr[0].id_ligne : '')),
+      switchMap(idLigne => {
+        if (!idLigne || !plan || !fonction) {
+          return of(null); // Ne pas appeler l'API si un paramètre est vide
+        }
+        return this.detailService.verifier(idLigne, plan, fonction);
+      }),
+      catchError(() => of(null))
+    );
+
+    let client = verif.pipe(
+      map(verif => verif),
+      switchMap((projet: any) => this.detailService.getClient(projet.id_client)),
+      catchError(() => of(null))
+    )
+
     return forkJoin({
       ligne: lignes,
       plan: plans,
@@ -43,7 +61,9 @@ export class DetailProjectResolver implements Resolve<any> {
       operation: operations,
       typetraitements: typetraitement,
       erreurs: erreurType,
-      unites: unite
+      unites: unite,
+      verif: verif,
+      client: client
     });
   }
 

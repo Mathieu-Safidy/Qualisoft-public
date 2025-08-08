@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Route, Router, RouterOutlet } from '@angular/router';
-import { Navbar } from './component/navbar/navbar';
-import { Footer } from "./component/footer/footer";
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Corp } from './component/corp/corp';
 import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { faCoffee, faUser, faBlog, faGear, faArrowLeft, faArrowAltCircleLeft, faArrowRight, faChevronRight, faPlusCircle, faMinusCircle, faKey, } from '@fortawesome/free-solid-svg-icons';
@@ -10,7 +8,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [FontAwesomeModule, RouterOutlet, CommonModule, Corp, Login],
+  imports: [FontAwesomeModule, RouterOutlet, CommonModule],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

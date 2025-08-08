@@ -26,6 +26,7 @@ import { Unite } from '../../interface/Unite';
 import { TypeTraitement } from '../../interface/TypeTraitement';
 import { Erreur } from '../../interface/Erreur';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { FormStorageService } from '../../service/FormStorageService';
 
 @Component({
   selector: 'app-stepper',
@@ -49,17 +50,21 @@ export class Stepper {
   form3!: FormGroup;
 
   colone_form3: string[] = [];
+  id_form_colonne: string[] = [];
 
   items = [''];
 
-  data = {
-    ligne: [],
-    fonction: [],
-    plan: [],
-    operation: [],
-    typetraitements: [],
-    erreurs: [],
-  };
+  data : any;
+
+  // data = {
+  //   ligne: [],
+  //   fonction: [],
+  //   plan: [],
+  //   operation: [],
+  //   typetraitements: [],
+  //   erreurs: [],
+  //   verif: [],
+  // };
 
   ligne!: Ligne[];
   fonction!: Fonction[];
@@ -78,6 +83,7 @@ export class Stepper {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private detailService: DetailProjectService,
+    private formSubmitService: FormStorageService,
     private router: Router
   ) {
     // this.form1 = this.fb.group({
@@ -159,6 +165,7 @@ export class Stepper {
 
   ngOnInit() {
     this.data = this.route.snapshot.data['data'];
+    console.log('data ',this.data)
     this.ligne = this.data.ligne;
     this.plan = this.data.plan;
     this.fonction = this.data.fonction;
@@ -176,17 +183,37 @@ export class Stepper {
     let defaultFonction = this.fonction[0]?.id_fonction || '';
     let defaultOperation = this.operations[0]?.id_operation || '';
 
-    this.form1 = this.fb.group({
-      ligne: [defaultLine, Validators.required],
-      plan: [id, Validators.required],
-      fonction: [defaultFonction, Validators.required],
-      description_traite: ['', Validators.required],
-      type_traite: ['', Validators.required],
-      client_nom: ['', Validators.required],
-      interlocuteur_nom: ['', Validators.required],
-      contact_interlocuteur: ['', [Validators.required, Validators.email]],
-      cp_responsable: ['', Validators.required],
-    });
+    let verifier: any = this.data.verif;
+    console.log('verifier',verifier)
+    if (verifier) {
+      let nom_client = this.data.client.nom;
+      
+      console.log('client ', nom_client)
+      this.form1 = this.fb.group({
+        ligne: [defaultLine, Validators.required],
+        plan: [id, Validators.required],
+        fonction: [defaultFonction, Validators.required],
+        description_traite: [verifier.description_traitement, Validators.required],
+        type_traite: [verifier.id_type_traitement, Validators.required],
+        client_nom: [nom_client, Validators.required],
+        interlocuteur_nom: [verifier.nom_interlocuteur, Validators.required],
+        contact_interlocuteur: [verifier.contact_interlocuteur, [Validators.required, Validators.email]],
+        cp_responsable: [verifier.id_cp, Validators.required],
+      });
+    } else {
+      this.form1 = this.fb.group({
+        ligne: [defaultLine, Validators.required],
+        plan: [id, Validators.required],
+        fonction: [defaultFonction, Validators.required],
+        description_traite: ['', Validators.required],
+        type_traite: ['', Validators.required],
+        client_nom: ['', Validators.required],
+        interlocuteur_nom: ['', Validators.required],
+        contact_interlocuteur: ['', [Validators.required, Validators.email]],
+        cp_responsable: ['', Validators.required],
+      });
+    }
+
 
     this.form2 = this.fb.group({
       formArray: this.fb.array(
@@ -277,6 +304,15 @@ export class Stepper {
           : null
       )
       .filter((ind) => ind !== null && ind !== undefined);
+    this.id_form_colonne = this.operations
+      .map((operation: Operation) =>
+        operation && this.colone_form3.includes(operation.id_operation)
+          ? operation.id_operation
+          : null
+      )
+      .filter((ind) => ind !== null && ind !== undefined);
+    // this.id_form_colonne = this.operations.map((operation: Operation) => (operation && this.colone_form3.includes(operation.id_operation)) ? operation.id_operation : null).filter(ind => ind !== null && ind !== undefined);
+
     this.colone_form3 = colonneForm;
     console.log(
       'colonne',
@@ -360,9 +396,14 @@ export class Stepper {
       ...this.form2.value,
       ...this.form3.value,
       colonne: this.colone_form3,
+      id_colonnes: this.id_form_colonne
     };
-    console.log('Formulaire complet :', data, 'colonne ', this.colone_form3);
-
+    console.log('Formulaire complet :', data, 'colonne ', this.colone_form3 , 'id' , this.id_form_colonne);
+    this.formSubmitService.parametrage(data).then((response) => {
+      console.log('Réponse du serveur :', response);
+    }).catch((error) => {
+      console.error('Erreur lors de l\'envoi des données :', error);
+    });
     this.router.navigate(['/Dashboard/recap'], { state: { data: data } });
   }
 }
