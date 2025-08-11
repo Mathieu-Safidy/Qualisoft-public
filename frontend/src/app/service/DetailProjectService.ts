@@ -53,7 +53,7 @@ export class DetailProjectService {
   async verifier(ligne: string, plan: string, fonction: string) {
     try {
       const response = await this.http.get(`/verifier/ligne/${ligne}/plan/${plan}/fonction/${fonction}`);
-      return (response as Projet[])[0];
+      return (response);
     } catch (error) {
       throw error;
     }

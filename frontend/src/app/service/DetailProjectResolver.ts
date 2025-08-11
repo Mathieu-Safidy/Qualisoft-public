@@ -49,10 +49,15 @@ export class DetailProjectResolver implements Resolve<any> {
     );
 
     let client = verif.pipe(
-      map(verif => verif),
-      switchMap((projet: any) => this.detailService.getClient(projet.id_client)),
+      map(verif => verif ? (verif as any).projet : null), // Accède à la propriété 'projet'
+      switchMap((projet: any) => {
+      if (projet && projet.id_client) {
+        return this.detailService.getClient(projet.id_client);
+      }
+      return of(null);
+      }),
       catchError(() => of(null))
-    )
+    );
 
     return forkJoin({
       ligne: lignes,

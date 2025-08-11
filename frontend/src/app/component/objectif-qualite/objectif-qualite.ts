@@ -39,6 +39,7 @@ export class ObjectifQualite {
   @Input() operations !: Operation[];
   @Input() formPrecedent !: FormGroup;
   @Input() unites !: Unite[];
+  @Input() verifier : boolean = false;
 
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];
@@ -76,7 +77,11 @@ export class ObjectifQualite {
       // console.log('ici', this.operationSelected);
       // this.updateFilteredOperations();
     });
-    this.updateFilteredOperations(1);
+    if (this.verifier) {
+      this.updateAllOperation();
+    } else {
+      this.updateFilteredOperations(1);
+    }
 
   }
 
@@ -163,13 +168,13 @@ export class ObjectifQualite {
 
   updateAllOperation() {
     this.formGroups.forEach((fg, i) => {
-      this.updateFilteredOperations(i);
+      this.updateFilteredOperations(i+1);
     })
   }
 
   listControl(index: number): Operation[] {
     console.log('index', index)
-    if (this.operationSelected) {
+    if (this.operationSelected && !this.verifier) {
       console.log('select', this.operationSelected);
       const selectedValuesExceptCurrent = this.operationSelected
         .filter(sel => sel.index !== index - 1 && sel.index !== 0)
@@ -181,8 +186,10 @@ export class ObjectifQualite {
         .map((fg, i) => fg ? [i, fg.get('operation')?.value] : [])
         .filter(val => val !== null && val !== undefined);
 
+      console.log('previous ',previousOperation)
+
       const excluded = previousOperation
-        .map((value, idx) => (currentOperation && ((value[1]).includes(currentOperation.toString())) ? value[0] : null))
+        .map((value, idx) => (currentOperation && value[1] && ((value[1]).includes(currentOperation.toString())) ? value[0] : null))
         .filter(idx => idx !== null)
 
       const operationExclu = this.formGroups.map((fg, i) => excluded.includes(i) ? fg.get('operationAControler')?.value : null)
@@ -199,13 +206,15 @@ export class ObjectifQualite {
       console.log('exclu ', excluded, 'previous', previousOperation, 'current', currentOperation, 'index', index, ' operation exclu ', operationExclu, 'new operation', operationNew)
 
       return operationNew;
+    } else if(this.operationSelected && this.verifier){
+      return this.operations;
     }
     return [];
   }
 
   updateFilteredOperations(index: number) {
     this.filteredOperation[index - 1] = this.listControl(index);
-    console.log(this.filteredOperation)
+    console.log('operations ',index,this.filteredOperation)
   }
 
   formatSeuilQualite(index: number): void {
