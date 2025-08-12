@@ -16,4 +16,13 @@ export class FormStorageService {
       throw error;
     }
   }
+
+  async updateParametre(parametrage: any) : Promise<any> {
+    try {
+      const response = await this.http.post('/update', parametrage);
+      return response
+    } catch (error) {
+      throw error;
+    }
+  }
 }

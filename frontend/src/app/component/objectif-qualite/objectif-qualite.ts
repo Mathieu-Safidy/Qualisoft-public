@@ -39,7 +39,7 @@ export class ObjectifQualite {
   @Input() operations !: Operation[];
   @Input() formPrecedent !: FormGroup;
   @Input() unites !: Unite[];
-  @Input() verifier : boolean = false;
+  @Input() verifier: boolean = false;
 
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];
@@ -93,6 +93,12 @@ export class ObjectifQualite {
     if (changes['operations']) {
       console.log('Opérations mises à jour', this.operations);
       // mettre à jour les champs internes ici
+      this.filteredOperations = this.formGroups.map((fg) =>
+        fg.get('operation')!.valueChanges.pipe(
+          startWith(''),
+          map(value => this._filter(value || ''))
+        )
+      );
     }
   }
 
@@ -168,7 +174,7 @@ export class ObjectifQualite {
 
   updateAllOperation() {
     this.formGroups.forEach((fg, i) => {
-      this.updateFilteredOperations(i+1);
+      this.updateFilteredOperations(i + 1);
     })
   }
 
@@ -186,7 +192,7 @@ export class ObjectifQualite {
         .map((fg, i) => fg ? [i, fg.get('operation')?.value] : [])
         .filter(val => val !== null && val !== undefined);
 
-      console.log('previous ',previousOperation)
+      console.log('previous ', previousOperation)
 
       const excluded = previousOperation
         .map((value, idx) => (currentOperation && value[1] && ((value[1]).includes(currentOperation.toString())) ? value[0] : null))
@@ -206,7 +212,7 @@ export class ObjectifQualite {
       console.log('exclu ', excluded, 'previous', previousOperation, 'current', currentOperation, 'index', index, ' operation exclu ', operationExclu, 'new operation', operationNew)
 
       return operationNew;
-    } else if(this.operationSelected && this.verifier){
+    } else if (this.operationSelected && this.verifier) {
       return this.operations;
     }
     return [];
@@ -214,7 +220,7 @@ export class ObjectifQualite {
 
   updateFilteredOperations(index: number) {
     this.filteredOperation[index - 1] = this.listControl(index);
-    console.log('operations ',index,this.filteredOperation)
+    console.log('operations ', index, this.filteredOperation)
   }
 
   formatSeuilQualite(index: number): void {

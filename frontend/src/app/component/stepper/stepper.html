@@ -76,11 +76,21 @@
       <div class="col-3 text-end">
         <button
           class="btn border rounded-3 bg-primary text-white"
+          *ngIf="!verification"
           mat-button
           (click)="submit()"
           [disabled]="form3.invalid"
         >
           Envoyer
+        </button>
+        <button
+          class="btn border rounded-3 bg-primary text-white"
+          *ngIf="verification"
+          mat-button
+          (click)="updateFinal()"
+          [disabled]="form3.invalid"
+        >
+          Modifier
         </button>
       </div>
     </div>

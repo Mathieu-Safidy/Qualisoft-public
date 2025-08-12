@@ -257,13 +257,8 @@ export class Stepper {
         ),
       });
 
-      for (const erreur of verifier.erreur) {
-        this.ajouterLigne(this.colone_form3, erreur);
-      }
-      this.updateFiltered3();
 
-      console.log('form 2 value', this.form2.value)
-      console.log('form 3 value', this.form3.value)
+      console.log('form 2 value', this.form2.value);
 
     } else {
 
@@ -386,29 +381,29 @@ export class Stepper {
 
             let defaultOperation = this.operations[0]?.id_operation || '';
             let defaultUnite = this.unites[0]?.id_type_qte_act || '';
-            this.form2 = this.fb.group({
-              formArray: this.fb.array(
-                this.items.map((item) =>
-                  this.fb.group({
-                    id: [crypto.randomUUID()],
-                    operation: ['', Validators.required],
-                    unite: ['', Validators.required],
-                    seuilQualite: [
-                      '',
-                      [
-                        Validators.required,
-                        Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-                        Validators.min(0),
-                        Validators.max(100),
-                      ],
-                    ],
-                    typeControl: ['', Validators.required],
-                    operationAControler: ['', Validators.required],
-                    critereRejet: ['', Validators.required],
-                  })
-                )
-              ),
-            });
+            // this.form2 = this.fb.group({
+            //   formArray: this.fb.array(
+            //     this.items.map((item) =>
+            //       this.fb.group({
+            //         id: [crypto.randomUUID()],
+            //         operation: ['', Validators.required],
+            //         unite: ['', Validators.required],
+            //         seuilQualite: [
+            //           '',
+            //           [
+            //             Validators.required,
+            //             Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
+            //             Validators.min(0),
+            //             Validators.max(100),
+            //           ],
+            //         ],
+            //         typeControl: ['', Validators.required],
+            //         operationAControler: ['', Validators.required],
+            //         critereRejet: ['', Validators.required],
+            //       })
+            //     )
+            //   ),
+            // });
             // })
           });
       }
@@ -449,6 +444,18 @@ export class Stepper {
     // this.id_form_colonne = this.operations.map((operation: Operation) => (operation && this.colone_form3.includes(operation.id_operation)) ? operation.id_operation : null).filter(ind => ind !== null && ind !== undefined);
 
     this.colone_form3 = colonneForm;
+
+    if (this.verification) {
+      let update = 1;
+      for (const erreur of this.verification.erreur) {
+        this.ajouterLigne(this.colone_form3, erreur, update);
+      }
+      this.updateFiltered3();
+    }
+
+
+    console.log('colonne form', this.colone_form3);
+    console.log('form 3 value', this.form3.value);
     console.log(
       'colonne',
       colonneForm,
@@ -459,8 +466,9 @@ export class Stepper {
     );
 
     let formulaire3 = this.form3.controls['formErreur'] as FormArray;
-    if (!formulaire3 || formulaire3.length === 0) {
-      this.ajouterLigne(colonneForm, '');
+    console.log('formulauire ', formulaire3, this.verification, (!formulaire3 || formulaire3.length === 0) || !this.verification)
+    if ((!formulaire3 || formulaire3.length === 0) || !this.verification) {
+      this.ajouterLigne(colonneForm, '', 0);
     }
 
     this.updateFiltered3();
@@ -490,53 +498,125 @@ export class Stepper {
     });
   }
 
-  genererGroup(colonne: string[] = [], value: any): FormGroup {
-    const group: { [key: string]: any } = {
-      typeErreur: ['', Validators.required],
-      degre: ['', Validators.required],
-      coef: ['', Validators.required],
-      raccourci: ['', Validators.required],
-    };
+  genererGroup(colonne: string[] = [], value: any, update: number): FormGroup | null {
+
+    let group: { [key: string]: any } = {};
     if (value) {
-      group['typeErreur'] = [value.libelle_erreur || '', Validators.required];
-      group['degre'] = [value.est_majeur ? 1 : 0, Validators.required];
-      group['coef'] = [value.coef || 0, Validators.required];
-      group['raccourci'] = [value.raccourci || '', Validators.required];
 
-      if (this.id_form_colonne) {
-        colonne.forEach((col, index) => {
-          if (this.id_form_colonne[index] == value.operation_de_control) {
-            group[col] = [value.valable];
+      let verfierErreur = this.verifierTypeErreur(value.libelle_erreur);
+      if (!verfierErreur) {
+        group = {
+          typeErreur: ['', Validators.required],
+          degre: ['', Validators.required],
+          coef: ['', Validators.required],
+          raccourci: ['', Validators.required],
+        };
+
+        group['typeErreur'] = [value.libelle_erreur || '', Validators.required];
+        group['degre'] = [value.est_majeur ? 1 : 0, Validators.required];
+        group['coef'] = [value.coef || 0, Validators.required];
+        group['raccourci'] = [value.raccourci || '', Validators.required];
+
+        console.log('value', value, 'group', group, 'idform', this.id_form_colonne);
+        if (this.id_form_colonne) {
+          for (const [index, id_colone] of this.id_form_colonne.entries()) {
+            console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index]);
+            if (id_colone === value.operation_de_control.toString()) {
+              group[colonne[index]] = [value.valable];
+            }
+            // Grouper les colonnes par libellé d'erreur pour éviter la duplication
+            // colonne.forEach((col, index) => {
+            //   // Si le libellé d'erreur correspond à la colonne et que la colonne correspond à l'opération
+            //   if (
+            //     this.id_form_colonne[index] == value.operation_de_control
+            //   ) {
+            //     group[col] = [value.valable];
+            //   } else {
+            //     group[col] = [false];
+            //   }
+            // });
           }
-        });
-      }
+        }
 
-    } else {
+      } else {
+        if (this.id_form_colonne) {
+          console.log('value', value, 'group', (verfierErreur as FormGroup).controls, 'idform', this.id_form_colonne);
+          for (const [index, id_colone] of this.id_form_colonne.entries()) {
+            // Si le champ n'existe pas dans le FormGroup, on l'ajoute dynamiquement
+            if (id_colone === value.operation_de_control.toString()) {
+              console.log('exist ', !verfierErreur.get(colonne[index]))
+              console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index]);
+              if (!(verfierErreur as FormGroup).contains(colonne[index])) {
+                // Ajoute le contrôle si absent
+                (verfierErreur as FormGroup).addControl(colonne[index], this.fb.control(value.valable));
+              } else {
+                (verfierErreur as FormGroup).get(colonne[index])?.setValue(value.valable);
+              }
+            }
+            // Grouper les colonnes par libellé d'erreur pour éviter la duplication
+            // colonne.forEach((col, index) => {
+            //   // Si le libellé d'erreur correspond à la colonne et que la colonne correspond à l'opération
+            //   if (
+            //     this.id_form_colonne[index] == value.operation_de_control
+            //   ) {
+            //     group[col] = [value.valable];
+            //   } else {
+            //     group[col] = [false];
+            //   }
+            // });
+          }
+        }
+      }
+    } else if (!value && update == 0) {
+      group = {
+        typeErreur: ['', Validators.required],
+        degre: ['', Validators.required],
+        coef: ['', Validators.required],
+        raccourci: ['', Validators.required],
+      };
       colonne.forEach((col) => {
         group[col] = [''];
       });
-
     }
+    // else {
+    //   colonne.forEach((col) => {
+    //     group[col] = [''];
+    //   });
+
+    // }
 
 
-    return this.fb.group(group);
+    // Only return a FormGroup if group is not null or empty
+    if (group && Object.keys(group).length > 0) {
+      return this.fb.group(group);
+    }
+    return null;
   }
 
-  ajouterLigne(colonne: string[] = [], value: any) {
+  ajouterLigne(colonne: string[] = [], value: any, update: number) {
     // console.log('ajouter ligne', colonne)
-    let group = this.genererGroup(colonne, value);
+    let group = this.genererGroup(colonne, value, update);
+    if (group) {
 
-    const colonneNonVide = colonne.filter(
-      (res) => res != '' && res != null && res != undefined
-    );
+      const colonneNonVide = colonne.filter(
+        (res) => res != '' && res != null && res != undefined
+      );
 
-    if (colonneNonVide.length === 1 && !value) {
-      const col = colonneNonVide[0];
-      group.get(col)?.setValue(true);
+      if (colonneNonVide.length === 1 && !value) {
+        const col = colonneNonVide[0];
+        group.get(col)?.setValue(true);
+      }
+      return this.typeErreur.push(group);
+    } else {
+      return null
     }
 
+  }
 
-    return this.typeErreur.push(group);
+  verifierTypeErreur(name: string) {
+    const formArray = this.typeErreur;
+    const control = formArray.controls.find((ctrl) => ctrl.get('typeErreur')?.value === name);
+    return control;
   }
 
   substractLigne(event: number) {
@@ -544,13 +624,32 @@ export class Stepper {
   }
 
   addLigne() {
-    this.ajouterLigne(this.colone_form3, '');
+    this.ajouterLigne(this.colone_form3, '', 0);
     this.updateFiltered3();
+  }
+
+  updateFinal() {
+    if (this.verification) {
+      const data = {
+        ...this.form1.value,
+        ...this.form2.value,
+        ...this.form3.value,
+        colonne: this.colone_form3,
+        id_colonnes: this.id_form_colonne,
+        id_projet: this.verification.projet.id_projet
+      };
+      console.log('Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
+      this.formSubmitService.updateParametre(data).then((response) => {
+        console.log('Réponse du serveur :', response);
+      }).catch((error) => {
+        console.error('Erreur lors de l\'envoi des données :', error);
+      });
+      this.router.navigate(['/Dashboard/recap'], { state: { data: data } });
+    }
   }
 
   update() {
     if (this.verification) {
-
       const data = {
         ...this.form1.value,
         ...this.form2.value,
@@ -561,6 +660,8 @@ export class Stepper {
       };
     }
   }
+
+
 
   submit() {
     const data = {
