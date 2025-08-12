@@ -16,7 +16,7 @@ import { Ligne } from '../../interface/Ligne';
 import { Fonction } from '../../interface/Fonction';
 import { Projet } from '../../interface/Projet';
 import { DetailProjectService } from '../../service/DetailProjectService';
-import { map, Observable, startWith } from 'rxjs';
+import { debounceTime, map, merge, Observable, of, startWith } from 'rxjs';
 import { VueGlobal } from '../../interface/VueGlobal';
 import { FonctionModele } from '../../class/FonctionModele';
 import { Operation } from '../../interface/Operation';
@@ -259,6 +259,7 @@ export class Stepper {
 
 
       console.log('form 2 value', this.form2.value);
+      this.generate();
 
     } else {
 
@@ -299,30 +300,6 @@ export class Stepper {
         ),
       });
     }
-    // this.form2 = this.fb.group({
-    //   formArray: this.fb.array(
-    //     this.items.map((item) =>
-    //       this.fb.group({
-    //         id: [crypto.randomUUID()],
-    //         id_etape_qualite: [''],
-    //         operation: ['', Validators.required],
-    //         unite: ['', Validators.required],
-    //         seuilQualite: [
-    //           '',
-    //           [
-    //             Validators.required,
-    //             Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-    //             Validators.min(0),
-    //             Validators.max(100),
-    //           ],
-    //         ],
-    //         typeControl: ['', Validators.required],
-    //         operationAControler: ['', Validators.required],
-    //         critereRejet: ['', Validators.required],
-    //       })
-    //     )
-    //   ),
-    // });
 
 
 
@@ -338,33 +315,6 @@ export class Stepper {
           const unite = await this.detailService.getUnite();
           // this.detailService.getUnite().subscribe(res => {
           this.unites = unite;
-
-          // let defaultOperation = this.operations[0]?.id_operation || '';
-          // let defaultUnite = this.unites[0]?.id_type_qte_act || '';
-          // this.form2 = this.fb.group({
-          //   formArray: this.fb.array(
-          //     this.items.map((item) =>
-          //       this.fb.group({
-          //         id: [crypto.randomUUID()],
-          //         operation: ['', Validators.required],
-          //         unite: ['', Validators.required],
-          //         seuilQualite: [
-          //           '',
-          //           [
-          //             Validators.required,
-          //             Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-          //             Validators.min(0),
-          //             Validators.max(100),
-          //           ],
-          //         ],
-          //         typeControl: ['', Validators.required],
-          //         operationAControler: ['', Validators.required],
-          //         critereRejet: ['', Validators.required],
-          //       })
-          //     )
-          //   ),
-          // });
-          // })
         });
     }
     this.form1.statusChanges.subscribe((status) => {
@@ -379,37 +329,28 @@ export class Stepper {
             // this.detailService.getUnite().subscribe(res => {
             this.unites = unite;
 
-            let defaultOperation = this.operations[0]?.id_operation || '';
-            let defaultUnite = this.unites[0]?.id_type_qte_act || '';
-            // this.form2 = this.fb.group({
-            //   formArray: this.fb.array(
-            //     this.items.map((item) =>
-            //       this.fb.group({
-            //         id: [crypto.randomUUID()],
-            //         operation: ['', Validators.required],
-            //         unite: ['', Validators.required],
-            //         seuilQualite: [
-            //           '',
-            //           [
-            //             Validators.required,
-            //             Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-            //             Validators.min(0),
-            //             Validators.max(100),
-            //           ],
-            //         ],
-            //         typeControl: ['', Validators.required],
-            //         operationAControler: ['', Validators.required],
-            //         critereRejet: ['', Validators.required],
-            //       })
-            //     )
-            //   ),
-            // });
-            // })
           });
       }
     });
+
+
+    this.subscribeToFormChanges(verifier);
     // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
   }
+
+  subscribeToFormChanges(verifier: any) {
+    merge(this.form1.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
+      .pipe(debounceTime(500))
+      .subscribe(() => {
+        if (verifier) {
+          this.verification = verifier;
+          this.update();
+        } else {
+          this.insert();
+        }
+      });
+  }
+
 
   private _filter(value: string): Erreur[] {
     // console.log('erreur ', this.erreurs);
@@ -648,7 +589,7 @@ export class Stepper {
     }
   }
 
-  update() {
+  async update() {
     if (this.verification) {
       const data = {
         ...this.form1.value,
@@ -656,12 +597,32 @@ export class Stepper {
         ...this.form3.value,
         colonne: this.colone_form3,
         id_colonnes: this.id_form_colonne,
-        id_projet: this.verification.id_projet
+        id_projet: this.verification.projet.id_projet
       };
+      console.log('update debounce Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
+      this.formSubmitService.updateParametre(data).then((response) => {
+        console.log('Réponse du serveur :', response);
+      }).catch((error) => {
+        console.error('Erreur lors de l\'envoi des données :', error);
+      });
     }
   }
 
-
+  insert() {
+    const data = {
+      ...this.form1.value,
+      ...this.form2.value,
+      ...this.form3.value,
+      colonne: this.colone_form3,
+      id_colonnes: this.id_form_colonne
+    };
+    console.log('Inserer Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
+    this.formSubmitService.parametrage(data).then((response) => {
+      console.log('Réponse du serveur :', response);
+    }).catch((error) => {
+      console.error('Erreur lors de l\'envoi des données :', error);
+    });
+  }
 
   submit() {
     const data = {
