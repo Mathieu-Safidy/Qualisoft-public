@@ -6,7 +6,7 @@
             <button (click)="triggerAdd()" class="btn btn-success  "><fa-icon icon="plus-circle" class="me-2" ></fa-icon>Add</button>
         </div>
     </div>
-    <form action="" [formGroup]="form">
+    <form action="" [formGroup]="form()">
       <table
         class="table p-3 "
       >
@@ -16,7 +16,7 @@
             <th>Degre</th>
             <th>Coef</th>
             <th>Raccourci</th>
-            <ng-container *ngFor="let item of colonne">
+            <ng-container *ngFor="let item of colonne()">
               <th class="checker">{{ item }}</th>
             </ng-container>
           </tr>
@@ -35,7 +35,7 @@
                     [matAutocomplete]="autErreur"
                 />
                 <mat-autocomplete #autErreur="matAutocomplete" > 
-                  <mat-option *ngFor="let erreur of filteredOperations[i] | async " [value]="erreur.type_erreur">
+                  <mat-option *ngFor="let erreur of filteredOperations()[i] | async " [value]="erreur.type_erreur">
                     {{ erreur.type_erreur }}
                   </mat-option>
                 </mat-autocomplete>

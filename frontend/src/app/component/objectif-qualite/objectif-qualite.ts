@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, input, Input, SimpleChanges, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, SelectControlValueAccessor, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
@@ -35,10 +35,12 @@ export class ObjectifQualite {
   items = [''];
 
   filteredOperations !: Observable<Operation[]>[];
-  @Input() form !: FormGroup;
+  // @Input() form !: FormGroup;
+  form = input<FormGroup>();
   @Input() operations !: Operation[];
   @Input() formPrecedent !: FormGroup;
-  @Input() unites !: Unite[];
+  // @Input() unites !: Unite[];
+  unites = input<Unite[]>();
   @Input() verifier: boolean = false;
 
   operationSelected!: { index: number, value: string }[];
@@ -51,17 +53,17 @@ export class ObjectifQualite {
   }
 
   get formGroups(): FormGroup[] {
-    const formArray = this.form.controls["formArray"];
+    const formArray = this.form()?.controls["formArray"];
     return (formArray as FormArray).controls as FormGroup[];
   }
 
   get formArray() {
-    const formArray = this.form.controls["formArray"];
+    const formArray = this.form()?.controls["formArray"];
     return formArray as FormArray;
   }
 
   get formul() {
-    return this.form;
+    return this.form();
   }
 
   ngOnInit() {
@@ -126,7 +128,7 @@ export class ObjectifQualite {
       }
     });
 
-    console.log('Formulaire principal valide :', this.form.valid);
+    console.log('Formulaire principal valide :', this.form()?.valid);
   }
 
   private _filter(value: string): Operation[] {
@@ -308,7 +310,7 @@ export class ObjectifQualite {
       operationAControler: ['', Validators.required],
       critereRejet: ['', Validators.required]
     });
-    const formArray = this.form.get('formArray') as FormArray | null;
+    const formArray = this.form()?.get('formArray') as FormArray | null;
     if (formArray) {
       formArray.push(fg);
     }
@@ -331,7 +333,7 @@ export class ObjectifQualite {
   }
 
   submit() {
-    const formArray = this.form.get('formArray');
+    const formArray = this.form()?.get('formArray');
     if (formArray && formArray.invalid) {
       formArray.markAllAsTouched(); // active les messages d’erreur
       // sinon tu récupères les données valides :

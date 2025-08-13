@@ -8,6 +8,7 @@ import {
   PipeTransform,
   QueryList,
   ViewChildren,
+  input
 } from '@angular/core';
 import { AsyncPipe, CommonModule, DecimalPipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -52,13 +53,15 @@ export interface SortEvent<T = any> {
   },
 })
 export class NgbdSortableHeader {
-  @Input() sortable: string = '';
+  readonly sortable = input<string>('');
+  // TODO: Skipped for migration because:
+  //  Your application code writes to the input. This prevents migration.
   @Input() direction: SortDirection = '';
   @Output() sort = new EventEmitter<SortEvent>();
 
   rotate() {
     this.direction = rotate[this.direction];
-    this.sort.emit({ column: this.sortable, direction: this.direction });
+    this.sort.emit({ column: this.sortable(), direction: this.direction });
   }
 }
 
@@ -88,7 +91,7 @@ export class Liste<T extends Record<string, any> = any> {
   }
   ngOnChanges(changes: any) {
     // console.log('ngOnChanges called', changes);
-    this.originalData = this.data;
+    this.originalData = this.data();
     // console.log('originalData set', this.originalData);
     this.filter.valueChanges.pipe(startWith('')).subscribe((text) => {
       // console.log('filter valueChanges', text);
@@ -107,10 +110,13 @@ export class Liste<T extends Record<string, any> = any> {
   keyToString(key: keyof T): string {
     return String(key);
   }
-  @Input() data: T[] = [];
-  @Input() columns: ColumnDef<T>[] = [];
+  readonly data = input<T[]>([]);
+  readonly columns = input<ColumnDef<T>[]>([]);
+  // TODO: Skipped for migration because:
+  //  This input is used in a control flow expression (e.g. `@if` or `*ngIf`)
+  //  and migrating would break narrowing currently.
   @Input() pageSize = 10;
-  @Input() onRowClicked?: (row: any) => void;
+  readonly onRowClicked = input<(row: any) => void>();
 
 
   filter = new FormControl('', { nonNullable: true });
@@ -142,7 +148,7 @@ export class Liste<T extends Record<string, any> = any> {
   onSort({ column, direction }: SortEvent<T>) {
     console.log('onSort called', column, direction);
     this.headers.forEach((header) => {
-      if (header.sortable !== column) header.direction = '';
+      if (header.sortable() !== column) header.direction = '';
     });
     this.currentSort = { column, direction };
     const filtered = this.search(this.filter.value);
@@ -159,7 +165,7 @@ export class Liste<T extends Record<string, any> = any> {
   private search(text: string): T[] {
     const term = text?.toLowerCase() || '';
     return this.originalData.filter((row) =>
-      this.columns.some((col) => {
+      this.columns().some((col) => {
         if (col.isSearchable === false) return false;
         const value = row[col.key];
         if (typeof value === 'string') return value.toLowerCase().includes(term);

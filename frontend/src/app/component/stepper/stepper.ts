@@ -27,6 +27,7 @@ import { TypeTraitement } from '../../interface/TypeTraitement';
 import { Erreur } from '../../interface/Erreur';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { FormStorageService } from '../../service/FormStorageService';
+import { DetailClient } from "../detail-client/detail-client";
 
 @Component({
   selector: 'app-stepper',
@@ -38,6 +39,7 @@ import { FormStorageService } from '../../service/FormStorageService';
     ProjectDetail,
     ObjectifQualite,
     TypeErreur,
+    DetailClient
   ],
   templateUrl: './stepper.html',
   styleUrl: './stepper.css',
@@ -46,6 +48,7 @@ export class Stepper {
   // private detailService = Inject(DetailProjectService);
 
   form1!: FormGroup;
+  formInterlocuteur!: FormGroup;
   form2!: FormGroup;
   form3!: FormGroup;
 
@@ -193,7 +196,7 @@ export class Stepper {
       this.verification = verifier;
       let nom_client = this.data.client.nom;
 
-      console.log('client ', nom_client)
+      console.log('client ', nom_client);
 
       let projet_exist = verifier.projet;
       this.form1 = this.fb.group({
@@ -202,11 +205,34 @@ export class Stepper {
         fonction: [defaultFonction, Validators.required],
         description_traite: [projet_exist.description_traitement, Validators.required],
         type_traite: [projet_exist.id_type_traitement, Validators.required],
-        client_nom: [nom_client, Validators.required],
-        interlocuteur_nom: [projet_exist.nom_interlocuteur, Validators.required],
-        contact_interlocuteur: [projet_exist.contact_interlocuteur, [Validators.required, Validators.email]],
+        client_nom: [''],
+        interlocuteur_nom: [projet_exist.nom_interlocuteur],
+        contact_interlocuteur: [projet_exist.contact_interlocuteur],
         cp_responsable: [projet_exist.id_cp, Validators.required],
       });
+
+      let verifInterlocuteur = this.data.interlocuteurs;
+      this.formInterlocuteur = this.fb.group({
+        client: this.fb.group({
+          nom_client: [nom_client, Validators.required]
+        }),
+        interlocuteur: this.fb.array(
+          verifInterlocuteur.length > 0
+            ? verifInterlocuteur.map((item: any) => [
+                this.fb.group({
+                  nom_interlocuteur: [item.nom_interlocuteur, Validators.required],
+                  contact_interlocuteur: [item.contact_interlocuteur, [Validators.required, Validators.email]]
+                })
+              ])
+            : [
+              this.fb.group({
+                  nom_interlocuteur: ['', Validators.required],
+                  contact_interlocuteur: ['', [Validators.required, Validators.email]]
+                })
+            ]
+        )
+      })
+
 
       // Remplir form2 avec les données existantes si elles sont présentes dans verifier
       const formArrayData = verifier?.etape || [];
@@ -269,11 +295,23 @@ export class Stepper {
         fonction: [defaultFonction, Validators.required],
         description_traite: ['', Validators.required],
         type_traite: ['', Validators.required],
-        client_nom: ['', Validators.required],
-        interlocuteur_nom: ['', Validators.required],
-        contact_interlocuteur: ['', [Validators.required, Validators.email]],
+        client_nom: [''],
+        interlocuteur_nom: [''],
+        contact_interlocuteur: [''],
         cp_responsable: ['', Validators.required],
       });
+
+      this.formInterlocuteur = this.fb.group({
+        client: this.fb.group({
+          nom_client: ['', Validators.required]
+        }),
+        interlocuteur: this.fb.array([
+          this.fb.group({
+            nom_interlocuteur: ['', Validators.required],
+            contact_interlocuteur: ['', [Validators.required, Validators.email]]
+          })
+        ])
+      })
 
       this.form2 = this.fb.group({
         formArray: this.fb.array(
@@ -614,6 +652,7 @@ export class Stepper {
       ...this.form2.value,
       ...this.form3.value,
       colonne: this.colone_form3,
+      clientDetail: this.formInterlocuteur.value,
       id_colonnes: this.id_form_colonne
     };
     console.log('Inserer Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
@@ -629,6 +668,7 @@ export class Stepper {
       ...this.form1.value,
       ...this.form2.value,
       ...this.form3.value,
+      clientDetail: this.formInterlocuteur.value,
       colonne: this.colone_form3,
       id_colonnes: this.id_form_colonne
     };

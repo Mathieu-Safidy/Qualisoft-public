@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, input } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -41,17 +41,19 @@ export class ProjectDetail {
 
   filteredOptionsLigne !: Observable<Ligne[]>;
 
-  @Input() form!: FormGroup;
+  readonly form = input.required<FormGroup>();
 
+  // TODO: Skipped for migration because:
+  //  Your application code writes to the input. This prevents migration.
   @Input() isStepper: boolean;
 
-  @Input() ligne: Ligne[] = [];
+  readonly ligne = input<Ligne[]>([]);
 
-  @Input() fonction: Fonction[] = [];
+  readonly fonction = input<Fonction[]>([]);
 
-  @Input() plan !: Projet[];
+  readonly plan = input.required<Projet[]>();
 
-  @Input() typeTraitement !: TypeTraitement[];
+  readonly typeTraitement = input.required<TypeTraitement[]>();
 
   @Output() ligneChange = new EventEmitter<{ ligne: string, plan: string }>();
   @Output() onFunctionChange = new EventEmitter<{ ligne: string, plan: string , fonction: string}>();
@@ -64,7 +66,7 @@ export class ProjectDetail {
   }
 
   checkDonne() {
-    console.log(this.fonction);
+    console.log(this.fonction());
   }
 
   ngOnInit() {
@@ -102,48 +104,52 @@ export class ProjectDetail {
 
     // console.log('Formulaire initialized with plan:', this.id, ' and ligne:', this.ligne[0]);
 
-    this.filteredOptions = this.form.get('fonction')!.valueChanges.pipe(
+    this.filteredOptions = this.form().get('fonction')!.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || ''))
     );
 
-    this.filteredOptionsLigne = this.form.get('ligne')!.valueChanges.pipe(
+    this.filteredOptionsLigne = this.form().get('ligne')!.valueChanges.pipe(
       startWith(''),
       map(value => this._filterLigne(value || ''))
     );
   }
   private _filter(value: string): Fonction[] {
     // console.log('value', this.fonction.length, 'test', (this.fonction?.length === 0));
-    if (this.fonction?.length <= 0) return [];
+    const fonction = this.fonction();
+    if (fonction?.length <= 0) return [];
     const filterValue = value.toLowerCase();
     // console.log('filterValue', this.fonction);
-    return this.fonction.filter(option =>
+    return fonction.filter(option =>
       option.libelle?.toLowerCase().includes(filterValue)
     );
   }
 
   private _filterLigne(value: string): Ligne[] {
     // console.log('value', this.ligne.length, 'test', (this.ligne?.length === 0));
-    if (this.ligne?.length <= 0) return [];
+    const ligne = this.ligne();
+    if (ligne?.length <= 0) return [];
     const filterValue = value.toLowerCase();
     // console.log('filterValue', this.ligne);
-    return this.ligne.filter(option =>
+    return ligne.filter(option =>
       option.libelle?.toLowerCase().includes(filterValue)
     );
   }
 
 
   displayLigne = (id: string): string => {
-    if (!this.ligne) return '';
-    const ligne = this.ligne.find(l => l.id_ligne === id);
+    const ligneValue = this.ligne();
+    if (!ligneValue) return '';
+    const ligne = ligneValue.find(l => l.id_ligne === id);
     return ligne ? ligne.libelle : '';
   };
 
 
 
   displayFonction = (id: string): string => {
-    if (!this.fonction) return '';
-    const fonction = this.fonction.find(f => f.id_fonction === id);
+    const fonctionValue = this.fonction();
+    if (!fonctionValue) return '';
+    const fonction = fonctionValue.find(f => f.id_fonction === id);
     return fonction ? fonction.libelle : '';
   };
 
@@ -158,7 +164,7 @@ export class ProjectDetail {
   functionChange(event: any) {
     const selectedLigne = event.option.value;
     const plan = this.route.snapshot.paramMap.get('id') || '';
-    console.log(this.form.value)
+    console.log(this.form().value)
     // this.onFunctionChange.emit({ ligne: selectedLigne, plan: plan });
   }
 
@@ -170,9 +176,10 @@ export class ProjectDetail {
   }
 
   checkFormBeforeSubmit(): void {
-    if (this.form.invalid) {
-      this.markFormGroupTouched(this.form);
-      this.checkFormValidationErrors(this.form);
+    const form = this.form();
+    if (form.invalid) {
+      this.markFormGroupTouched(form);
+      this.checkFormValidationErrors(form);
       return;
     }
 

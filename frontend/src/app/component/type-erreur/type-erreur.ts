@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output, input } from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,21 +23,22 @@ import { map, Observable, startWith } from 'rxjs';
   styleUrl: './type-erreur.css'
 })
 export class TypeErreur {
-  @Input() form !: FormGroup;
-  @Input() colonne: string[] = [];
-  @Input() erreurs: Erreur[] = [];
+  readonly form = input.required<FormGroup>();
+  readonly colonne = input<string[]>([]);
+  readonly erreurs = input<Erreur[]>([]);
   @Output() addLigne = new EventEmitter<void>();
   @Output() removeLigne = new EventEmitter<number>();
 
 
-  @Input() filteredOperations !: Observable<Erreur[]>[];
+  readonly filteredOperations = input.required<Observable<Erreur[]>[]>();
 
   ngOnInit() {
 
-    console.log('erreur init x', this.erreurs)
-    console.log(this.form.controls["formErreur"]);
-    console.log('form3 = ', this.form);
-    console.log('formErreur control = ', this.form.controls['formErreur']);
+    console.log('erreur init x', this.erreurs())
+    const form = this.form();
+    console.log(form.controls["formErreur"]);
+    console.log('form3 = ', form);
+    console.log('formErreur control = ', form.controls['formErreur']);
     console.log('formGroup.length = ', this.formGroup.length);
 
 
@@ -55,30 +56,31 @@ export class TypeErreur {
   }
 
   lister(): string[] {
-    if (this.colonne.length === 1) {
-      const col = this.colonne[0]; // la seule colonne
+    const colonne = this.colonne();
+    if (colonne.length === 1) {
+      const col = colonne[0]; // la seule colonne
       // console.log('this.form1', this.form , this.formGroup[0].get(col));
       this.formGroup[0].get(col)?.setValue(true);
       // console.log('this.form2', this.form , this.formGroup[0].get(col));
     }
-    if (this.colonne.length < 4) {
-      let reste = 4 - this.colonne.length
+    if (colonne.length < 4) {
+      let reste = 4 - colonne.length
       console.log(reste);
       for (let index = 0; index < reste; index++) {
-        this.colonne.push("");
+        colonne.push("");
       }
     }
-    return this.colonne;
+    return colonne;
   }
 
 
 
   get formGroup() {
-    return (this.form.controls["formErreur"] as FormArray).controls as FormGroup[];
+    return (this.form().controls["formErreur"] as FormArray).controls as FormGroup[];
   }
 
   checkValid() {
-    console.log(this.form.valid, (this.form.controls["formErreur"] as FormArray).valid, this.form);
+    console.log(this.form().valid, (this.form().controls["formErreur"] as FormArray).valid, this.form());
   }
 
   triggerAdd() {
@@ -90,8 +92,9 @@ export class TypeErreur {
   }
 
   displayErreur = (id: string): string => {
-    if (!this.erreurs) return '';
-    const operations = this.erreurs.find(l => l.id_erreur.toString() === id);
+    const erreurs = this.erreurs();
+    if (!erreurs) return '';
+    const operations = erreurs.find(l => l.id_erreur.toString() === id);
     return operations ? operations.type_erreur : '';
   }
 

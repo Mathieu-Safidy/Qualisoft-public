@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
 @Component({
@@ -11,7 +11,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 })
 export class Sidebar {
 
-  @Input() projectName = '';
+  readonly projectName = input('');
 
   constructor(private router: Router) { }
 

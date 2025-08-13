@@ -5,7 +5,7 @@
         </div>
         <div class="card-body">
             <!-- <button (click)="checkFormBeforeSubmit()">Check</button> -->
-            <form (submit)="suivant()" [formGroup]="form">
+            <form (submit)="suivant()" [formGroup]="form()">
                 <div class="row mb-2">
                     <div class="col-3">
                         <label for="ligne">Ligne</label>
@@ -38,7 +38,7 @@
                     <div class="col-9">
                         <select class="form-control" id="plan" name="plan" formControlName="plan">
                             <option value="">----Sélectionner un plan---- </option>
-                            <option *ngFor="let item of plan" [value]="item.id_plan">{{ item.libelle }}</option>
+                            <option *ngFor="let item of plan()" [value]="item.id_plan">{{ item.libelle }}</option>
                         </select>
                     </div>
                 </div>
@@ -82,7 +82,8 @@
                         <label for="desc">Descriptif de traitement</label>
                     </div>
                     <div class="col-9">
-                        <input type="text" class="form-control" name="" id="desc" placeholder="---- Descriptif de traitement ----" formControlName="description_traite">
+                        <!-- <input type="text" class="form-control" name="" id="desc" placeholder="---- Descriptif de traitement ----" formControlName="description_traite"> -->
+                        <textarea name="" id="" class="form-control" placeholder="---- Descriptif de traitement ----" formControlName="description_traite"></textarea>
                     </div>
                 </div>
                 <div class="row mb-2">
@@ -92,19 +93,19 @@
                     <div class="col-9">
                         <select class="form-control" id="fonction" name="type-traitement" formControlName="type_traite">
                             <option value="">---- Selectionner un type de traitement ----</option>
-                            <option *ngFor="let type of typeTraitement " [value]="type.id_type_traitement">{{ type.libelle }}</option>
+                            <option *ngFor="let type of typeTraitement() " [value]="type.id_type_traitement">{{ type.libelle }}</option>
                         </select>
                     </div>
                 </div>
-                <div class="row mb-2">
+                <!-- <div class="row mb-2">
                     <div class="col-3">
                         <label for="client_name">Nom du client</label>
                     </div>
                     <div class="col-9">
                         <input type="text" class="form-control" name="" id="client_name" placeholder="---- Nom du client ----" formControlName="client_nom">
                     </div>
-                </div>
-                <div class="row mb-2">
+                </div> -->
+                <!-- <div class="row mb-2">
                     <div class="col-3">
                         <label for="interlocuteur_client">Nom de l'interlocuteur du client</label>
                     </div>
@@ -119,7 +120,7 @@
                     <div class="col-9">
                         <input type="text" class="form-control" name="" id="interlocuteur_client_contact" placeholder="---- Contact interlocuteur ----" formControlName="contact_interlocuteur">
                     </div>
-                </div>
+                </div> -->
                 <div class="row mb-2">
                     <div class="col-3">
                         <label for="cp_responsable">CP responsable</label>

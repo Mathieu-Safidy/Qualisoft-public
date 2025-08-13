@@ -32,7 +32,7 @@
       <thead>
         <tr class="border-0">
           <th
-            *ngFor="let col of columns"
+            *ngFor="let col of columns()"
             scope="col"
             class="px-3 border-0"
             [sortable]="col.isSortable ? keyToString(col.key) : ''"
@@ -47,9 +47,9 @@
         <tr
           *ngFor="let row of pagedData$ | async; let i = index"
           class="shadow menu-row"
-          (click)="onRowClicked?.(row)"
+          (click)="onRowClicked()?.(row)"
         >
-          <td *ngFor="let col of columns" class="p-3">
+          <td *ngFor="let col of columns()" class="p-3">
             <ng-container *ngIf="col.format; else defaultCell">
               {{ col.format(row[col.key], row) }}
             </ng-container>
@@ -60,7 +60,7 @@
           </td>
         </tr>
         <tr *ngIf="(pagedData$ | async)?.length === 0">
-          <td [attr.colspan]="columns.length" style="text-align: center">
+          <td [attr.colspan]="columns().length" style="text-align: center">
             Aucune donnée trouvée
           </td>
         </tr>

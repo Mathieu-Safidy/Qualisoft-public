@@ -1,4 +1,4 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { ColumnDef, Liste } from '../liste/liste';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ProjectService } from '../../service/ProjectService';
@@ -15,7 +15,7 @@ import { VueGlobal } from '../../interface/VueGlobal';
 })
 export class ProjectList {
 
-  @Input() form!: FormGroup;
+  readonly form = input.required<FormGroup>();
 
   private projectService = inject(ProjectService);
 
