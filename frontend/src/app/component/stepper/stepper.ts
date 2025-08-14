@@ -211,19 +211,20 @@ export class Stepper {
         cp_responsable: [projet_exist.id_cp, Validators.required],
       });
 
-      let verifInterlocuteur = this.data.interlocuteurs;
+      let verifInterlocuteur = verifier.interlocuteurs;
+      console.log('verifInterlocuteur', verifInterlocuteur);
       this.formInterlocuteur = this.fb.group({
         client: this.fb.group({
           nom_client: [nom_client, Validators.required]
         }),
         interlocuteur: this.fb.array(
-          verifInterlocuteur.length > 0
-            ? verifInterlocuteur.map((item: any) => [
+          (verifInterlocuteur && verifInterlocuteur.length > 0)
+            ? verifInterlocuteur.map((item: any) => 
                 this.fb.group({
                   nom_interlocuteur: [item.nom_interlocuteur, Validators.required],
                   contact_interlocuteur: [item.contact_interlocuteur, [Validators.required, Validators.email]]
                 })
-              ])
+              )
             : [
               this.fb.group({
                   nom_interlocuteur: ['', Validators.required],

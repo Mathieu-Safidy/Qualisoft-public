@@ -1,7 +1,7 @@
 <div class="px-3 py-4">
   <div class="row mb-3">
     <div class="col-10">
-      <button type="button" (click)="checkValid()">check</button>
+      <!-- <button type="button" (click)="checkValid()">check</button> -->
     </div>
     <div class="col-2 text-end">
         <button type="button" class="btn btn-success" (click)="addItem()"> <fa-icon icon="plus-circle" ></fa-icon> Add</button>
@@ -48,7 +48,7 @@
         </div>
     </div>
     <div class="list card-body p-3" >
-      <form [formGroup]="form()">
+      <form [formGroup]="form()!">
         <div class="" formArrayName="formArray"  cdkDropList (cdkDropListDropped)="drop($event)">
           <div *ngFor="let fg of formArray.controls;  let i = index; trackByIndex: trackByIndex ; " [formGroupName]="i" cdkDrag class="row border border-2 mb-3 p-3 px-0 rounded-3 bg-light shadow">
             <div class="col-1 drag-icon text-center py-2 px-0">⠿ {{ i + 1 }}</div>
