@@ -18,7 +18,7 @@ COPY . .
 # The --output-path flag specifies where the compiled files will be placed
 # The --base-href flag is crucial for single-page applications served from a sub-path
 # Adjust these values as needed for your specific deployment environment
-RUN npm run build -- --output-path=./dist/app --base-href=/
+RUN npm run build -- --output-path=./dist/app --base-href=/qualisoft/
 
 # Stage 2: Serve the application with NGINX
 # Use a lean NGINX image
@@ -32,7 +32,7 @@ RUN rm -rf ./*
 
 # Copy the built application from the 'build' stage
 # The 'from=build' flag tells Docker to get the files from the named 'build' stage
-COPY --from=build /app/dist/app ./
+COPY --from=build /app/dist/app/browser ./
 
 # Copy custom NGINX configuration to the container
 # This is essential for routing in a single-page application (SPA)
