@@ -21,95 +21,28 @@ export class DetailProjectResolver implements Resolve<any> {
     const ligne = '';
     const fonction = route.paramMap.get('fonction') ?? '';
 
+    // const dataFilter = this.detailService.getDataFilter(ligne, plan, fonction);
+    // if (!dataFilter) {
+    //   throw new Error('Failed to get data filter');
+    // }
+    // const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
 
-    let { lignes, plans, fonctions } = this.getFilter(ligne, plan, fonction);
 
-    // lignes.subscribe(data => console.log('📦 LIGNES:', data));
-    // plans.subscribe(data => console.log('📦 PLANS:', data));
-    // fonctions.subscribe(data => console.log('📦 FONCTIONS:', data));
+    // return forkJoin({
+    //   ligne: lignes,
+    //   plan: plans,
+    //   fonction: fonctions,
+    //   operation: operations,
+    //   typetraitements: typetraitements,
+    //   erreurs: erreurTypes,
+    //   unites: unites,
+    //   verif: verifs,
+    //   client: clients
+    // });
 
-    let { operations } = this.getData();
-
-    let typetraitement = this.detailService.getTypeTraitement();
-
-    // typetraitement.subscribe(data => console.log('Type Traitemen :', data));
-    let erreurType = this.detailService.getErreurType();
-
-    let unite = this.detailService.getUnite();
-
-    let verif = lignes.pipe(
-      map(lignesArr => (lignesArr.length > 0 ? lignesArr[0].id_ligne : '')),
-      switchMap(idLigne => {
-        if (!idLigne || !plan || !fonction) {
-          return of(null); // Ne pas appeler l'API si un paramètre est vide
-        }
-        return this.detailService.verifier(idLigne, plan, fonction);
-      }),
-      catchError(() => of(null))
-    );
-
-    let client = verif.pipe(
-      map(verif => verif ? (verif as any).projet : null), // Accède à la propriété 'projet'
-      switchMap((projet: any) => {
-      if (projet && projet.id_client) {
-        return this.detailService.getClient(projet.id_client);
-      }
-      return of(null);
-      }),
-      catchError(() => of(null))
-    );
-
-    return forkJoin({
-      ligne: lignes,
-      plan: plans,
-      fonction: fonctions,
-      operation: operations,
-      typetraitements: typetraitement,
-      erreurs: erreurType,
-      unites: unite,
-      verif: verif,
-      client: client
-    });
+    return this.detailService.resolveFilter(ligne,plan,fonction);
   }
 
-  getFilter(ligne: string = "", plan: string = "", fonction: string = "") {
-    const responses$ = this.detailService.filtre(ligne, plan, fonction).pipe(
-      shareReplay(1)
-    );
-
-    const lignes$ = responses$.pipe(
-      map(response => new LigneModel().cast(response))
-    );
-
-    const plans$ = responses$.pipe(
-      map(response => new ProjetModele().cast(response))
-    );
-
-    const fonctions$ = lignes$.pipe(
-      switchMap(lignes => {
-        if (lignes.length > 0) {
-          const idLigne0 = lignes[0].id_ligne;
-          return this.detailService.filtre(idLigne0, plan, fonction);
-        } else {
-          return of([]);
-        }
-      }),
-      map(res => new FonctionModele().cast(res))
-    );
-
-
-
-    // ✅ On retourne un objet contenant les 3 observables
-    return {
-      lignes: lignes$,
-      plans: plans$,
-      fonctions: fonctions$
-    };
-  }
-
-
-  getData() {
-    return { operations: this.detailService.getOperation() };
-  }
+ 
 
 }

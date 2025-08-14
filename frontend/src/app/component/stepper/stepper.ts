@@ -84,6 +84,17 @@ export class Stepper {
   verification: any;
   // selectedFonction = '';
   existVerif: boolean = false;
+  id!: Observable<string>;
+  fonctionParam!: Observable<string>;
+
+  client !: string;
+
+  nom_client!: string;
+  nom_fonction!: string;
+  nom_line!: string;
+  defaultLine!: string;
+  defaultFonction!: string;
+  defaultOperation!: string;
 
   constructor(
     private fb: FormBuilder,
@@ -92,6 +103,8 @@ export class Stepper {
     private formSubmitService: FormStorageService,
     private router: Router
   ) {
+    this.id = route.params.pipe(map((p) => p['id']));
+    this.fonctionParam = route.params.pipe(map((p) => p['fonction']));
     // this.form1 = this.fb.group({
     //   ligne: ['', Validators.required],
     //   plan: ['', Validators.required],
@@ -169,8 +182,7 @@ export class Stepper {
     );
   }
 
-  ngOnInit() {
-    this.data = this.route.snapshot.data['data'];
+  initData() {
     console.log('data ', this.data)
     this.ligne = this.data.ligne;
     this.plan = this.data.plan;
@@ -179,89 +191,151 @@ export class Stepper {
     this.erreurs = this.data.erreurs;
     this.operations = this.data.operation;
     this.unites = [];
+    this.verification = this.data.verif;
+    console.log('verifier', this.verification);
+  }
 
-    this.updateFiltered3();
+  ngOnInit() {
+    this.route.data.subscribe(res => {
+      this.data = res['data'];
+      this.initData();
+      this.updateFiltered3();
 
-    // console.log('resolver: ', this.ligne, this.plan, this.fonction, this.data.operation);
+      // let id = this.route.snapshot.paramMap.get('id') || '';
 
-    let id = this.route.snapshot.paramMap.get('id') || '';
-    let defaultLine = this.ligne[0]?.id_ligne || '';
-    let defaultFonction = this.fonction[0]?.id_fonction || '';
-    let defaultOperation = this.operations[0]?.id_operation || '';
+      this.defaultLine = this.ligne[0]?.id_ligne || '';
+      this.defaultFonction = this.fonction[0]?.id_fonction || '';
+      this.defaultOperation = this.operations[0]?.id_operation || '';
+      let idValue = this.route.snapshot.paramMap.get('id') || '';
+      this.client = idValue;
+      this.nom_client = this.plan[0].libelle || '';
+      this.nom_fonction = this.fonction[0].libelle || '';
+      this.nom_line = this.ligne[0].libelle || '';
+      if (this.verification) {
+        this.existVerif = true;
 
-    let verifier: any = this.data.verif;
-    console.log('verifier', verifier)
-    if (verifier) {
-      this.existVerif = true;
-      this.verification = verifier;
-      let nom_client = this.data.client.nom;
+        console.log('client ', this.nom_client);
 
-      console.log('client ', nom_client);
+        let projet_exist = this.verification.projet;
+        this.form1 = this.fb.group({
+          ligne: [this.defaultLine, Validators.required],
+          plan: [idValue, Validators.required],
+          fonction: [this.defaultFonction, Validators.required],
+          description_traite: [projet_exist.description_traitement, Validators.required],
+          type_traite: [projet_exist.id_type_traitement, Validators.required],
+          client_nom: [''],
+          interlocuteur_nom: [projet_exist.nom_interlocuteur],
+          contact_interlocuteur: [projet_exist.contact_interlocuteur],
+          cp_responsable: [projet_exist.id_cp, Validators.required],
+        });
 
-      let projet_exist = verifier.projet;
-      this.form1 = this.fb.group({
-        ligne: [defaultLine, Validators.required],
-        plan: [id, Validators.required],
-        fonction: [defaultFonction, Validators.required],
-        description_traite: [projet_exist.description_traitement, Validators.required],
-        type_traite: [projet_exist.id_type_traitement, Validators.required],
-        client_nom: [''],
-        interlocuteur_nom: [projet_exist.nom_interlocuteur],
-        contact_interlocuteur: [projet_exist.contact_interlocuteur],
-        cp_responsable: [projet_exist.id_cp, Validators.required],
-      });
-
-      let verifInterlocuteur = verifier.interlocuteurs;
-      console.log('verifInterlocuteur', verifInterlocuteur);
-      this.formInterlocuteur = this.fb.group({
-        client: this.fb.group({
-          nom_client: [nom_client, Validators.required]
-        }),
-        interlocuteur: this.fb.array(
-          (verifInterlocuteur && verifInterlocuteur.length > 0)
-            ? verifInterlocuteur.map((item: any) => 
+        let verifInterlocuteur = this.verification.interlocuteurs;
+        console.log('verifInterlocuteur', verifInterlocuteur);
+        this.formInterlocuteur = this.fb.group({
+          client: this.fb.group({
+            nom_client: [this.nom_client, Validators.required]
+          }),
+          interlocuteur: this.fb.array(
+            (verifInterlocuteur && verifInterlocuteur.length > 0)
+              ? verifInterlocuteur.map((item: any) =>
                 this.fb.group({
                   nom_interlocuteur: [item.nom_interlocuteur, Validators.required],
                   contact_interlocuteur: [item.contact_interlocuteur, [Validators.required, Validators.email]]
                 })
               )
-            : [
-              this.fb.group({
+              : [
+                this.fb.group({
                   nom_interlocuteur: ['', Validators.required],
                   contact_interlocuteur: ['', [Validators.required, Validators.email]]
                 })
-            ]
-        )
-      })
+              ]
+          )
+        })
 
 
-      // Remplir form2 avec les données existantes si elles sont présentes dans verifier
-      const formArrayData = verifier?.etape || [];
+        // Remplir form2 avec les données existantes si elles sont présentes dans verifier
+        const formArrayData = this.verification?.etape || [];
 
-      this.form2 = this.fb.group({
-        formArray: this.fb.array(
-          formArrayData.length > 0
-            ? formArrayData.map((item: any) =>
-              this.fb.group({
-                id: [item.id || crypto.randomUUID()],
-                id_etape_qualite: [item.id_etape_qualite || ''],
-                operation: [item.operation_de_control.toString() || '', Validators.required],
-                unite: [item.id_unite_de_controle || '', Validators.required],
-                seuilQualite: [
-                  item.seuil_qualite || '',
-                  [
-                    Validators.required,
-                    Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
-                    Validators.min(0),
-                    Validators.max(100),
+        this.form2 = this.fb.group({
+          formArray: this.fb.array(
+            formArrayData.length > 0
+              ? formArrayData.map((item: any) =>
+                this.fb.group({
+                  id: [item.id || crypto.randomUUID()],
+                  id_etape_qualite: [item.id_etape_qualite || ''],
+                  operation: [item.operation_de_control?.toString() || '', Validators.required],
+                  unite: [item.id_unite_de_controle || '', Validators.required],
+                  seuilQualite: [
+                    item.seuil_qualite || '',
+                    [
+                      Validators.required,
+                      Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
+                      Validators.min(0),
+                      Validators.max(100),
+                    ],
                   ],
-                ],
-                typeControl: [item.type_de_controle || 0, Validators.required],
-                operationAControler: [item.operation_a_controller.toString() || '', Validators.required],
-                critereRejet: [item.coef_rejet || '', Validators.required],
-              })
-            )
-            : this.items.map((item) =>
+                  typeControl: [item.type_de_controle || 0, Validators.required],
+                  operationAControler: [item.operation_a_controller+'' || '', Validators.required],
+                  critereRejet: [item.coef_rejet || '', Validators.required],
+                })
+              )
+              : this.items.map((item) =>
+                this.fb.group({
+                  id: [crypto.randomUUID()],
+                  id_etape_qualite: [''],
+                  operation: ['', Validators.required],
+                  unite: ['', Validators.required],
+                  seuilQualite: [
+                    '',
+                    [
+                      Validators.required,
+                      Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
+                      Validators.min(0),
+                      Validators.max(100),
+                    ],
+                  ],
+                  typeControl: ['', Validators.required],
+                  operationAControler: ['', Validators.required],
+                  critereRejet: ['', Validators.required],
+                })
+              )
+          ),
+        });
+
+
+        console.log('form 2 value', this.form2.value);
+        this.generate();
+        
+      } else {
+        
+        console.log('form 2 value insert  ', this.form2.value);
+        this.form1 = this.fb.group({
+          ligne: [this.defaultLine, Validators.required],
+          plan: [idValue, Validators.required],
+          fonction: [this.defaultFonction, Validators.required],
+          description_traite: ['', Validators.required],
+          type_traite: ['', Validators.required],
+          client_nom: [''],
+          interlocuteur_nom: [''],
+          contact_interlocuteur: [''],
+          cp_responsable: ['', Validators.required],
+        });
+
+        this.formInterlocuteur = this.fb.group({
+          client: this.fb.group({
+            nom_client: ['', Validators.required]
+          }),
+          interlocuteur: this.fb.array([
+            this.fb.group({
+              nom_interlocuteur: ['', Validators.required],
+              contact_interlocuteur: ['', [Validators.required, Validators.email]]
+            })
+          ])
+        })
+
+        this.form2 = this.fb.group({
+          formArray: this.fb.array(
+            this.items.map((item) =>
               this.fb.group({
                 id: [crypto.randomUUID()],
                 id_etape_qualite: [''],
@@ -271,7 +345,7 @@ export class Stepper {
                   '',
                   [
                     Validators.required,
-                    Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
+                    Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
                     Validators.min(0),
                     Validators.max(100),
                   ],
@@ -281,83 +355,15 @@ export class Stepper {
                 critereRejet: ['', Validators.required],
               })
             )
-        ),
-      });
-
-
-      console.log('form 2 value', this.form2.value);
-      this.generate();
-
-    } else {
-
-      this.form1 = this.fb.group({
-        ligne: [defaultLine, Validators.required],
-        plan: [id, Validators.required],
-        fonction: [defaultFonction, Validators.required],
-        description_traite: ['', Validators.required],
-        type_traite: ['', Validators.required],
-        client_nom: [''],
-        interlocuteur_nom: [''],
-        contact_interlocuteur: [''],
-        cp_responsable: ['', Validators.required],
-      });
-
-      this.formInterlocuteur = this.fb.group({
-        client: this.fb.group({
-          nom_client: ['', Validators.required]
-        }),
-        interlocuteur: this.fb.array([
-          this.fb.group({
-            nom_interlocuteur: ['', Validators.required],
-            contact_interlocuteur: ['', [Validators.required, Validators.email]]
-          })
-        ])
-      })
-
-      this.form2 = this.fb.group({
-        formArray: this.fb.array(
-          this.items.map((item) =>
-            this.fb.group({
-              id: [crypto.randomUUID()],
-              id_etape_qualite: [''],
-              operation: ['', Validators.required],
-              unite: ['', Validators.required],
-              seuilQualite: [
-                '',
-                [
-                  Validators.required,
-                  Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-                  Validators.min(0),
-                  Validators.max(100),
-                ],
-              ],
-              typeControl: ['', Validators.required],
-              operationAControler: ['', Validators.required],
-              critereRejet: ['', Validators.required],
-            })
-          )
-        ),
-      });
-    }
-
-
-
-    console.log(typeof this.detailService.filtre);
-    let status = this.form1.status;
-    if (status == 'VALID') {
-      const donne = this.form1.value;
-      this.detailService
-        .filtre(donne.ligne, donne.plan, donne.fonction)
-        .subscribe(async (res: VueGlobal[]) => {
-          this.operations = new Operations().cast(res);
-
-          const unite = await this.detailService.getUnite();
-          // this.detailService.getUnite().subscribe(res => {
-          this.unites = unite;
+          ),
         });
-    }
-    this.form1.statusChanges.subscribe((status) => {
-      if (status === 'VALID') {
+      }
+
+
+
+      console.log(typeof this.detailService.filtre);
+      let status = this.form1.status;
+      if (status == 'VALID') {
         const donne = this.form1.value;
         this.detailService
           .filtre(donne.ligne, donne.plan, donne.fonction)
@@ -367,23 +373,40 @@ export class Stepper {
             const unite = await this.detailService.getUnite();
             // this.detailService.getUnite().subscribe(res => {
             this.unites = unite;
-
           });
       }
+      this.form1.statusChanges.subscribe((status) => {
+        if (status === 'VALID') {
+          const donne = this.form1.value;
+          this.detailService
+            .filtre(donne.ligne, donne.plan, donne.fonction)
+            .subscribe(async (res: VueGlobal[]) => {
+              this.operations = new Operations().cast(res);
+
+              const unite = await this.detailService.getUnite();
+              // this.detailService.getUnite().subscribe(res => {
+              this.unites = unite;
+
+            });
+        }
+      });
+
+
+      this.subscribeToFormChanges(this.verification);
+      // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
     });
-
-
-    this.subscribeToFormChanges(verifier);
-    // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
   }
 
   subscribeToFormChanges(verifier: any) {
     merge(this.form1.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
       .pipe(debounceTime(500))
-      .subscribe(() => {
+      .subscribe(async () => {
         if (verifier) {
           this.verification = verifier;
           this.update();
+          this.data = await this.detailService.resolveFilterSimple(this.defaultLine,this.client, this.defaultFonction);
+          // console.log(data)
+          console.log('data updated', this.data)
         } else {
           this.insert();
         }
@@ -616,6 +639,7 @@ export class Stepper {
         ...this.form3.value,
         colonne: this.colone_form3,
         id_colonnes: this.id_form_colonne,
+        clientDetail: this.formInterlocuteur.value,
         id_projet: this.verification.projet.id_projet
       };
       console.log('Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
@@ -636,6 +660,7 @@ export class Stepper {
         ...this.form3.value,
         colonne: this.colone_form3,
         id_colonnes: this.id_form_colonne,
+        clientDetail: this.formInterlocuteur.value,
         id_projet: this.verification.projet.id_projet
       };
       console.log('update debounce Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);

@@ -1,103 +1,140 @@
 <div class="mt-4">
+  <form (submit)="suivant()" [formGroup]="form()">
     <div class="card">
-        <div class="card-header">
-            <h3 class="text-center">Description du projet</h3>
-        </div>
-        <div class="card-body">
-            <!-- <button (click)="checkFormBeforeSubmit()">Check</button> -->
-            <form (submit)="suivant()" [formGroup]="form()">
-                <div class="row mb-2">
-                    <div class="col-3">
-                        <label for="ligne">Ligne</label>
-                    </div>
-                    <div class="col-9">
-                        <!-- <select class="form-control" id="ligne" name="ligne" formControlName="ligne">
+      <div class="card-header">
+        <h3 class="text-center">Description du projet</h3>
+      </div>
+      <div class="card-body">
+        <!-- <button (click)="checkFormBeforeSubmit()">Check</button> -->
+        <div class="row mb-2 d-none">
+          <div class="col-3">
+            <label for="ligne">Ligne</label>
+          </div>
+          <div class="col-9">
+            <!-- <select class="form-control" id="ligne" name="ligne" formControlName="ligne">
                             <option value="">Sélectionner une ligne</option>
                             <option *ngFor="let item of ligne" [value]="item.id_ligne">{{ item.libelle }}</option>
                         </select> -->
-                        <input
-                            class="form-control"
-                            type="text"
-                            matInput
-                            formControlName="ligne"
-                            [matAutocomplete]="autoLigne"
-                            placeholder="Choisir une ligne"
-                            readonly="true"
-                        />
-                        <mat-autocomplete #autoLigne="matAutocomplete" [displayWith]="displayLigne" (optionSelected)="onLigneChange($event)">
-                            <mat-option *ngFor="let ligne of filteredOptionsLigne | async" [value]="ligne.id_ligne">
-                            {{ ligne.libelle }}
-                            </mat-option>
-                        </mat-autocomplete>
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-3">
-                        <label for="plan">Plan</label>
-                    </div>
-                    <div class="col-9">
-                        <select class="form-control" id="plan" name="plan" formControlName="plan">
-                            <option value="">----Sélectionner un plan---- </option>
-                            <option *ngFor="let item of plan()" [value]="item.id_plan">{{ item.libelle }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-3">
-                        <label for="fonction">Fonction</label>
-                    </div>
-                    <div class="col-9">
-                        <!-- <select class="form-control" id="fonction" name="fonction" formControlName="fonction">
+            <input
+              class="form-control"
+              type="text"
+              matInput
+              formControlName="ligne"
+              [matAutocomplete]="autoLigne"
+              placeholder="Choisir une ligne"
+              readonly="true"
+            />
+            <mat-autocomplete
+              #autoLigne="matAutocomplete"
+              [displayWith]="displayLigne"
+              (optionSelected)="onLigneChange($event)"
+            >
+              <mat-option
+                *ngFor="let ligne of filteredOptionsLigne | async"
+                [value]="ligne.id_ligne"
+              >
+                {{ ligne.libelle }}
+              </mat-option>
+            </mat-autocomplete>
+          </div>
+        </div>
+        <div class="row mb-2 d-none">
+          <div class="col-3">
+            <label for="plan">Plan</label>
+          </div>
+          <div class="col-9">
+            <select
+              class="form-control"
+              id="plan"
+              name="plan"
+              formControlName="plan"
+            >
+              <option value="">----Sélectionner un plan----</option>
+              <option *ngFor="let item of plan()" [value]="item.id_plan">
+                {{ item.libelle }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="row mb-2 d-none">
+          <div class="col-3">
+            <label for="fonction">Fonction</label>
+          </div>
+          <div class="col-9">
+            <!-- <select class="form-control" id="fonction" name="fonction" formControlName="fonction">
                             <option value="">Sélectionner une fonction</option>
                             <option *ngFor="let fonct of fonction" [value]="fonct.id_fonction">{{ fonct.libelle }}</option>
                         </select> -->
-<!-- 
+            <!-- 
                         <input type="text" class="form-control" id="fonction" name="fonction" formControlName="fonction" list="fonction-list" placeholder="Selectionner une fontion">
                         <datalist id="fonction-list" class="">
                             <option *ngFor="let fonct of fonction" [value]="fonct.id_fonction">{{ fonct.libelle }}</option>
                         </datalist> -->
-                        <!-- component.html -->
-                        <!-- <mat-form-field appearance="fill" class="w-100"> -->
-                        <input
-                            class="form-control"
-                            type="text"
-                            matInput
-                            formControlName="fonction"
-                            [matAutocomplete]="autoFonction"
-                            placeholder="Choisir une fonction"
-                            readonly="true"
-                        />
-                        <mat-autocomplete #autoFonction="matAutocomplete" [displayWith]="displayFonction" (optionSelected)="functionChange($event)">
-                            <mat-option *ngFor="let fonction of filteredOptions | async" [value]="fonction.id_fonction">
-                            {{ fonction.libelle }}
-                            </mat-option>
-                        </mat-autocomplete>
-                        <!-- </mat-form-field> -->
-
-
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-3">
-                        <label for="desc">Descriptif de traitement</label>
-                    </div>
-                    <div class="col-9">
-                        <!-- <input type="text" class="form-control" name="" id="desc" placeholder="---- Descriptif de traitement ----" formControlName="description_traite"> -->
-                        <textarea name="" id="" class="form-control" placeholder="---- Descriptif de traitement ----" formControlName="description_traite"></textarea>
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-3">
-                        <label for="type-traitement">Type de traitement</label>
-                    </div>
-                    <div class="col-9">
-                        <select class="form-control" id="fonction" name="type-traitement" formControlName="type_traite">
-                            <option value="">---- Selectionner un type de traitement ----</option>
-                            <option *ngFor="let type of typeTraitement() " [value]="type.id_type_traitement">{{ type.libelle }}</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- <div class="row mb-2">
+            <!-- component.html -->
+            <!-- <mat-form-field appearance="fill" class="w-100"> -->
+            <input
+              class="form-control"
+              type="text"
+              matInput
+              formControlName="fonction"
+              [matAutocomplete]="autoFonction"
+              placeholder="Choisir une fonction"
+              readonly="true"
+            />
+            <mat-autocomplete
+              #autoFonction="matAutocomplete"
+              [displayWith]="displayFonction"
+              (optionSelected)="functionChange($event)"
+            >
+              <mat-option
+                *ngFor="let fonction of filteredOptions | async"
+                [value]="fonction.id_fonction"
+              >
+                {{ fonction.libelle }}
+              </mat-option>
+            </mat-autocomplete>
+            <!-- </mat-form-field> -->
+          </div>
+        </div>
+        <div class="row mb-2">
+          <div class="col-3">
+            <label for="desc">Descriptif de traitement</label>
+          </div>
+          <div class="col-9">
+            <!-- <input type="text" class="form-control" name="" id="desc" placeholder="---- Descriptif de traitement ----" formControlName="description_traite"> -->
+            <textarea
+              name=""
+              id=""
+              class="form-control"
+              placeholder="---- Descriptif de traitement ----"
+              formControlName="description_traite"
+            ></textarea>
+          </div>
+        </div>
+        <div class="row mb-2">
+          <div class="col-3">
+            <label for="type-traitement">Type de traitement</label>
+          </div>
+          <div class="col-9">
+            <select
+              class="form-control"
+              id="fonction"
+              name="type-traitement"
+              formControlName="type_traite"
+            >
+              <option value="">
+                ---- Selectionner un type de traitement ----
+              </option>
+              <option
+                *ngFor="let type of typeTraitement() "
+                [value]="type.id_type_traitement"
+              >
+                {{ type.libelle }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <!-- <div class="row mb-2">
                     <div class="col-3">
                         <label for="client_name">Nom du client</label>
                     </div>
@@ -105,7 +142,7 @@
                         <input type="text" class="form-control" name="" id="client_name" placeholder="---- Nom du client ----" formControlName="client_nom">
                     </div>
                 </div> -->
-                <!-- <div class="row mb-2">
+        <!-- <div class="row mb-2">
                     <div class="col-3">
                         <label for="interlocuteur_client">Nom de l'interlocuteur du client</label>
                     </div>
@@ -121,30 +158,38 @@
                         <input type="text" class="form-control" name="" id="interlocuteur_client_contact" placeholder="---- Contact interlocuteur ----" formControlName="contact_interlocuteur">
                     </div>
                 </div> -->
-                <div class="row mb-2">
-                    <div class="col-3">
-                        <label for="cp_responsable">CP responsable</label>
-                    </div>
-                    <div class="col-9">
-                        <input type="text" class="form-control" list="cp_responsable_list" name="" id="cp_responsable" placeholder="---- Contact interlocuteur ----" formControlName="cp_responsable">
-                    </div>
-                    <datalist id="cp_responsable_list">
-                        <option value="CP1">Rakoto</option>
-                        <option value="CP2">Rasoa</option>
-                        <option value="CP3">Rabe</option>
-                    </datalist>
-                </div>
-                <div class="row justify-content-center my-4" *ngIf="!isStepper" >
-                    <div class="col-2">
-                        <div class="text-center">
-                            <button class="btn btn-success form-control p-2" >
-                                Suivant
-                                <fa-icon icon="arrow-right" class="ms-3" ></fa-icon>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
+        <div class="row mb-2">
+          <div class="col-3">
+            <label for="cp_responsable">CP responsable</label>
+          </div>
+          <div class="col-9">
+            <input
+              type="text"
+              class="form-control"
+              list="cp_responsable_list"
+              name=""
+              id="cp_responsable"
+              placeholder="---- Contact interlocuteur ----"
+              formControlName="cp_responsable"
+            />
+          </div>
+          <datalist id="cp_responsable_list">
+            <option value="CP1">Rakoto</option>
+            <option value="CP2">Rasoa</option>
+            <option value="CP3">Rabe</option>
+          </datalist>
         </div>
+        <div class="row justify-content-center my-4" *ngIf="!isStepper">
+          <div class="col-2">
+            <div class="text-center">
+              <button class="btn btn-success form-control p-2">
+                Suivant
+                <fa-icon icon="arrow-right" class="ms-3"></fa-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </form>
 </div>

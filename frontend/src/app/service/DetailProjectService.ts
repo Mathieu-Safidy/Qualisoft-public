@@ -4,13 +4,16 @@ import { Projet } from '../interface/Projet';
 import { Ligne } from '../interface/Ligne';
 import { Fonction } from '../interface/Fonction';
 import { VueGlobal } from '../interface/VueGlobal';
-import { Observable } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, map, Observable, of, shareReplay, switchMap } from 'rxjs';
 import { Operation } from '../interface/Operation';
 import { Unite } from '../interface/Unite';
 import { TypeTraitement } from '../interface/TypeTraitement';
 import { Erreur } from '../interface/Erreur';
 import { ApiBackendHttp } from './api-backend-http';
 import { environment } from '../../environments/environment';
+import { LigneModel } from '../class/LigneModel';
+import { ProjetModele } from '../class/ProjetModele';
+import { FonctionModele } from '../class/FonctionModele';
 @Injectable({
   providedIn: 'root',
 })
@@ -45,9 +48,10 @@ export class DetailProjectService {
   filtre(ligne?: string, plan?: string, fonction?: string) {
     const body = { ligne, plan, fonction };
     const url = `${environment.apiBack}/api/filtres`
-    return this._http.post<VueGlobal[]>(url, body, {
+    let response = this._http.post<VueGlobal[]>(url, body, {
       withCredentials: true,
     });
+    return response
   }
 
   async verifier(ligne: string, plan: string, fonction: string) {
@@ -58,9 +62,10 @@ export class DetailProjectService {
       throw error;
     }
   }
-  
+
   async getClient(client_id: string) {
     try {
+      // const response = await this.http.get(`/client/${client_id}`);
       const response = await this.http.get(`/client/${client_id}`);
       return (response as any);
     } catch (error) {
@@ -68,6 +73,222 @@ export class DetailProjectService {
     }
   }
 
+  resolveFilter(ligne:any,plan:any,fonction:any) {
+      // const plan = route.paramMap.get('id') ?? '';
+      // const ligne = '';
+      // const fonction = route.paramMap.get('fonction') ?? '';
+    
+        const dataFilter = this.getDataFilter(ligne, plan, fonction);
+        if (!dataFilter) {
+          throw new Error('Failed to get data filter');
+        }
+        const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
+    
+    
+        return forkJoin({
+          ligne: lignes,
+          plan: plans,
+          fonction: fonctions,
+          operation: operations,
+          typetraitements: typetraitements,
+          erreurs: erreurTypes,
+          unites: unites,
+          verif: verifs,
+          client: clients
+        });
+  }
+  async resolveFilterSimple(ligne:any,plan:any,fonction:any) {
+      // const plan = route.paramMap.get('id') ?? '';
+      // const ligne = '';
+      // const fonction = route.paramMap.get('fonction') ?? '';
+    
+        const dataFilter = await this.getDataFilterSimple(ligne, plan, fonction);
+        if (!dataFilter) {
+          throw new Error('Failed to get data filter');
+        }
+        const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
+    
+    
+        return {
+          ligne: lignes,
+          plan: plans,
+          fonction: fonctions,
+          operation: operations,
+          typetraitements: typetraitements,
+          erreurs: erreurTypes,
+          unites: unites,
+          verif: verifs,
+          client: clients
+        };
+  }
+
+  getDataFilter(ligne: any, plan: any, fonction: any) {
+    try {
+      let { lignes, plans, fonctions } = this.getFilter(ligne, plan, fonction);
+
+      lignes.subscribe(data => console.log('📦 LIGNES:', data));
+      plans.subscribe(data => console.log('📦 PLANS:', data));
+      fonctions.subscribe(data => console.log('📦 FONCTIONS:', data));
+
+      let { operations } = this.getData();
+
+      let typetraitement = this.getTypeTraitement();
+
+      // typetraitement.subscribe(data => console.log('Type Traitemen :', data));
+      let erreurType = this.getErreurType();
+
+      let unite = this.getUnite();
+
+      let verif = lignes.pipe(
+        map(lignesArr => (lignesArr.length > 0 ? lignesArr[0].id_ligne : '')),
+        switchMap(idLigne => {
+          if (!idLigne || !plan || !fonction) {
+            return of(null); // Ne pas appeler l'API si un paramètre est vide
+          }
+          return this.verifier(idLigne, plan, fonction);
+        }),
+        catchError(() => of(null))
+      );
+
+      let client = verif.pipe(
+        map(verif => verif ? (verif as any).projet : null), // Accède à la propriété 'projet'
+        switchMap((projet: any) => {
+          if (projet && projet.id_client) {
+            return this.getClient(projet.id_client);
+          }
+          return of(null);
+        }),
+        catchError(() => of(null))
+      );
+
+      return {
+        lignes: lignes,
+        plans: plans,
+        fonctions: fonctions,
+        operations: operations,
+        typetraitements: typetraitement,
+        erreurTypes: erreurType,
+        unites: unite,
+        verifs: verif,
+        clients: client
+      }
+    } catch (error) {
+      throw error
+    }
+    return null
+  }
+  async getDataFilterSimple(ligne: any, plan: any, fonction: any) {
+    try {
+      const { lignes, plans, fonctions } = await this.getFilterSimple(ligne, plan, fonction);
+
+      let { operations } = this.getData();
+
+      let typetraitement = this.getTypeTraitement();
+
+      // typetraitement.subscribe(data => console.log('Type Traitemen :', data));
+      let erreurType = this.getErreurType();
+
+      let unite = this.getUnite();
+
+      // let verif = lignes.pipe(
+      //   map(lignesArr => (lignesArr.length > 0 ? lignesArr[0].id_ligne : '')),
+      //   switchMap(idLigne => {
+      //     if (!idLigne || !plan || !fonction) {
+      //       return of(null); // Ne pas appeler l'API si un paramètre est vide
+      //     }
+      //     return this.verifier(idLigne, plan, fonction);
+      //   }),
+      //   catchError(() => of(null))
+      // );
+
+      let verif = await this.verifier(lignes[0].id_ligne, plan, fonction);
+
+      let client = await this.getClient((verif as any).projet.id_client);
+
+      // let client = verif.pipe(
+      //   map(verif => verif ? (verif as any).projet : null), // Accède à la propriété 'projet'
+      //   switchMap((projet: any) => {
+      //     if (projet && projet.id_client) {
+      //       return this.getClient(projet.id_client);
+      //     }
+      //     return of(null);
+      //   }),
+      //   catchError(() => of(null))
+      // );
+
+      return {
+        lignes: lignes,
+        plans: plans,
+        fonctions: fonctions,
+        operations: operations,
+        typetraitements: typetraitement,
+        erreurTypes: erreurType,
+        unites: unite,
+        verifs: verif,
+        clients: client
+      }
+    } catch (error) {
+      throw error
+    }
+    return null
+  }
+
+  getFilter(ligne: string = "", plan: string = "", fonction: string = "") {
+    const responses$ = this.filtre(ligne, plan, fonction).pipe(
+      shareReplay(1)
+    );
+
+    const lignes$ = responses$.pipe(
+      map(response => new LigneModel().cast(response))
+    );
+
+    const plans$ = responses$.pipe(
+      map(response => new ProjetModele().cast(response))
+    );
+
+    const fonctions$ = lignes$.pipe(
+      switchMap(lignes => {
+        if (lignes.length > 0) {
+          const idLigne0 = lignes[0].id_ligne;
+          return this.filtre(idLigne0, plan, fonction);
+        } else {
+          return of([]);
+        }
+      }),
+      map(res => new FonctionModele().cast(res))
+    );
+
+
+
+    // ✅ On retourne un objet contenant les 3 observables
+    return {
+      lignes: lignes$,
+      plans: plans$,
+      fonctions: fonctions$
+    };
+  }
+  async getFilterSimple(ligne: string = "", plan: string = "", fonction: string = "") {
+    const responses$ = await firstValueFrom(this.filtre(ligne, plan, fonction))
+      
+
+    const lignes$ = new LigneModel().cast(responses$);
+
+    const plans$ = new ProjetModele().cast(responses$);
+
+    const fonctions$ = new FonctionModele().cast(await firstValueFrom(this.filtre(lignes$[0].id_ligne, plan, fonction)));
+
+    // ✅ On retourne un objet contenant les 3 promises
+    return {
+      lignes: lignes$,
+      plans: plans$,
+      fonctions: fonctions$
+    };
+  }
+
+
+  getData() {
+    return { operations: this.getOperation() };
+  }
 
 
 }
