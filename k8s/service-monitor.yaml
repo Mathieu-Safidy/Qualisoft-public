@@ -1,0 +1,23 @@
+# bun-elysia-servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{APP_NAME}}-servicemonitor
+  namespace: {{NAMESPACE}} # ServiceMonitors are typically deployed in the same namespace as Prometheus
+  labels:
+    # app: backend # This label helps you identify it
+    # Add a label that matches your Prometheus instance's serviceMonitorSelector.
+    # For kube-prometheus-stack, this is often 'release: prometheus'
+    # release: prometheus-kube-prometheus-stack # Default label for kube-prometheus-stack's Prometheus instance
+    release: prometheus # Default label for kube-prometheus-stack's Prometheus instance
+spec:
+  selector:
+    matchLabels:
+      app: {{APP_NAME}} # This should match the labels on your Service
+  # namespaceSelector:
+  #   matchNames:
+  #     - {{NAMESPACE}} # Specify the namespace where your service is
+  endpoints:
+    - port: web # This refers to the named port in your Service (name: http)
+      path: /metrics # The path Prometheus should scrape
+      interval: 10s # How often to scrape (e.g., every 15 seconds)

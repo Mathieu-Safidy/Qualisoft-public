@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{APP_NAME}}
+  namespace: {{NAMESPACE}}
+  labels:
+    app: {{APP_NAME}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{APP_NAME}}
+  template:
+    metadata:
+      labels:
+        app: {{APP_NAME}}
+    spec:
+      containers:
+        - name: {{APP_NAME}}
+          image: {{REGISTRY_HOST}}/{{APP_NAME}}:latest
+          ports:
+            - containerPort: {{CONTAINER_PORT}}
+              # hostPort: 80 # To allow deployment to be accessed via port 80 explicitly for testing
+      imagePullSecrets:
+        - name: regcred # Use this secret to pull the image from the local registry

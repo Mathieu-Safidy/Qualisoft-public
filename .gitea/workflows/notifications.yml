@@ -1,0 +1,84 @@
+# .gitea/workflows/notification.yml
+name: Send Workflow Notification
+
+# This marks the workflow as callable from other workflows
+on:
+  workflow_call:
+    inputs:
+      status:
+        description: 'Status of the main workflow (success or failure)'
+        required: true
+        type: string
+      repository:
+        description: 'Repository name'
+        required: true
+        type: string
+      branch:
+        description: 'Branch name'
+        required: true
+        type: string
+      run_id:
+        description: 'Workflow run ID'
+        required: true
+        type: string
+      actor: # Pass the actor username
+        description: 'Username of the workflow triggerer'
+        required: true
+        type: string
+    secrets:
+      EMAIL_NOTIFICATION_TOKEN: # New secret for API token
+        description: 'Gitea API token to fetch user email'
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: View Information
+        run: |
+          echo "Status: ${{ inputs.status }}"
+          echo "Repository: ${{ inputs.repository }}"
+          echo "Actor: ${{ inputs.actor }}"
+          echo "Github Server URL: ${{ github.server_url }}"
+      - name: Fetch Triggerer Email
+        id: fetch_email
+        run: |
+          # Replace GITEA_URL with your Gitea instance URL (e.g., https://gitea.yourdomain.com)
+          GITEA_URL="${{ env.GITEA_URL }}"
+          ACTOR_USERNAME="${{ inputs.actor }}"
+          API_TOKEN="${{ secrets.EMAIL_NOTIFICATION_TOKEN }}"
+
+          # Fetch user details from Gitea API
+          echo "fetching ${GITEA_URL}/api/v1/users/${ACTOR_USERNAME}"
+          USER_DATA=$(curl -s -H "Authorization: token ${API_TOKEN}" "${GITEA_URL}/api/v1/users/${ACTOR_USERNAME}")
+
+          # Extract email using jq
+          USER_EMAIL=$(echo "${USER_DATA}" | jq -r '.email')
+
+          if [ -z "${USER_EMAIL}" ] || [ "${USER_EMAIL}" == "null" ]; then
+            echo "Warning: Could not retrieve email for user ${ACTOR_USERNAME}. Sending to a fallback address."
+            USER_EMAIL="fallback-builds@yourdomain.com" # Fallback email if user email not found
+          fi
+
+          echo "Detected triggerer email: ${USER_EMAIL}"
+          echo "email=${USER_EMAIL}" >> $GITHUB_OUTPUT # Set output for subsequent steps
+        env:
+          GITEA_URL: ${{ github.server_url }} # Gitea server URL is in github context
+
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3 # Replace with a Gitea-compatible email action
+        with:
+          server_address: 192.168.12.8
+          server_port: 25
+          from: intranet-tana@jouve.com
+          # username: your_smtp_username
+          # password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Gitea Actions - ${{ inputs.repository }} Build ${{ inputs.status }}
+          to: ${{ steps.fetch_email.outputs.email }}
+          body: |
+            Workflow ID: ${{ inputs.run_id }}
+            Repository: ${{ inputs.repository }}
+            Branch: ${{ inputs.branch }}
+            Status: ${{ inputs.status }}
+
+            Check logs at: ${{ github.server_url }}/${{ inputs.repository }}/actions/runs/${{ inputs.run_id }}
