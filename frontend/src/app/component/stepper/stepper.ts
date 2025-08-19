@@ -29,6 +29,8 @@ import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { FormStorageService } from '../../service/FormStorageService';
 import { DetailClient } from "../detail-client/detail-client";
 import { v4 as uuidv4 } from 'uuid';
+// import { MatDialog } from '@angular/material/dialog';
+import { Clonage } from '../clonage/clonage';
 @Component({
   selector: 'app-stepper',
   imports: [
@@ -101,7 +103,8 @@ export class Stepper {
     private route: ActivatedRoute,
     private detailService: DetailProjectService,
     private formSubmitService: FormStorageService,
-    private router: Router
+    private router: Router ,
+    // public dialog: MatDialog
   ) {
     this.id = route.params.pipe(map((p) => p['id']));
     this.fonctionParam = route.params.pipe(map((p) => p['fonction']));
@@ -133,6 +136,18 @@ export class Stepper {
   }
 
   currentStep = 0;
+  // openDialog(): void {
+  //   const dialogRef = this.dialog.open(Clonage, {
+  //     width: '400px', // Par exemple, tu peux définir la largeur
+  //     data: { name: 'Utilisateur' } // Tu peux passer des données au modal
+  //   });
+
+  //   // Optionnel : s'abonner au résultat après la fermeture du modal
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     console.log('Le modal a été fermé. Résultat : ', result);
+  //     // 'result' sera true ou false en fonction du bouton cliqué dans le modal
+  //   });
+  // }
 
   onStepChange(event: StepperSelectionEvent) {
     this.currentStep = event.selectedIndex;
@@ -232,7 +247,7 @@ export class Stepper {
         console.log('verifInterlocuteur', verifInterlocuteur);
         this.formInterlocuteur = this.fb.group({
           client: this.fb.group({
-            nom_client: [this.nom_client, Validators.required]
+            nom_client: [this.nom_client]
           }),
           interlocuteur: this.fb.array(
             (verifInterlocuteur && verifInterlocuteur.length > 0)

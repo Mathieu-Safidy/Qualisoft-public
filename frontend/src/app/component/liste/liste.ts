@@ -8,7 +8,8 @@ import {
   PipeTransform,
   QueryList,
   ViewChildren,
-  input
+  input,
+  output
 } from '@angular/core';
 import { AsyncPipe, CommonModule, DecimalPipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -39,7 +40,6 @@ export interface SortEvent<T = any> {
   column: SortColumn<T>;
   direction: SortDirection;
 }
-
 
 
 // Directive tri
@@ -74,6 +74,12 @@ export class NgbdSortableHeader {
   styleUrls: ['./liste.css'],
 })
 export class Liste<T extends Record<string, any> = any> {
+  
+  // itemClicked = output<any>();
+  // onItemClick(item: any): void {
+  //   this.itemClicked.emit(item);
+  // }
+
   getPageNumbers(): number[] {
     const totalPages = Math.ceil(this.filteredSortedData.length / this.pageSize);
     const maxPages = 10;
