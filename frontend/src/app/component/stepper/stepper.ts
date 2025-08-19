@@ -28,7 +28,7 @@ import { Erreur } from '../../interface/Erreur';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { FormStorageService } from '../../service/FormStorageService';
 import { DetailClient } from "../detail-client/detail-client";
-
+import { v4 as uuidv4 } from 'uuid';
 @Component({
   selector: 'app-stepper',
   imports: [
@@ -260,7 +260,7 @@ export class Stepper {
             formArrayData.length > 0
               ? formArrayData.map((item: any) =>
                 this.fb.group({
-                  id: [item.id || crypto.randomUUID()],
+                  id: [item.id || uuidv4()],
                   id_etape_qualite: [item.id_etape_qualite || ''],
                   operation: [item.operation_de_control?.toString() || '', Validators.required],
                   unite: [item.id_unite_de_controle || '', Validators.required],
@@ -280,7 +280,7 @@ export class Stepper {
               )
               : this.items.map((item) =>
                 this.fb.group({
-                  id: [crypto.randomUUID()],
+                  id: [uuidv4()],
                   id_etape_qualite: [''],
                   operation: ['', Validators.required],
                   unite: ['', Validators.required],
@@ -335,7 +335,7 @@ export class Stepper {
           formArray: this.fb.array(
             this.items.map((item) =>
               this.fb.group({
-                id: [crypto.randomUUID()],
+                id: [uuidv4()],
                 id_etape_qualite: [''],
                 operation: ['', Validators.required],
                 unite: ['', Validators.required],

@@ -11,6 +11,7 @@ import { map, Observable, startWith } from 'rxjs';
 import { DetailProjectService } from '../../service/DetailProjectService';
 import { Operations } from '../../class/Operations';
 import { Unite } from '../../interface/Unite';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-objectif-qualite',
@@ -302,7 +303,7 @@ export class ObjectifQualite {
 
   addItem() {
     const fg = this.fb.group({
-      id: [crypto.randomUUID()],
+      id: [uuidv4()],
       operation: ['', Validators.required],
       unite: ['', Validators.required],
       seuilQualite: ['', Validators.required],
