@@ -101,7 +101,7 @@ export class DetailProjectService {
       // const plan = route.paramMap.get('id') ?? '';
       // const ligne = '';
       // const fonction = route.paramMap.get('fonction') ?? '';
-    
+      try {
         const dataFilter = await this.getDataFilterSimple(ligne, plan, fonction);
         if (!dataFilter) {
           throw new Error('Failed to get data filter');
@@ -120,6 +120,11 @@ export class DetailProjectService {
           verif: verifs,
           client: clients
         };
+        
+      } catch (error) {
+        console.log(error)
+      }
+      return 
   }
 
   getDataFilter(ligne: any, plan: any, fonction: any) {

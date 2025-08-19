@@ -199,7 +199,6 @@ export class Stepper {
     this.route.data.subscribe(res => {
       this.data = res['data'];
       this.initData();
-      this.updateFiltered3();
 
       // let id = this.route.snapshot.paramMap.get('id') || '';
 
@@ -308,7 +307,6 @@ export class Stepper {
         
       } else {
         
-        console.log('form 2 value insert  ', this.form2.value);
         this.form1 = this.fb.group({
           ligne: [this.defaultLine, Validators.required],
           plan: [idValue, Validators.required],
@@ -391,6 +389,9 @@ export class Stepper {
         }
       });
 
+      
+      this.updateFiltered3();
+
 
       this.subscribeToFormChanges(this.verification);
       // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
@@ -404,9 +405,14 @@ export class Stepper {
         if (verifier) {
           this.verification = verifier;
           this.update();
-          this.data = await this.detailService.resolveFilterSimple(this.defaultLine,this.client, this.defaultFonction);
+          try {
+            this.data = await this.detailService.resolveFilterSimple(this.defaultLine,this.client, this.defaultFonction);
+            console.log('data updated', this.data)
+            
+          } catch (error) {
+            console.log(error);
+          }
           // console.log(data)
-          console.log('data updated', this.data)
         } else {
           this.insert();
         }
