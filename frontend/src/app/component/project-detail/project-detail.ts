@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, input } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, input } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -7,15 +7,23 @@ import { ActivatedRoute, Route, Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Ligne } from '../../interface/Ligne';
 import { Fonction } from '../../interface/Fonction';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { map, Observable, startWith } from 'rxjs';
 import { MatInputModule } from '@angular/material/input';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { Projet } from '../../interface/Projet';
 import { Erreur } from '../../interface/Erreur';
 import { TypeTraitement } from '../../interface/TypeTraitement';
+import { MatIconModule } from '@angular/material/icon';
 
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
+
+export interface Contact {
+  value: string;
+  name: string;
+}
 @Component({
   selector: 'app-project-detail',
   imports: [
@@ -27,11 +35,14 @@ import { TypeTraitement } from '../../interface/TypeTraitement';
     CommonModule,
     MatAutocompleteModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatChipsModule,
+    MatIconModule
   ],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css'
 })
+
 export class ProjectDetail {
   etape = 1;
 
@@ -56,13 +67,98 @@ export class ProjectDetail {
   readonly typeTraitement = input.required<TypeTraitement[]>();
 
   @Output() ligneChange = new EventEmitter<{ ligne: string, plan: string }>();
-  @Output() onFunctionChange = new EventEmitter<{ ligne: string, plan: string , fonction: string}>();
+  @Output() onFunctionChange = new EventEmitter<{ ligne: string, plan: string, fonction: string }>();
 
 
   formulaire !: FormGroup;
 
+  contactCtrl = new FormControl();
+
+  // Observable for the filtered list
+  filteredContacts!: Observable<any>;
+
+  // List of selected contacts that will be displayed as chips
+  selectedContacts: any = [];
+
+  // All available contacts for filtering
+  allContacts: any = [
+    { value: 'CP1', name: 'Rakoto' },
+    { value: 'CP2', name: 'Rasoa' },
+    { value: 'CP3', name: 'Rabe' },
+    { value: 'CP4', name: 'Jean' },
+    { value: 'CP5', name: 'Paul' }
+  ];
+
+
+  separatorKeysCodes: number[] = [ENTER, COMMA];
+
+  @ViewChild('contactInput') contactInput!: ElementRef<HTMLInputElement>;
+
+
   constructor(private builder: FormBuilder, private router: Router, private route: ActivatedRoute) {
     this.isStepper = false;
+    this.filteredContacts = this.contactCtrl.valueChanges.pipe(
+      startWith(null),
+      map((contact: string | null) => (contact ? this._filterCp(contact) : this.allContacts.slice()))
+    );
+  }
+
+  /** Adds a chip when the user presses Enter or adds a comma. */
+  add(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+    const contact = this.allContacts.find((c: any) => c.name.toLowerCase() === value.toLowerCase());
+
+    // Check if the contact exists and is not already in the selectedContacts array
+    if (contact && !this.selectedContacts.some((c: any) => c.value === contact.value)) {
+      this.selectedContacts.push(contact);
+    }
+
+    // Clear the input value
+    if (event.input) {
+      event.input.value = '';
+    }
+    this.contactCtrl.setValue(null);
+    this.updateFormGroupValue();
+  }
+
+  /** Removes a chip when the user clicks the 'cancel' icon. */
+  remove(contact: any): void {
+    // Use findIndex() to find the index based on a unique property, like 'value'
+    const index = this.selectedContacts.findIndex((c: any) => c.value === contact.value);
+
+    if (index >= 0) {
+      this.selectedContacts.splice(index, 1);
+    }
+    this.updateFormGroupValue();
+  }
+
+  /** Adds a chip when the user selects an option from the autocomplete list. */
+  selected(event: MatAutocompleteSelectedEvent): void {
+    const selectedContact = event.option.value;
+
+    // Check if the contact is not already selected using a unique property
+    if (!this.selectedContacts.some((c: any) => c.value === selectedContact.value)) {
+      this.selectedContacts.push(selectedContact);
+    }
+
+    // Clear the input and reset the form control
+    if (this.contactInput) {
+      this.contactInput.nativeElement.value = '';
+    }
+    this.contactCtrl.setValue(null);
+    this.updateFormGroupValue();
+  }
+  private updateFormGroupValue(): void {
+    // Join the 'value' of each selected contact into a comma-separated string
+    const selectedValues = this.selectedContacts.map((c: any) => c.value).join(',');
+    // Update the value of the 'cp_responsable' form control
+    this.form().get('cp_responsable')?.setValue(selectedValues);
+  }
+
+  /** Filters the list of available contacts based on the user's input. */
+  private _filterCp(value: string | Contact): Contact[] {
+    const filterValue = typeof value === 'string' ? value.toLowerCase() : value.name.toLowerCase();
+    return this.allContacts.filter((contact: { name: string; }) => contact.name.toLowerCase().includes(filterValue));
   }
 
   checkDonne() {
@@ -71,6 +167,28 @@ export class ProjectDetail {
 
   ngOnInit() {
 
+
+    const initialValue = this.form().get('cp_responsable')?.value;
+
+    // 2. Check if the value exists and is not empty
+    if (initialValue) {
+      // 3. Split the comma-separated string into an array of values
+      const valueArray = initialValue.split(',');
+
+      // 4. Find the matching contact objects and add them to the selectedContacts array
+      valueArray.forEach((val : any)=> {
+        const foundContact = this.allContacts.find((c : any) => c.value === val);
+        if (foundContact) {
+          // Prevent duplicates in case the initial value has them
+          if (!this.selectedContacts.some((c : any) => c.value === foundContact.value)) {
+            this.selectedContacts.push(foundContact);
+          }
+        }
+      });
+
+      // 5. Update the form control to reflect the new state
+      this.updateFormGroupValue();
+    }
     // this.id = this.route.snapshot.paramMap.get('id') || "";
     // console.log('List dans le formulaire', this.ligne);
     // let defaultLine = this.ligne[0]?.id_ligne || '';
@@ -160,7 +278,7 @@ export class ProjectDetail {
     const plan = this.route.snapshot.paramMap.get('id') || '';
     this.ligneChange.emit({ ligne: selectedLigne, plan: plan });
   }
-  
+
   functionChange(event: any) {
     const selectedLigne = event.option.value;
     const plan = this.route.snapshot.paramMap.get('id') || '';
@@ -180,11 +298,13 @@ export class ProjectDetail {
     if (form.invalid) {
       this.markFormGroupTouched(form);
       this.checkFormValidationErrors(form);
+
+      console.log('Formulaire valide, envoi des données :', this.form().value);
       return;
     }
 
     // Si tout est valide, tu peux envoyer les données
-    // console.log('Formulaire valide, envoi des données :', this.form.value);
+    console.log('Formulaire valide, envoi des données :', this.form().value);
   }
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.values(formGroup.controls).forEach(control => {

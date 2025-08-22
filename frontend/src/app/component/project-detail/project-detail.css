@@ -1,0 +1,22 @@
+.bootstrap-style-input {
+    width: 100%;
+}
+
+.mdc-notched-outline__leading
+.mat-mdc-notch-piece {
+    border: none
+}
+.mdc-notched-outline__trailing {
+
+}
+mat-label{
+    background-color: white;
+}
+/* #cdk-overlay-5 {
+  width: auto !important;
+}
+*/
+::ng-deep .cdk-overlay-pane {
+  width: auto !important;
+} 
+

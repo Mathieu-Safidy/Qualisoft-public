@@ -1,4 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
+:root {
+  /* Change la couleur de fond de tous les champs de saisie "filled" */
+  --mat-form-field-filled-container-color: white; /* Exemple : un gris très clair comme celui de Bootstrap */
+}
+
 #bread {
     cursor: pointer;
 }
@@ -169,3 +174,85 @@
 }
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* 
+.bootstrap-style-input .mdc-text-field--outlined {    
+    border-radius: var(--bs-border-radius) !important;
+    border: solid var(--bs-border-width) var(--bs-border-color) !important;
+} */
+.bootstrap-style-input .mdc-notched-outline--upgraded {    
+    border-radius: var(--bs-border-radius) !important;
+    border: solid var(--bs-border-width) var(--bs-border-color) !important;
+}
+.bootstrap-style-input.mat-mdc-form-field-appearance-outline .mdc-notched-outline > div {
+  border-color: var(--bs-border-width) var(--bs-border-color)t !important;
+}
+
+/* Styles pour la bordure au survol */
+.bootstrap-style-input.mat-mdc-form-field-appearance-outline:not(.mat-focused) .mdc-notched-outline:hover > div {
+  border-color: var(--bs-border-width) var(--bs-border-color) !important;
+}
+
+/* Styles pour la bordure au focus */
+.bootstrap-style-input.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline > div {
+  border-color: var(--bs-border-width) var(--bs-border-color) !important;
+}
+
+/* Cache la ligne du bas pour le style "filled" */
+.bootstrap-style-input.mat-mdc-form-field-appearance-fill .mat-mdc-form-field-flex::before,
+.bootstrap-style-input.mat-mdc-form-field-appearance-fill .mat-mdc-form-field-flex::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Cache également la bordure du bas pour le style "outline" si vous préférez l'utiliser */
+.bootstrap-style-input.mat-mdc-form-field-appearance-outline .mat-mdc-form-field-outline-end,
+.bootstrap-style-input.mat-mdc-form-field-appearance-outline .mat-mdc-form-field-outline-start,
+.bootstrap-style-input.mat-mdc-form-field-appearance-outline .mat-mdc-form-field-outline-gap {
+  border-bottom-width: 0 !important;
+}
+
+.bootstrap-style-input.mat-mdc-form-field-appearance-fill .mat-mdc-form-field-flex {
+  border: 1px solid #ced4da !important;
+}
+
+/* Surcharge la bordure au focus */
+.bootstrap-style-input.mat-focused .mat-mdc-form-field-appearance-fill .mat-mdc-form-field-flex {
+  border-color: #86b7fe !important;
+}
+.mat-mdc-notch-piece {
+    border: none !important;
+}
+
+/* Placed in src/styles.css */
+
+.my-custom-popover {
+  /* Set a new background color */
+  --bs-popover-bg: var(--bs-danger-bg-subtle) !important; /* For a dark gray */
+  /* You can also change the text color */
+  --bs-popover-border-color: var(--bs-danger-border-subtle);
+  --bs-popover-color: var(--bs-danger-text-emphasis) !important; /* For white text */
+}
+
+.my-custom-popover-info {
+  --bs-popover-bg: var(--bs-info-bg-subtle) !important; /* For a light blue */
+  /* You can also change the text color */
+  --bs-popover-border-color: var(--bs-info-border-subtle);
+  --bs-popover-color: var(--bs-info-text-emphasis) !important; /* For white text */
+}
+
+.auto-width-panel {
+  width: auto !important;
+  max-width: none !important;
+}
+
+::ng-deep .auto-width-panel {
+  width: auto !important;
+  max-width: none !important;
+}
+
+
+/* alert-info {
+    --bs-alert-color: var(--bs-info-text-emphasis);
+    --bs-alert-bg: var(--bs-info-bg-subtle);
+    --bs-alert-border-color: var(--bs-info-border-subtle);
+    --bs-alert-link-color: var(--bs-info-text-emphasis); */

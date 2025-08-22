@@ -7,6 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Erreur } from '../../interface/Erreur';
 import { map, Observable, startWith } from 'rxjs';
+import { MatTooltip } from '@angular/material/tooltip';
+import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-type-erreur',
@@ -17,7 +19,9 @@ import { map, Observable, startWith } from 'rxjs';
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatTooltip,
+    NgbPopoverModule
   ],
   templateUrl: './type-erreur.html',
   styleUrl: './type-erreur.css'

@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, Inject } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -31,6 +31,8 @@ import { DetailClient } from "../detail-client/detail-client";
 import { v4 as uuidv4 } from 'uuid';
 // import { MatDialog } from '@angular/material/dialog';
 import { Clonage } from '../clonage/clonage';
+import { MatDialog } from '@angular/material/dialog';
+import { CacheData } from '../../service/cache-data';
 @Component({
   selector: 'app-stepper',
   imports: [
@@ -60,6 +62,7 @@ export class Stepper {
   items = [''];
 
   data: any;
+  updateData: boolean = false;
 
   // data = {
   //   ligne: [],
@@ -97,14 +100,14 @@ export class Stepper {
   defaultLine!: string;
   defaultFonction!: string;
   defaultOperation!: string;
+  cachedata = inject(CacheData);
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private detailService: DetailProjectService,
     private formSubmitService: FormStorageService,
-    private router: Router ,
-    // public dialog: MatDialog
+    private router: Router,
   ) {
     this.id = route.params.pipe(map((p) => p['id']));
     this.fonctionParam = route.params.pipe(map((p) => p['fonction']));
@@ -136,6 +139,7 @@ export class Stepper {
   }
 
   currentStep = 0;
+
   // openDialog(): void {
   //   const dialogRef = this.dialog.open(Clonage, {
   //     width: '400px', // Par exemple, tu peux définir la largeur
@@ -197,11 +201,20 @@ export class Stepper {
     );
   }
 
-  initData() {
+  initData(clone: boolean) {
     console.log('data ', this.data)
+    let data$ = this.cachedata.loadData();
+    console.log("data ", data$);
+    // if (data$) {
+    //   this.ligne = data$.ligne;
+    //   this.plan = data$.plan;
+    //   this.fonction = data$.fonction;
+    // } else {
     this.ligne = this.data.ligne;
     this.plan = this.data.plan;
     this.fonction = this.data.fonction;
+    // }
+
     this.typeTraitement = this.data.typetraitements;
     this.erreurs = this.data.erreurs;
     this.operations = this.data.operation;
@@ -209,16 +222,41 @@ export class Stepper {
     this.verification = this.data.verif;
     console.log('verifier', this.verification);
   }
+  async initDataupdated(clone: boolean) {
+    console.log('data ', this.data)
+    let data$ = this.cachedata.loadData();
+    console.log("data ", data$);
+    // if (data$) {
+    //   this.ligne = data$.ligne;
+    //   this.plan = data$.plan;
+    //   this.fonction = data$.fonction;
+    // } else {
+    this.ligne = this.data.ligne;
+    this.plan = this.data.plan;
+    this.fonction = this.data.fonction;
+    // }
+
+    this.typeTraitement = await (this.data.typetraitements as Promise<any>);
+    this.erreurs = await (this.data.erreurs as Promise<any>);
+    this.operations = await (this.data.operation as Promise<any>);
+
+    this.unites = await this.detailService.getUnite();
+    this.verification = this.data.verif;
+    console.log('verifier', this.verification);
+  }
 
   ngOnInit() {
+
     this.route.data.subscribe(res => {
       this.data = res['data'];
-      this.initData();
+      this.initData(false);
 
       // let id = this.route.snapshot.paramMap.get('id') || '';
 
       this.defaultLine = this.ligne[0]?.id_ligne || '';
       this.defaultFonction = this.fonction[0]?.id_fonction || '';
+      let doneInit = { ligne: this.defaultLine, plan: this.plan[0].id_plan, fonction: this.defaultFonction };
+      this.initOperation(doneInit);
       this.defaultOperation = this.operations[0]?.id_operation || '';
       let idValue = this.route.snapshot.paramMap.get('id') || '';
       this.client = idValue;
@@ -226,6 +264,7 @@ export class Stepper {
       this.nom_fonction = this.fonction[0].libelle || '';
       this.nom_line = this.ligne[0].libelle || '';
       if (this.verification) {
+        this.updateData = true;
         this.existVerif = true;
 
         console.log('client ', this.nom_client);
@@ -289,7 +328,7 @@ export class Stepper {
                     ],
                   ],
                   typeControl: [item.type_de_controle || 0, Validators.required],
-                  operationAControler: [item.operation_a_controller+'' || '', Validators.required],
+                  operationAControler: [item.operation_a_controller + '' || '', Validators.required],
                   critereRejet: [item.coef_rejet || '', Validators.required],
                 })
               )
@@ -319,9 +358,9 @@ export class Stepper {
 
         console.log('form 2 value', this.form2.value);
         this.generate();
-        
+
       } else {
-        
+
         this.form1 = this.fb.group({
           ligne: [this.defaultLine, Validators.required],
           plan: [idValue, Validators.required],
@@ -336,7 +375,7 @@ export class Stepper {
 
         this.formInterlocuteur = this.fb.group({
           client: this.fb.group({
-            nom_client: ['', Validators.required]
+            nom_client: [this.nom_client]
           }),
           interlocuteur: this.fb.array([
             this.fb.group({
@@ -378,58 +417,72 @@ export class Stepper {
       let status = this.form1.status;
       if (status == 'VALID') {
         const donne = this.form1.value;
-        this.detailService
-          .filtre(donne.ligne, donne.plan, donne.fonction)
-          .subscribe(async (res: VueGlobal[]) => {
-            this.operations = new Operations().cast(res);
-
-            const unite = await this.detailService.getUnite();
-            // this.detailService.getUnite().subscribe(res => {
-            this.unites = unite;
-          });
+        this.initOperation(donne);
       }
       this.form1.statusChanges.subscribe((status) => {
         if (status === 'VALID') {
           const donne = this.form1.value;
-          this.detailService
-            .filtre(donne.ligne, donne.plan, donne.fonction)
-            .subscribe(async (res: VueGlobal[]) => {
-              this.operations = new Operations().cast(res);
+          this.initOperation(donne);
+          // this.detailService
+          //   .filtre(donne.ligne, donne.plan, donne.fonction)
+          //   .subscribe(async (res: VueGlobal[]) => {
+          //     this.operations = new Operations().cast(res);
 
-              const unite = await this.detailService.getUnite();
-              // this.detailService.getUnite().subscribe(res => {
-              this.unites = unite;
+          //     const unite = await this.detailService.getUnite();
+          //     // this.detailService.getUnite().subscribe(res => {
+          //     this.unites = unite;
 
-            });
+          //   });
         }
       });
 
-      
+
       this.updateFiltered3();
 
 
-      this.subscribeToFormChanges(this.verification);
+      this.subscribeToFormChanges();
       // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
     });
   }
 
-  subscribeToFormChanges(verifier: any) {
-    merge(this.form1.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
-      .pipe(debounceTime(500))
+  initOperation(donne: any) {
+    this.detailService
+      .filtre(donne.ligne, donne.plan, donne.fonction)
+      .subscribe(async (res: VueGlobal[]) => {
+        this.operations = new Operations().cast(res);
+
+        const unite = await this.detailService.getUnite();
+        // this.detailService.getUnite().subscribe(res => {
+        this.unites = unite;
+      });
+  }
+
+  subscribeToFormChanges() {
+    merge(this.form1.valueChanges, this.formInterlocuteur.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
+      .pipe(debounceTime(700))
       .subscribe(async () => {
-        if (verifier) {
-          this.verification = verifier;
+        if (this.updateData) {
+          // this.verification = verifier;
           this.update();
           try {
-            this.data = await this.detailService.resolveFilterSimple(this.defaultLine,this.client, this.defaultFonction);
+            this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
+            await this.initDataupdated(false);
             console.log('data updated', this.data)
-            
           } catch (error) {
             console.log(error);
           }
+          this.updateData = true;
           // console.log(data)
         } else {
           this.insert();
+          try {
+            this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
+            await this.initDataupdated(false);
+            console.log('data updated', this.data)
+          } catch (error) {
+            console.log(error);
+          }
+          this.updateData = true;
         }
       });
   }
@@ -490,13 +543,14 @@ export class Stepper {
     );
 
     let formulaire3 = this.form3.controls['formErreur'] as FormArray;
+    this.removeEmptyTypeErreurGroups();
     console.log('formulauire ', formulaire3, this.verification, (!formulaire3 || formulaire3.length === 0) || !this.verification)
     if ((!formulaire3 || formulaire3.length === 0) || !this.verification) {
       this.ajouterLigne(colonneForm, '', 0);
     }
 
     this.updateFiltered3();
-
+    console.log('form 3 value', this.form3.value);
     // this.detailService.filtre('ligne1', 'plan1', 'fonction1').subscribe((resultats: Operations[]) => {
     //   console.log('resultats', resultats);
     //   this.operations = resultats;
@@ -626,6 +680,12 @@ export class Stepper {
         (res) => res != '' && res != null && res != undefined
       );
 
+      console.log('Collonne  non vide : ', colonneNonVide);
+
+      for (const col of colonneNonVide) {
+        group.get(col)?.setValue(false);
+      }
+
       if (colonneNonVide.length === 1 && !value) {
         const col = colonneNonVide[0];
         group.get(col)?.setValue(true);
@@ -650,6 +710,18 @@ export class Stepper {
   addLigne() {
     this.ajouterLigne(this.colone_form3, '', 0);
     this.updateFiltered3();
+  }
+
+  removeEmptyTypeErreurGroups() {
+    const formArray = this.form3.get('formErreur') as FormArray;
+    // Parcours à l'envers pour éviter les problèmes d'index lors de la suppression
+    for (let i = formArray.length - 1; i >= 0; i--) {
+      const group = formArray.at(i) as FormGroup;
+      const typeErreurValue = group.get('typeErreur')?.value;
+      if (!typeErreurValue || typeErreurValue.trim() === '') {
+        formArray.removeAt(i);
+      }
+    }
   }
 
   updateFinal() {

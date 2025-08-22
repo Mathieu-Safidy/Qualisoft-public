@@ -52,10 +52,15 @@
     cursor: grab;
 }
 
-#cdk-overlay-3 {
+/* #cdk-overlay-3 {
   width: auto !important;
 }
 
 ::ng-deep .cdk-overlay-pane {
   width: auto !important;
+} */
+
+.auto-width-panel {
+  /* width: auto !important; */
 }
+

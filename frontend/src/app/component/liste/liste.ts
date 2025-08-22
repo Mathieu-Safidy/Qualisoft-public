@@ -79,6 +79,8 @@ export class Liste<T extends Record<string, any> = any> {
   // onItemClick(item: any): void {
   //   this.itemClicked.emit(item);
   // }
+  nameAction = input<string>('Action');
+  readonly demandeOuvertureModal = output<any>();
 
   getPageNumbers(): number[] {
     const totalPages = Math.ceil(this.filteredSortedData.length / this.pageSize);

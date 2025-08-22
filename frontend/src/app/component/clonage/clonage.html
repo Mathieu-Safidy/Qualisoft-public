@@ -1,3 +1,121 @@
-<div class="modal-dialog modal-dialog-centered">
+<div class="overflow-hidden">
+  <mat-dialog-actions align="end">
+    <button mat-icon-button mat-dialog-close aria-label="Fermer">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-dialog-actions>
+  <h2 mat-dialog-title class="dialog-title">{{ data.title }}</h2>
 
+  <mat-dialog-content>
+    <div class="transfer-container">
+      <div class="transfer-box source-box">
+        <h3 class="box-title">Source</h3>
+        <div class="attributes-list">
+          <div class="attribute-item">
+            <span class="attribute-label">Ligne :</span>
+            <span
+              class="attribute-value"
+              [matTooltip]="data.source.ligneName">
+              {{ data.source.ligneName }} ({{ data.source.ligneId }})
+            </span>
+          </div>
+          <div class="attribute-item">
+            <span class="attribute-label">Plan :</span>
+            <span
+              class="attribute-value"
+              [matTooltip]="data.source.planName">
+              {{ data.source.planName }} ({{ data.source.planId }})
+            </span>
+          </div>
+          <div class="attribute-item">
+            <span class="attribute-label">Fonction :</span>
+            <span
+              class="attribute-value"
+              [matTooltip]="data.source.fonctionName">
+              {{ data.source.fonctionName }}({{ data.source.fonctionId }})
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="transfer-arrow-container">
+        <div class="transfer-arrow-icon">→</div>
+      </div>
+
+      <div class="transfer-box destination-box">
+        <h3 class="box-title">Destination</h3>
+        <form [formGroup]="destinationForm" class="attributes-list">
+          <div class="attribute-item">
+            <span class="attribute-label">Ligne :</span>
+            <mat-form-field appearance="outline">
+              <input
+                type="text"
+                placeholder="Rechercher une ligne"
+                matInput
+                formControlName="ligne"
+                [matAutocomplete]="autoLigne"
+              />
+              <mat-autocomplete #autoLigne="matAutocomplete">
+                <mat-option
+                  *ngFor="let option of filteredLignes$ | async"
+                  [value]="option"
+                >
+                  {{ option }}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <div class="attribute-item">
+            <span class="attribute-label">Plan :</span>
+            <mat-form-field appearance="outline">
+              <input
+                type="text"
+                placeholder="Rechercher un plan"
+                matInput
+                formControlName="plan"
+                [matAutocomplete]="autoPlan"
+              />
+              <mat-autocomplete #autoPlan="matAutocomplete">
+                <mat-option
+                  *ngFor="let option of filteredPlans$ | async"
+                  [value]="option"
+                >
+                  {{ option }}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <div class="attribute-item">
+            <span class="attribute-label">Fonction :</span>
+            <mat-form-field appearance="outline">
+              <input
+                type="text"
+                placeholder="Rechercher une fonction"
+                matInput
+                formControlName="fonction"
+                [matAutocomplete]="autoFonction"
+              />
+              <mat-autocomplete #autoFonction="matAutocomplete">
+                <mat-option
+                  *ngFor="let option of filteredFonctions$ | async"
+                  [value]="option"
+                >
+                  {{ option }}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+        </form>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="center" class="mt-3">
+    <button mat-flat-button color="primary" class="me-3" (click)="onConfirm()">
+      Confirmer
+    </button>
+    <button mat-stroked-button color="warn" mat-dialog-close>Annuler</button>
+  </mat-dialog-actions>
 </div>

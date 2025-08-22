@@ -1,0 +1,103 @@
+/* votre-modal.component.css */
+
+.dialog-title {
+  text-align: center;
+  font-weight: 500;
+  color: #3f51b5;
+}
+
+mat-dialog-content {
+  padding: 24px 32px;
+}
+
+.transfer-container {
+  display: flex;
+  /* flex-direction: column; */
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.transfer-box {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  flex: 1;
+  width: 100%;
+  min-width: 250px;
+}
+
+.source-box {
+  background-color: #e8f0fe;
+}
+
+.destination-box {
+  background-color: #f1f8e9;
+}
+
+.box-title {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+  color: #616161;
+}
+
+.attributes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; 
+}
+
+.attribute-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.attribute-item:last-child {
+  border-bottom: none;
+}
+
+.attribute-label {
+  font-weight: normal;
+  color: #757575;
+  margin-right: 12px;
+  min-width: 80px; /* Assure que les labels ont une largeur minimale */
+  text-align: left;
+}
+
+.attribute-value,
+mat-form-field { /* Cible les champs pour un alignement propre */
+  flex-grow: 1;
+  text-align: right;
+  word-break: break-all;
+}
+
+mat-form-field {
+  width: 100%; /* S'assure que le champ remplit l'espace disponible */
+}
+
+.transfer-arrow-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.transfer-arrow-icon {
+  font-size: 2rem;
+  color: #757575;
+  /* transform: rotate(90deg); */
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}

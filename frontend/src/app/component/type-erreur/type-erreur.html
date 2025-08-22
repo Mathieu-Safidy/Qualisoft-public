@@ -1,23 +1,82 @@
 <div class="mt-4">
-  <div class="table-responsive typer_table" >
+  <div class="table-responsive typer_table">
     <div class="row">
-        <div class="col-10"></div>
-        <div class="col-2 text-end">
-            <button (click)="triggerAdd()" class="btn btn-success  "><fa-icon icon="plus-circle" class="me-2" ></fa-icon>Add</button>
-        </div>
+      <div class="col-10"></div>
+      <div class="col-2 text-end">
+        <button (click)="triggerAdd()" class="btn btn-success">
+          <fa-icon icon="plus-circle" class="me-2"></fa-icon>Add
+        </button>
+      </div>
     </div>
+    <ng-template #popoverTyppeErreur>
+      <div>
+        <ul>
+          <li>Mineur (L'erreur ne modifie pas le sens de l'information) </li>
+          <li>Majeur (L'erreur modifie le sens de l'information)</li>
+        </ul>
+      </div>
+    </ng-template>
     <form action="" [formGroup]="form()">
-      <table
-        class="table p-3 "
-      >
+      <table class="table p-3">
         <thead class="table-light">
           <tr class="text-center">
-            <th>Type d'erreur</th>
-            <th>Degre</th>
-            <th>Coef</th>
-            <th>Raccourci</th>
+            <th>
+              <div
+                ngbPopover="Nomenclature des erreurs selon les exigences du client."
+                [placement]="'bottom'"
+                [autoClose]="'true'"
+                [triggers]="'mouseenter:mouseleave'"
+                popoverClass="my-custom-popover"
+              >
+                Type d'erreur
+              </div>
+            </th>
+            <th>
+              <div
+                [ngbPopover]="popoverTyppeErreur"
+                [placement]="'bottom'"
+                [autoClose]="'true'"
+                [triggers]="'mouseenter:mouseleave'"
+                popoverClass="my-custom-popover"
+              >
+                Degre
+              </div>
+            </th>
+            <th>
+              <div
+                ngbPopover="Le coefficient de pondération ou coefficient de gravité est un chiffre qui reflète l'importance ou la criticité de l'erreur"
+                [placement]="'bottom'"
+                [autoClose]="'true'"
+                [triggers]="'mouseenter:mouseleave'"
+                popoverClass="my-custom-popover"
+              >
+                Coefficient
+              </div>
+            </th>
+            <th>
+              <div
+                ngbPopover="Un raccourci clavier de votre choix pour enregistrer rapidement un type d'erreur."
+                [placement]="'bottom'"
+                [autoClose]="'true'"
+                [triggers]="'mouseenter:mouseleave'"
+                popoverClass="my-custom-popover"
+              >
+                Raccourci
+              </div>
+            </th>
             <ng-container *ngFor="let item of colonne()">
-              <th class="checker">{{ item }}</th>
+              <th class="checker">
+                <div 
+                [ngbPopover]="item"
+                [placement]="'top'"
+                [autoClose]="'true'"
+                [triggers]="'mouseenter:mouseleave'"
+                popoverClass="my-custom-popover-info"
+                >
+
+                  {{ item }}
+                </div>
+              </th>
             </ng-container>
           </tr>
         </thead>
@@ -29,35 +88,93 @@
           >
             <td>
               <!-- <input type="text" name="typeErreur" class="col-12 form-control" id="" formControlName="typeErreur"> -->
-              <input 
-                    type="text" name="typeErreur" class="col-2 form-control" id="" formControlName="typeErreur"
-                    matInput
-                    [matAutocomplete]="autErreur"
-                />
-                <mat-autocomplete #autErreur="matAutocomplete" > 
-                  <mat-option *ngFor="let erreur of filteredOperations()[i] | async " [value]="erreur.type_erreur">
-                    {{ erreur.type_erreur }}
-                  </mat-option>
-                </mat-autocomplete>
+              <input
+                type="text"
+                name="typeErreur"
+                class="col-2 form-control"
+                id=""
+                formControlName="typeErreur"
+                matInput
+                [matAutocomplete]="autErreur"
+              />
+              <mat-autocomplete #autErreur="matAutocomplete" 
+                panelClass="auto-width-panel">
+                <mat-option
+                  *ngFor="let erreur of filteredOperations()[i] | async "
+                  [value]="erreur.type_erreur"
+                >
+                  {{ erreur.type_erreur }}
+                </mat-option>
+              </mat-autocomplete>
             </td>
             <td>
-              <select name="" id="" name="degre" class="col-2 form-control" id="" formControlName="degre">
+              <select
+                name=""
+                id=""
+                name="degre"
+                class="col-2 form-control"
+                id=""
+                formControlName="degre"
+              >
                 <option value="0">Mineure</option>
                 <option value="1">Majeure</option>
               </select>
               <!-- <input type="text" name="degre" class="col-2 form-control" id="" formControlName="degre"> -->
             </td>
-            <td><input type="text" name="coef" class="col-2 form-control" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" id="" formControlName="coef"></td>
-            <td><input type="text" name="raccourci" class="col-2 form-control" id="" formControlName="raccourci"></td>
+            <td>
+              <input
+                type="text"
+                name="coef"
+                class="col-2 form-control"
+                (blur)="formatSeuilQualite(i)"
+                (keypress)="filterInput($event)"
+                id=""
+                formControlName="coef"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                name="raccourci"
+                class="col-2 form-control"
+                id=""
+                formControlName="raccourci"
+              />
+            </td>
             <ng-container *ngFor="let col of lister()">
               <td class="text-center align-middle checker">
-                 <div class="d-flex justify-content-center align-items-center">
-                   <input *ngIf="col !== ''"  type="checkbox" name="control" class=" form-check-input " id="" style="width: 30px;height: 30px;"  formControlName="{{ col }}" (click)="lister()[1] == '' ? $event.preventDefault() : null">
-                   <input *ngIf="col == ''" type="checkbox" name="control" class=" form-check-input " id="" style="width: 30px;height: 30px;"  disabled >
-                 </div>
+                <div class="d-flex justify-content-center align-items-center">
+                  <input
+                    *ngIf="col !== ''"
+                    type="checkbox"
+                    name="control"
+                    class="form-check-input"
+                    id=""
+                    style="width: 30px; height: 30px"
+                    formControlName="{{ col }}"
+                    (click)="lister()[1] == '' ? $event.preventDefault() : null"
+                  />
+                  <input
+                    *ngIf="col == ''"
+                    type="checkbox"
+                    name="control"
+                    class="form-check-input"
+                    id=""
+                    style="width: 30px; height: 30px"
+                    disabled
+                  />
+                </div>
               </td>
             </ng-container>
-            <td><button type="button" class="btn btn-danger form-control" (click)="trigerRemove(i)">Suprimer</button></td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-danger form-control"
+                (click)="trigerRemove(i)"
+              >
+                Suprimer
+              </button>
+            </td>
           </tr>
         </tbody>
         <tfoot></tfoot>

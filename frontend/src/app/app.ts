@@ -5,9 +5,9 @@ import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontaweso
 import { faCoffee, faUser, faBlog, faGear, faArrowLeft, faArrowAltCircleLeft, faArrowRight, faChevronRight, faPlusCircle, faMinusCircle, faKey, } from '@fortawesome/free-solid-svg-icons';
 import { Login } from './pages/login/login';
 import { CommonModule } from '@angular/common';
-import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-root',
@@ -15,8 +15,9 @@ import { MatDialogModule } from '@angular/material/dialog';
     FontAwesomeModule, 
     RouterOutlet, 
     CommonModule,
-    BrowserModule,
-    BrowserAnimationsModule,
+    
+    MatChipsModule,
+    // BrowserAnimationsModule,
     MatDialogModule,
   ],
   templateUrl: './app.html',

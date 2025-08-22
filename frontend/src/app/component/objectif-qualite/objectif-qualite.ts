@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, input, Input, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, input, Input, output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, SelectControlValueAccessor, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
@@ -12,6 +12,7 @@ import { DetailProjectService } from '../../service/DetailProjectService';
 import { Operations } from '../../class/Operations';
 import { Unite } from '../../interface/Unite';
 import { v4 as uuidv4 } from 'uuid';
+import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-objectif-qualite',
@@ -24,7 +25,8 @@ import { v4 as uuidv4 } from 'uuid';
     FontAwesomeModule,
     MatAutocompleteModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    NgbPopoverModule
   ],
   templateUrl: './objectif-qualite.html',
   styleUrl: './objectif-qualite.css'
@@ -43,6 +45,7 @@ export class ObjectifQualite {
   // @Input() unites !: Unite[];
   unites = input<Unite[]>();
   @Input() verifier: boolean = false;
+  generer = output<void>();
 
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];

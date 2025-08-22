@@ -14,6 +14,7 @@ import { environment } from '../../environments/environment';
 import { LigneModel } from '../class/LigneModel';
 import { ProjetModele } from '../class/ProjetModele';
 import { FonctionModele } from '../class/FonctionModele';
+import { Operations } from '../class/Operations';
 @Injectable({
   providedIn: 'root',
 })
@@ -129,13 +130,13 @@ export class DetailProjectService {
 
   getDataFilter(ligne: any, plan: any, fonction: any) {
     try {
-      let { lignes, plans, fonctions } = this.getFilter(ligne, plan, fonction);
-
+      let filter = this.getFilter(ligne, plan, fonction);
+      let { lignes, plans, fonctions , operations } = filter;
       lignes.subscribe(data => console.log('📦 LIGNES:', data));
       plans.subscribe(data => console.log('📦 PLANS:', data));
       fonctions.subscribe(data => console.log('📦 FONCTIONS:', data));
-
-      let { operations } = this.getData();
+      
+      // let { operations } = new Operations().cast();
 
       let typetraitement = this.getTypeTraitement();
 
@@ -184,9 +185,9 @@ export class DetailProjectService {
   }
   async getDataFilterSimple(ligne: any, plan: any, fonction: any) {
     try {
-      const { lignes, plans, fonctions } = await this.getFilterSimple(ligne, plan, fonction);
+      const { lignes, plans, fonctions, operation } = await this.getFilterSimple(ligne, plan, fonction);
 
-      let { operations } = this.getData();
+      // let { operations } = this.getData();
 
       let typetraitement = this.getTypeTraitement();
 
@@ -225,7 +226,7 @@ export class DetailProjectService {
         lignes: lignes,
         plans: plans,
         fonctions: fonctions,
-        operations: operations,
+        operations: operation,
         typetraitements: typetraitement,
         erreurTypes: erreurType,
         unites: unite,
@@ -251,6 +252,10 @@ export class DetailProjectService {
       map(response => new ProjetModele().cast(response))
     );
 
+    const operation$ = responses$.pipe(
+      map(responsesv => new Operations().cast(responsesv))
+    );
+
     const fonctions$ = lignes$.pipe(
       switchMap(lignes => {
         if (lignes.length > 0) {
@@ -269,7 +274,8 @@ export class DetailProjectService {
     return {
       lignes: lignes$,
       plans: plans$,
-      fonctions: fonctions$
+      fonctions: fonctions$,
+      operations: operation$
     };
   }
   async getFilterSimple(ligne: string = "", plan: string = "", fonction: string = "") {
@@ -280,13 +286,16 @@ export class DetailProjectService {
 
     const plans$ = new ProjetModele().cast(responses$);
 
+    const operation$ = new Operations().cast(responses$);
+
     const fonctions$ = new FonctionModele().cast(await firstValueFrom(this.filtre(lignes$[0].id_ligne, plan, fonction)));
 
     // ✅ On retourne un objet contenant les 3 promises
     return {
       lignes: lignes$,
       plans: plans$,
-      fonctions: fonctions$
+      fonctions: fonctions$,
+      operation: operation$
     };
   }
 

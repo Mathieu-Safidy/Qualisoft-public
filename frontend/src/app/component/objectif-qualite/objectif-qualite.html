@@ -2,48 +2,107 @@
   <div class="row mb-3">
     <div class="col-10">
       <!-- <button type="button" (click)="checkValid()">check</button> -->
+      
     </div>
     <div class="col-2 text-end">
-        <button type="button" class="btn btn-success" (click)="addItem()"> <fa-icon icon="plus-circle" ></fa-icon> Add</button>
+        <button type="button" class="btn btn-success" (click)="addItem();generer.emit()"> <fa-icon icon="plus-circle" ></fa-icon> Add</button>
     </div>
   </div>
   <div class="card p-3 pt-0">
     
     <div class="row mb-3 card-header">
         <div class="col-1 text-center d-flex justify-content-center"></div>
-        <div class="col-2 text-center fw-bold  d-flex justify-content-center">
-            <div class=" rounded-2 align-content-center ">
+        <div class="col-2 text-center fw-bold  d-flex justify-content-center" 
+       
+        >
+            <div class=" rounded-2 align-content-center "
+            ngbPopover="Sélectionnez l'étape de contrôle souhaitée" 
+            [placement]="'top'"
+            [autoClose]="'true'"
+            [triggers]="'mouseenter:mouseleave'"
+            popoverClass="my-custom-popover"
+            >
                 Operation de control
             </div>
         </div>
         <div class="col-2 text-center fw-bold  d-flex justify-content-center">
-            <div class=" rounded-2 align-content-center ">
+            <div class=" rounded-2 align-content-center "
+             ngbPopover="Cette information est automatiquement récupérée via Webjips." 
+            [placement]="'bottom'"
+            [autoClose]="'true'"
+            [triggers]="'mouseenter:mouseleave'"
+            popoverClass="my-custom-popover"
+            >
                 Unite
             </div>
         </div>
         <div class="col-1 text-center fw-bold  d-flex justify-content-center">
-            <div class=" rounded-2 align-content-center ">
+            <div class=" rounded-2 align-content-center "
+            ngbPopover="Le taux de qualité est soit validé par le client, soit défini en interne. C'est une valeur comprise entre 90 % et 100 %" 
+            [placement]="'bottom'"
+            [autoClose]="'true'"
+            [triggers]="'mouseenter:mouseleave'"
+            popoverClass="my-custom-popover"
+            >
                 Seuil qualite
             </div>
         </div>
         <div class="col-2 text-center fw-bold  d-flex justify-content-center">
-            <div class=" rounded-2 align-content-center ">
+            <div class=" rounded-2 align-content-center "
+            [ngbPopover]="popoverControl" 
+            [placement]="'bottom'"
+            [autoClose]="'true'"
+            [triggers]="'mouseenter:mouseleave'"
+            popoverClass="my-custom-popover"
+            >
                 Type de control
             </div>
         </div>
+        <ng-template #popoverControl>
+          <div>
+              Ce choix dépend de vos besoins : <br>
+              <ul>
+                <li>Qualité interne (Le contrôle est réalisé par les équipes de Luminess Madagascar.)</li>
+                <li>BCQ (Ce contrôle s'effectue par échantillonnage, en appliquant la norme ISO 2859-1.)</li>
+                <li>Qualité externe (Rapport qualité venant du client à intégrer dans Qualisoft)</li>
+              </ul>
+          </div>
+        </ng-template>
         <div class="col-2 text-center fw-bold  d-flex justify-content-center">
-            <div class=" rounded-2 align-content-center ">
+            <div class=" rounded-2 align-content-center "
+            ngbPopover="Sélectionnez l'étape à contrôler" 
+            [placement]="'top'"
+            [autoClose]="'true'"
+            [triggers]="'mouseenter:mouseleave'"
+            popoverClass="my-custom-popover"
+            >
                 Operation a controler
             </div>
         </div>
         <div class="col-1 text-center fw-bold  d-flex justify-content-center">
-            <div class=" rounded-2 align-content-center ">
+            <div class=" rounded-2 align-content-center "
+            [placement]="'bottom'"
+            [autoClose]="'true'"
+            [triggers]="'mouseenter:mouseleave'"
+            popoverClass="my-custom-popover"
+            [ngbPopover]="popoverRejet"
+            >
                 Critere de rejet
             </div>
         </div>
+
+        <ng-template #popoverRejet>
+          <div>
+            <p>Nombre de fautes pondérées acceptables par unité. La faute pondérée est calculée par la formule : (Fréquence x Coefficient)</p>
+            <p>Exemple : Si 2 fautes pondérées sont relevées dans une page, le calcul est le suivant : </p>
+            <p>Fréquence (2) x Coefficient (1) = 2 (le total des fautes pondérées pour la page).</p>
+          </div>
+        </ng-template>
         <div class="col-1 text-center fw-bold  d-flex justify-content-center">
-            <div class=" rounded-2 align-content-center ">
-                minus
+            <div class=" rounded-2 align-content-center "
+            
+            >
+              Action
             </div>
         </div>
     </div>
@@ -60,7 +119,7 @@
                     matInput
                     [matAutocomplete]="autOperation"
                 />
-                <mat-autocomplete #autOperation="matAutocomplete" [displayWith]="displayOperation" (optionSelected)="selectOperation($event,i+1)"> 
+                <mat-autocomplete panelClass="auto-width-panel" #autOperation="matAutocomplete" [displayWith]="displayOperation" (optionSelected)="selectOperation($event,i+1)"> 
                   <mat-option *ngFor="let operation of filteredOperations[i] | async " [value]="operation.id_operation">
                     {{ operation.libelle }}
                   </mat-option>
