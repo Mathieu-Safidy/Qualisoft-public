@@ -74,6 +74,15 @@ export class DetailProjectService {
     }
   }
 
+  async getAllUser() {
+    try {
+      const response = await this.http.get('/users');
+      return (response as any);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   resolveFilter(ligne:any,plan:any,fonction:any) {
       // const plan = route.paramMap.get('id') ?? '';
       // const ligne = '';
@@ -84,8 +93,8 @@ export class DetailProjectService {
           throw new Error('Failed to get data filter');
         }
         const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
-    
-    
+        const allUsers = this.getAllUser();
+
         return forkJoin({
           ligne: lignes,
           plan: plans,
@@ -95,7 +104,8 @@ export class DetailProjectService {
           erreurs: erreurTypes,
           unites: unites,
           verif: verifs,
-          client: clients
+          client: clients,
+          users: allUsers
         });
   }
   async resolveFilterSimple(ligne:any,plan:any,fonction:any) {
@@ -108,7 +118,8 @@ export class DetailProjectService {
           throw new Error('Failed to get data filter');
         }
         const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
-    
+        const allUsers = await this.getAllUser();
+
     
         return {
           ligne: lignes,
@@ -119,7 +130,8 @@ export class DetailProjectService {
           erreurs: erreurTypes,
           unites: unites,
           verif: verifs,
-          client: clients
+          client: clients,
+          users: allUsers
         };
         
       } catch (error) {
@@ -183,6 +195,7 @@ export class DetailProjectService {
     }
     return null
   }
+  
   async getDataFilterSimple(ligne: any, plan: any, fonction: any) {
     try {
       const { lignes, plans, fonctions, operation } = await this.getFilterSimple(ligne, plan, fonction);

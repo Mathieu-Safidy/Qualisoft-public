@@ -13,6 +13,8 @@ import { Operations } from '../../class/Operations';
 import { Unite } from '../../interface/Unite';
 import { v4 as uuidv4 } from 'uuid';
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
+import { AlertConfirm } from "../alert-confirm/alert-confirm";
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-objectif-qualite',
@@ -26,7 +28,8 @@ import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
-    NgbPopoverModule
+    NgbPopoverModule,
+    AlertConfirm
   ],
   templateUrl: './objectif-qualite.html',
   styleUrl: './objectif-qualite.css'
@@ -46,13 +49,14 @@ export class ObjectifQualite {
   unites = input<Unite[]>();
   @Input() verifier: boolean = false;
   generer = output<void>();
+  showAlert = false;
 
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];
   // @ViewChild('autOperation') autOperation!: MatAutocomplete;
 
 
-  constructor(private fb: FormBuilder, private cdref: ChangeDetectorRef, private detailService: DetailProjectService) {
+  constructor(private fb: FormBuilder, private cdref: ChangeDetectorRef, private detailService: DetailProjectService,public dialog: MatDialog) {
     this.operationSelected = [{ index: 0, value: '-1' }];
   }
 
@@ -69,6 +73,43 @@ export class ObjectifQualite {
   get formul() {
     return this.form();
   }
+
+  // get percentage() {
+  //   return this.formGroups.at(index)?.get('seuilQualite')?.value;
+  // }
+
+  openAlert(index: number) {
+    this.showAlert = true;
+    let pourcentage = this.formGroups.at(index)?.get('seuilQualite')?.value;
+    console.log("pourcentage ", pourcentage);
+    const dialogRef = this.dialog.open(AlertConfirm, {
+      width: 'auto',
+      height: 'auto',
+      data: { pourcentage: pourcentage }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      let cotrl = this.formGroups.at(index)?.get('seuilQualite');
+      // Le `result` est `true` si l'utilisateur a cliqué sur "OK", `false` si "Annuler"
+      if (result) {
+        alert(`Action confirmée ! Votre seuil reste à ${pourcentage}%.`);
+      } else {
+        cotrl?.setValue(0);
+        alert('Action annulée. Votre seuil a été remis à 0%.');
+      }
+    });
+  }
+
+  // onConfirmed(isConfirmed: boolean) {
+  //   let cotrl = this.form()?.get('seuilQualite');
+  //   if (isConfirmed) {
+  //     alert(`Votre pourcentage de seuil reste le même ${this.percentage}%`);
+  //   } else {
+  //     alert('Action annulée. Votre pourcentage de seuil a été remis à 0%.');
+  //     cotrl?.setValue(0);
+  //   }
+  //   this.showAlert = false; // Cache l'alerte dans tous les cas
+  // }
 
   ngOnInit() {
     this.filteredOperations = this.formGroups.map((fg) =>
@@ -241,6 +282,8 @@ export class ObjectifQualite {
         if (num > 100) {
           alert("La valeur ne peut pas dépasser 100%");
           num = 0;
+        }else if(num < 90 && num > 0) {
+          this.openAlert(index);
         } else if (num < 0) {
           alert("La valeur ne peut pas être négative");
           num = 0;

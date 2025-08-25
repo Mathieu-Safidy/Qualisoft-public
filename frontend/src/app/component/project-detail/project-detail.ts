@@ -21,8 +21,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 export interface Contact {
-  value: string;
-  name: string;
+  matricule: string;
+  pseudo: string;
 }
 @Component({
   selector: 'app-project-detail',
@@ -81,14 +81,21 @@ export class ProjectDetail {
   selectedContacts: any = [];
 
   // All available contacts for filtering
-  allContacts: any = [
-    { value: 'CP1', name: 'Rakoto' },
-    { value: 'CP2', name: 'Rasoa' },
-    { value: 'CP3', name: 'Rabe' },
-    { value: 'CP4', name: 'Jean' },
-    { value: 'CP5', name: 'Paul' }
-  ];
+  // allContacts: any = [
+  //   { matricule: 'CP1', pseudo: 'Rakoto' },
+  //   { matricule: 'CP2', pseudo: 'Rasoa' },
+  //   { matricule: 'CP3', pseudo: 'Rabe' },
+  //   { matricule: 'CP4', pseudo: 'Jean' },
+  //   { matricule: 'CP5', pseudo: 'Paul' }
+  // ];
 
+  allContacts = input<any>([
+    { matricule: 'CP1', pseudo: 'Rakoto' },
+    { matricule: 'CP2', pseudo: 'Rasoa' },
+    { matricule: 'CP3', pseudo: 'Rabe' },
+    { matricule: 'CP4', pseudo: 'Jean' },
+    { matricule: 'CP5', pseudo: 'Paul' }
+  ]);
 
   separatorKeysCodes: number[] = [ENTER, COMMA];
 
@@ -97,19 +104,18 @@ export class ProjectDetail {
 
   constructor(private builder: FormBuilder, private router: Router, private route: ActivatedRoute) {
     this.isStepper = false;
-    this.filteredContacts = this.contactCtrl.valueChanges.pipe(
-      startWith(null),
-      map((contact: string | null) => (contact ? this._filterCp(contact) : this.allContacts.slice()))
-    );
+
+
   }
 
   /** Adds a chip when the user presses Enter or adds a comma. */
   add(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
-    const contact = this.allContacts.find((c: any) => c.name.toLowerCase() === value.toLowerCase());
-
+    console.log('Adding contact:', this.allContacts());
+    const contact = this.allContacts().find((c: any) => c.pseudo.toLowerCase() === value.toLowerCase());
+    console.log('Found contact:', contact, "entrer" , value);
     // Check if the contact exists and is not already in the selectedContacts array
-    if (contact && !this.selectedContacts.some((c: any) => c.value === contact.value)) {
+    if (contact && !this.selectedContacts.some((c: any) => c.matricule === contact.matricule)) {
       this.selectedContacts.push(contact);
     }
 
@@ -123,8 +129,8 @@ export class ProjectDetail {
 
   /** Removes a chip when the user clicks the 'cancel' icon. */
   remove(contact: any): void {
-    // Use findIndex() to find the index based on a unique property, like 'value'
-    const index = this.selectedContacts.findIndex((c: any) => c.value === contact.value);
+    // Use findIndex() to find the index based on a unique property, like 'matricule'
+    const index = this.selectedContacts.findIndex((c: any) => c.matricule === contact.matricule);
 
     if (index >= 0) {
       this.selectedContacts.splice(index, 1);
@@ -137,7 +143,8 @@ export class ProjectDetail {
     const selectedContact = event.option.value;
 
     // Check if the contact is not already selected using a unique property
-    if (!this.selectedContacts.some((c: any) => c.value === selectedContact.value)) {
+    if (!this.selectedContacts.some((c: any) => c.matricule === selectedContact.matricule)) {
+      console.log("Select options", selectedContact);
       this.selectedContacts.push(selectedContact);
     }
 
@@ -150,15 +157,15 @@ export class ProjectDetail {
   }
   private updateFormGroupValue(): void {
     // Join the 'value' of each selected contact into a comma-separated string
-    const selectedValues = this.selectedContacts.map((c: any) => c.value).join(',');
+    const selectedValues = this.selectedContacts.map((c: any) => c.matricule).join(',');
     // Update the value of the 'cp_responsable' form control
     this.form().get('cp_responsable')?.setValue(selectedValues);
   }
 
   /** Filters the list of available contacts based on the user's input. */
   private _filterCp(value: string | Contact): Contact[] {
-    const filterValue = typeof value === 'string' ? value.toLowerCase() : value.name.toLowerCase();
-    return this.allContacts.filter((contact: { name: string; }) => contact.name.toLowerCase().includes(filterValue));
+    const filterValue = typeof value === 'string' ? value.toLowerCase() : value.pseudo.toLowerCase();
+    return this.allContacts().filter((contact: { pseudo: string; }) => contact.pseudo.toLowerCase().includes(filterValue));
   }
 
   checkDonne() {
@@ -167,20 +174,25 @@ export class ProjectDetail {
 
   ngOnInit() {
 
+    console.log('Adding contact:', this.allContacts());
+    this.filteredContacts = this.contactCtrl.valueChanges.pipe(
+      startWith(null),
+      map((contact: string | null) => (contact ? this._filterCp(contact) : this.allContacts().slice()))
+    );
 
     const initialValue = this.form().get('cp_responsable')?.value;
-
+    console.log("intial user", this.allContacts());
     // 2. Check if the value exists and is not empty
     if (initialValue) {
       // 3. Split the comma-separated string into an array of values
       const valueArray = initialValue.split(',');
 
       // 4. Find the matching contact objects and add them to the selectedContacts array
-      valueArray.forEach((val : any)=> {
-        const foundContact = this.allContacts.find((c : any) => c.value === val);
+      valueArray.forEach((val: any) => {
+        const foundContact = this.allContacts().find((c: any) => c.value === val);
         if (foundContact) {
           // Prevent duplicates in case the initial value has them
-          if (!this.selectedContacts.some((c : any) => c.value === foundContact.value)) {
+          if (!this.selectedContacts.some((c: any) => c.value === foundContact.value)) {
             this.selectedContacts.push(foundContact);
           }
         }

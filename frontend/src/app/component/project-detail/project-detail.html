@@ -188,7 +188,7 @@
                 <mat-label class="text-body-secondary"></mat-label>
                 <mat-chip-grid #chipList matChipGrid aria-label="Sélection des responsables" class="">
                   <mat-chip *ngFor="let contact of selectedContacts" [removable]="true" (removed)="remove(contact)">
-                    {{ contact.name }}
+                    {{ contact.pseudo }}
                     <mat-icon matChipRemove>cancel</mat-icon>
                   </mat-chip>
 
@@ -208,7 +208,7 @@
 
                 <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)" panelClass="static-width-panel" >
                   <mat-option *ngFor="let option of filteredContacts | async" [value]="option">
-                    {{ option.name }}
+                    {{ option.pseudo }}
                   </mat-option>
                 </mat-autocomplete>
               </mat-form-field>

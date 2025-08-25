@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
 import { Observable, firstValueFrom, forkJoin, from } from 'rxjs';
-import { ProjectService } from './ProjectService'; // <-- ton service
+import { ProjectService } from './ProjectService'; 
 import { VueGlobal } from '../interface/VueGlobal';
 
 @Injectable({ providedIn: 'root' })

@@ -101,7 +101,13 @@ export class Stepper {
   defaultFonction!: string;
   defaultOperation!: string;
   cachedata = inject(CacheData);
-
+  allUser = [
+    { matricule: 'CP1', pseudo: 'Rakoto' },
+    { matricule: 'CP2', pseudo: 'Rasoa' },
+    { matricule: 'CP3', pseudo: 'Rabe' },
+    { matricule: 'CP4', pseudo: 'Jean' },
+    { matricule: 'CP5', pseudo: 'Paul' }
+  ];
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -210,6 +216,7 @@ export class Stepper {
     //   this.plan = data$.plan;
     //   this.fonction = data$.fonction;
     // } else {
+    this.allUser = this.data.users.users; 
     this.ligne = this.data.ligne;
     this.plan = this.data.plan;
     this.fonction = this.data.fonction;
@@ -222,6 +229,7 @@ export class Stepper {
     this.verification = this.data.verif;
     console.log('verifier', this.verification);
   }
+
   async initDataupdated(clone: boolean) {
     console.log('data ', this.data)
     let data$ = this.cachedata.loadData();
@@ -231,6 +239,8 @@ export class Stepper {
     //   this.plan = data$.plan;
     //   this.fonction = data$.fonction;
     // } else {
+      
+    this.allUser = this.data.users; 
     this.ligne = this.data.ligne;
     this.plan = this.data.plan;
     this.fonction = this.data.fonction;
@@ -741,7 +751,8 @@ export class Stepper {
       }).catch((error) => {
         console.error('Erreur lors de l\'envoi des données :', error);
       });
-      this.router.navigate(['/Dashboard/recap'], { state: { data: data } });
+      this.router.navigate(['/Dashboard/parametrage']);
+      // this.router.navigate(['/Dashboard/parametrage'], { state: { data: data } });
     }
   }
 

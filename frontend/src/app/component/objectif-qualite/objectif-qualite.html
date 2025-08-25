@@ -8,6 +8,11 @@
         <button type="button" class="btn btn-success" (click)="addItem();generer.emit()"> <fa-icon icon="plus-circle" ></fa-icon> Add</button>
     </div>
   </div>
+  <!-- @if (showAlert) {
+    <ng-container>
+      <app-alert-confirm [percentage]="percentage" (confirmed)="onConfirmed($event)"></app-alert-confirm>
+    </ng-container>
+  } -->
   <div class="card p-3 pt-0">
     
     <div class="row mb-3 card-header">
