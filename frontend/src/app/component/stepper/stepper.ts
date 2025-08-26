@@ -33,6 +33,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { Clonage } from '../clonage/clonage';
 import { MatDialog } from '@angular/material/dialog';
 import { CacheData } from '../../service/cache-data';
+import { Injectable } from '@angular/core';
+
+@Injectable({ providedIn: 'root' })
+export class StepperStateService {
+  cpResponsable: string = '';
+}
+
 @Component({
   selector: 'app-stepper',
   imports: [
@@ -108,12 +115,14 @@ export class Stepper {
     { matricule: 'CP4', pseudo: 'Jean' },
     { matricule: 'CP5', pseudo: 'Paul' }
   ];
+  initializing = true;
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private detailService: DetailProjectService,
     private formSubmitService: FormStorageService,
     private router: Router,
+    private stepperState: StepperStateService,
   ) {
     this.id = route.params.pipe(map((p) => p['id']));
     this.fonctionParam = route.params.pipe(map((p) => p['fonction']));
@@ -196,7 +205,9 @@ export class Stepper {
   }
 
   updateFiltered3() {
-    this.filteredOperations = this.formGroup3.map((fg, i) =>
+    console.log('initialiser form 1 avant', this.form1.value, this.verification);
+    this.filteredOperations = this.formGroup3.map((fg, i) => 
+      
       fg.get('typeErreur')!.valueChanges.pipe(
         startWith(''),
         map((value) => {
@@ -240,7 +251,7 @@ export class Stepper {
     //   this.fonction = data$.fonction;
     // } else {
       
-    this.allUser = this.data.users; 
+    this.allUser = this.data.users.users; 
     this.ligne = this.data.ligne;
     this.plan = this.data.plan;
     this.fonction = this.data.fonction;
@@ -254,6 +265,8 @@ export class Stepper {
     this.verification = this.data.verif;
     console.log('verifier', this.verification);
   }
+
+  private lastCpResponsable: string = '';
 
   ngOnInit() {
 
@@ -289,7 +302,7 @@ export class Stepper {
           client_nom: [''],
           interlocuteur_nom: [projet_exist.nom_interlocuteur],
           contact_interlocuteur: [projet_exist.contact_interlocuteur],
-          cp_responsable: [projet_exist.id_cp, Validators.required],
+          cp_responsable: [this.stepperState.cpResponsable || projet_exist.id_cp, Validators.required], // <-- injecte la valeur sauvegardée
         });
 
         let verifInterlocuteur = this.verification.interlocuteurs;
@@ -368,7 +381,9 @@ export class Stepper {
 
         console.log('form 2 value', this.form2.value);
         this.generate();
-
+        
+        
+        this.initializing = false;
       } else {
 
         this.form1 = this.fb.group({
@@ -380,7 +395,7 @@ export class Stepper {
           client_nom: [''],
           interlocuteur_nom: [''],
           contact_interlocuteur: [''],
-          cp_responsable: ['', Validators.required],
+          cp_responsable: [this.lastCpResponsable, Validators.required], // <-- injecte la valeur sauvegardée
         });
 
         this.formInterlocuteur = this.fb.group({
@@ -421,7 +436,8 @@ export class Stepper {
         });
       }
 
-
+      
+    
 
       console.log(typeof this.detailService.filtre);
       let status = this.form1.status;
@@ -430,6 +446,8 @@ export class Stepper {
         this.initOperation(donne);
       }
       this.form1.statusChanges.subscribe((status) => {
+        
+        console.log('initialiser form 1 subsc', this.form1.value, this.verification);
         if (status === 'VALID') {
           const donne = this.form1.value;
           this.initOperation(donne);
@@ -448,7 +466,6 @@ export class Stepper {
 
 
       this.updateFiltered3();
-
 
       this.subscribeToFormChanges();
       // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
@@ -469,8 +486,12 @@ export class Stepper {
 
   subscribeToFormChanges() {
     merge(this.form1.valueChanges, this.formInterlocuteur.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
-      .pipe(debounceTime(700))
+      .pipe(debounceTime(1000))
       .subscribe(async () => {
+        console.log('Form changes detected',this.form1.value,this.verification,this.initializing);
+        if (this.initializing) {
+          return;
+        }
         if (this.updateData) {
           // this.verification = verifier;
           this.update();
@@ -543,14 +564,7 @@ export class Stepper {
 
     console.log('colonne form', this.colone_form3);
     console.log('form 3 value', this.form3.value);
-    console.log(
-      'colonne',
-      colonneForm,
-      'values',
-      values,
-      'colonneForm',
-      this.colone_form3
-    );
+    console.log( 'colonne', colonneForm, 'values', values, 'colonneForm', this.colone_form3 );
 
     let formulaire3 = this.form3.controls['formErreur'] as FormArray;
     this.removeEmptyTypeErreurGroups();
@@ -558,8 +572,9 @@ export class Stepper {
     if ((!formulaire3 || formulaire3.length === 0) || !this.verification) {
       this.ajouterLigne(colonneForm, '', 0);
     }
-
+    
     this.updateFiltered3();
+    // console.log('initialiser form 1 apres', this.form1.value, this.verification);
     console.log('form 3 value', this.form3.value);
     // this.detailService.filtre('ligne1', 'plan1', 'fonction1').subscribe((resultats: Operations[]) => {
     //   console.log('resultats', resultats);
@@ -757,6 +772,10 @@ export class Stepper {
   }
 
   async update() {
+    // Sauvegarde la valeur avant update
+    if (this.form1 && this.form1.get('cp_responsable')) {
+      this.stepperState.cpResponsable = this.form1.get('cp_responsable')?.value || '';
+    }
     if (this.verification) {
       const data = {
         ...this.form1.value,

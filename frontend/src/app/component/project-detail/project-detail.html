@@ -181,34 +181,32 @@
         </div> -->
         <div class="row mb-2">
             <div class="col-3">
-              <label>CP responsable</label>
+              <label>Responsable</label>
             </div>
             <div class="col-9">
               <mat-form-field class="bootstrap-style-input"  appearance="outline">
                 <mat-label class="text-body-secondary"></mat-label>
                 <mat-chip-grid #chipList matChipGrid aria-label="Sélection des responsables" class="">
                   <mat-chip *ngFor="let contact of selectedContacts" [removable]="true" (removed)="remove(contact)">
-                    {{ contact.pseudo }}
+                    {{ contact.matricule }}
                     <mat-icon matChipRemove>cancel</mat-icon>
                   </mat-chip>
 
                   <input
-                    
+                    matInput
                     placeholder="Ex: Rakoto..."
                     [matChipInputFor]="chipList"
                     [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                    [matChipInputAddOnBlur]="true"
                     (matChipInputTokenEnd)="add($event)"
                     [matAutocomplete]="auto"
-                    #contactInput
-                    formControlName="cp_responsable"
-                    placeholder="-- Cp responsable --"
+                    #contactInput [formControl]="contactCtrl"
+                    placeholder="-- Responsable --"
                   />
                 </mat-chip-grid>
 
                 <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)" panelClass="static-width-panel" >
                   <mat-option *ngFor="let option of filteredContacts | async" [value]="option">
-                    {{ option.pseudo }}
+                    {{ option.matricule }}
                   </mat-option>
                 </mat-autocomplete>
               </mat-form-field>

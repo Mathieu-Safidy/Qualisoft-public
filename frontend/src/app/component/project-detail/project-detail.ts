@@ -112,7 +112,7 @@ export class ProjectDetail {
   add(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
     console.log('Adding contact:', this.allContacts());
-    const contact = this.allContacts().find((c: any) => c.pseudo.toLowerCase() === value.toLowerCase());
+    const contact = this.allContacts().find((c: any) => c.matricule.toLowerCase() === value.toLowerCase());
     console.log('Found contact:', contact, "entrer" , value);
     // Check if the contact exists and is not already in the selectedContacts array
     if (contact && !this.selectedContacts.some((c: any) => c.matricule === contact.matricule)) {
@@ -141,7 +141,7 @@ export class ProjectDetail {
   /** Adds a chip when the user selects an option from the autocomplete list. */
   selected(event: MatAutocompleteSelectedEvent): void {
     const selectedContact = event.option.value;
-
+    console.log("select ", selectedContact);
     // Check if the contact is not already selected using a unique property
     if (!this.selectedContacts.some((c: any) => c.matricule === selectedContact.matricule)) {
       console.log("Select options", selectedContact);
@@ -164,8 +164,8 @@ export class ProjectDetail {
 
   /** Filters the list of available contacts based on the user's input. */
   private _filterCp(value: string | Contact): Contact[] {
-    const filterValue = typeof value === 'string' ? value.toLowerCase() : value.pseudo.toLowerCase();
-    return this.allContacts().filter((contact: { pseudo: string; }) => contact.pseudo.toLowerCase().includes(filterValue));
+    const filterValue = typeof value === 'string' ? value.toLowerCase() : value.matricule.toLowerCase();
+    return this.allContacts().filter((contact: { matricule: string; }) => contact.matricule.toLowerCase().includes(filterValue));
   }
 
   checkDonne() {
@@ -175,6 +175,7 @@ export class ProjectDetail {
   ngOnInit() {
 
     console.log('Adding contact:', this.allContacts());
+    // this.contactCtrl = this.form().get('cp_responsable');
     this.filteredContacts = this.contactCtrl.valueChanges.pipe(
       startWith(null),
       map((contact: string | null) => (contact ? this._filterCp(contact) : this.allContacts().slice()))
@@ -189,10 +190,10 @@ export class ProjectDetail {
 
       // 4. Find the matching contact objects and add them to the selectedContacts array
       valueArray.forEach((val: any) => {
-        const foundContact = this.allContacts().find((c: any) => c.value === val);
+        const foundContact = this.allContacts().find((c: any) => c.matricule === val);
         if (foundContact) {
           // Prevent duplicates in case the initial value has them
-          if (!this.selectedContacts.some((c: any) => c.value === foundContact.value)) {
+          if (!this.selectedContacts.some((c: any) => c.matricule === foundContact.matricule)) {
             this.selectedContacts.push(foundContact);
           }
         }
