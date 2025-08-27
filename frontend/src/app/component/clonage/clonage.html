@@ -15,8 +15,8 @@
             <span class="attribute-label">Ligne :</span>
             <span
               class="attribute-value"
-              [matTooltip]="data.source.ligneName">
-              {{ data.source.ligneName }} ({{ data.source.ligneId }})
+              [matTooltip]="sourceLigne?.libelle">
+              {{ sourceLigne?.libelle }} ({{ sourceLigne?.id_ligne }})
             </span>
           </div>
           <div class="attribute-item">
@@ -55,12 +55,13 @@
                 formControlName="ligne"
                 [matAutocomplete]="autoLigne"
               />
-              <mat-autocomplete #autoLigne="matAutocomplete">
+              <mat-autocomplete #autoLigne="matAutocomplete" [displayWith]="displayLine">
                 <mat-option
                   *ngFor="let option of filteredLignes$ | async"
                   [value]="option"
+                  
                 >
-                  {{ option }}
+                  {{ option.libelle }} ({{ option.id_ligne }})
                 </mat-option>
               </mat-autocomplete>
             </mat-form-field>
@@ -76,12 +77,12 @@
                 formControlName="plan"
                 [matAutocomplete]="autoPlan"
               />
-              <mat-autocomplete #autoPlan="matAutocomplete">
+              <mat-autocomplete #autoPlan="matAutocomplete" [displayWith]="displayPlan">
                 <mat-option
                   *ngFor="let option of filteredPlans$ | async"
                   [value]="option"
                 >
-                  {{ option }}
+                  {{ option.libelle }} ({{ option.id_plan }})
                 </mat-option>
               </mat-autocomplete>
             </mat-form-field>
@@ -97,12 +98,12 @@
                 formControlName="fonction"
                 [matAutocomplete]="autoFonction"
               />
-              <mat-autocomplete #autoFonction="matAutocomplete">
+              <mat-autocomplete #autoFonction="matAutocomplete" [displayWith]="displayFonction">
                 <mat-option
                   *ngFor="let option of filteredFonctions$ | async"
                   [value]="option"
                 >
-                  {{ option }}
+                  {{ option.libelle }} ({{ option.id_fonction }})
                 </mat-option>
               </mat-autocomplete>
             </mat-form-field>

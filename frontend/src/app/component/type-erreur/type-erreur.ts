@@ -20,7 +20,6 @@ import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
     MatFormFieldModule,
     MatInputModule,
     ReactiveFormsModule,
-    MatTooltip,
     NgbPopoverModule
   ],
   templateUrl: './type-erreur.html',
@@ -32,6 +31,7 @@ export class TypeErreur {
   readonly erreurs = input<Erreur[]>([]);
   @Output() addLigne = new EventEmitter<void>();
   @Output() removeLigne = new EventEmitter<number>();
+  exist = input<boolean>(false);
 
 
   readonly filteredOperations = input.required<Observable<Erreur[]>[]>();

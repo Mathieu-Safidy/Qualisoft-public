@@ -28,8 +28,7 @@ import { MatDialog } from '@angular/material/dialog';
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
-    NgbPopoverModule,
-    AlertConfirm
+    NgbPopoverModule
   ],
   templateUrl: './objectif-qualite.html',
   styleUrl: './objectif-qualite.css'

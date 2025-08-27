@@ -55,16 +55,16 @@
             </ng-container>
             <ng-template #defaultCell> {{ row[col.key] }} </ng-template>
           </td>
-          <td class="py-3 px-5 d-flex justify-content-end">
+          <!-- <td class="py-3 px-5 d-flex justify-content-end">
             <fa-icon icon="chevron-right"></fa-icon>
-          </td>
-          <!-- @if (demandeOuvertureModal) {
+          </td> -->
+          @if (demandeOuvertureModal) {
           <td class="py-3 px-5 d-flex justify-content-end">
             <button class="btn btn-warning" (click)="$event.stopPropagation();demandeOuvertureModal.emit(row)" type="button">
               {{ nameAction() }}
             </button>
           </td>
-          } -->
+          }
         </tr>
         <tr *ngIf="(pagedData$ | async)?.length === 0">
           <td [attr.colspan]="columns().length" style="text-align: center">

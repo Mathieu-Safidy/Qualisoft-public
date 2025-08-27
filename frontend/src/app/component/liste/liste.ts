@@ -68,7 +68,7 @@ export class NgbdSortableHeader {
 @Component({
   selector: 'app-liste',
   standalone: true,
-  imports: [AsyncPipe, ReactiveFormsModule, NgbdSortableHeader, CommonModule, FaIconComponent, FontAwesomeModule],
+  imports: [AsyncPipe, ReactiveFormsModule, NgbdSortableHeader, CommonModule, FontAwesomeModule],
   providers: [DecimalPipe],
   templateUrl: './liste.html',
   styleUrls: ['./liste.css'],

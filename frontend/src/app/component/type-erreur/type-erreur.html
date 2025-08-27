@@ -152,7 +152,7 @@
                     id=""
                     style="width: 30px; height: 30px"
                     formControlName="{{ col }}"
-                    (click)="lister()[1] == '' ? $event.preventDefault() : null"
+                    (click)="(lister()[1] == '' && !exist()) ? $event.preventDefault() : null"
                   />
                   <input
                     *ngIf="col == ''"

@@ -13,6 +13,10 @@ export class ProjectService {
         console.log('Trouver projet');
         return (await this.http.get(`/projets`)) as VueGlobal[];
     }
+
+    async duplicateProjetErreur(source:{ligne: string, plan: string, fonction: string} ,target:{ligne: string, plan: string, fonction: string}) {
+        return (await this.http.post(`/duplicate`, {source, target})) as any;
+    }
     
     
 }

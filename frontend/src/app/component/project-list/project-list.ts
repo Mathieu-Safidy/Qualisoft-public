@@ -47,7 +47,7 @@ export class ProjectList {
   openSimpleModal(event: any): void {
     console.log('Ouverture du modal de clonage pour l\'élément:', event);
     this.dialog.open(Clonage, {
-      width: 'auto',
+      width: '100vh',
       height: 'auto',
       maxWidth: '100vw',
       maxHeight: '100vh',

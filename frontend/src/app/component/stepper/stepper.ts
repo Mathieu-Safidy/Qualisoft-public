@@ -70,7 +70,7 @@ export class Stepper {
 
   data: any;
   updateData: boolean = false;
-
+  updateErreur: boolean = false;
   // data = {
   //   ligne: [],
   //   fonction: [],
@@ -489,9 +489,7 @@ export class Stepper {
       .pipe(debounceTime(1000))
       .subscribe(async () => {
         console.log('Form changes detected',this.form1.value,this.verification,this.initializing);
-        if (this.initializing) {
-          return;
-        }
+        
         if (this.updateData) {
           // this.verification = verifier;
           this.update();
@@ -555,6 +553,7 @@ export class Stepper {
 
     if (this.verification) {
       let update = 1;
+      if (this.verification.erreur) this.updateErreur = true;
       for (const erreur of this.verification.erreur) {
         this.ajouterLigne(this.colone_form3, erreur, update);
       }
@@ -602,7 +601,7 @@ export class Stepper {
   }
 
   genererGroup(colonne: string[] = [], value: any, update: number): FormGroup | null {
-
+    let unique : boolean = false;
     let group: { [key: string]: any } = {};
     if (value) {
 
@@ -622,9 +621,16 @@ export class Stepper {
 
         console.log('value', value, 'group', group, 'idform', this.id_form_colonne);
         if (this.id_form_colonne) {
+              const colonneNonVide = colonne.filter(
+                (res) => res != '' && res != null && res != undefined
+              );
+              if (colonneNonVide.length === 1) {
+                unique = true;
+              }
+
           for (const [index, id_colone] of this.id_form_colonne.entries()) {
             console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index]);
-            if (id_colone === value.operation_de_control.toString()) {
+            if (id_colone === value.operation_de_control.toString() && this.verification?.erreur.operation_de_control) {
               group[colonne[index]] = [value.valable];
             }
             // Grouper les colonnes par libellé d'erreur pour éviter la duplication
@@ -706,14 +712,15 @@ export class Stepper {
       );
 
       console.log('Collonne  non vide : ', colonneNonVide);
-
-      for (const col of colonneNonVide) {
-        group.get(col)?.setValue(false);
-      }
-
-      if (colonneNonVide.length === 1 && !value) {
-        const col = colonneNonVide[0];
-        group.get(col)?.setValue(true);
+      if (!this.updateErreur) {
+        for (const col of colonneNonVide) {
+          group.get(col)?.setValue(false);
+        }
+        
+        if (colonneNonVide.length === 1 && !value) {
+          const col = colonneNonVide[0];
+          group.get(col)?.setValue(true);
+        }
       }
       return this.typeErreur.push(group);
     } else {
@@ -733,7 +740,10 @@ export class Stepper {
   }
 
   addLigne() {
+    let before = this.updateData;
+    this.updateErreur = false;
     this.ajouterLigne(this.colone_form3, '', 0);
+    this.updateErreur = before;
     this.updateFiltered3();
   }
 
