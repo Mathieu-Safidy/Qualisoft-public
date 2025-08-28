@@ -486,7 +486,7 @@ export class Stepper {
 
   subscribeToFormChanges() {
     merge(this.form1.valueChanges, this.formInterlocuteur.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
-      .pipe(debounceTime(1000))
+      .pipe(debounceTime(2000))
       .subscribe(async () => {
         console.log('Form changes detected',this.form1.value,this.verification,this.initializing);
         

@@ -95,6 +95,7 @@
                 id=""
                 formControlName="typeErreur"
                 matInput
+                [matTooltip]="formGroup.at(i)?.get('typeErreur')?.value"
                 [matAutocomplete]="autErreur"
               />
               <mat-autocomplete #autErreur="matAutocomplete" 
@@ -147,7 +148,7 @@
                   <input
                     *ngIf="col !== ''"
                     type="checkbox"
-                    name="control"
+                    name="{{ col }}"
                     class="form-check-input"
                     id=""
                     style="width: 30px; height: 30px"
@@ -156,12 +157,15 @@
                   />
                   <input
                     *ngIf="col == ''"
+                    formControlName="{{ col }}"
                     type="checkbox"
                     name="control"
                     class="form-check-input"
                     id=""
+                    
                     style="width: 30px; height: 30px"
-                    disabled
+                    [disabled]="true"
+                    
                   />
                 </div>
               </td>

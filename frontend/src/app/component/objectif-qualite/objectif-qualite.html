@@ -123,6 +123,7 @@
                     type="text"
                     matInput
                     [matAutocomplete]="autOperation"
+                    [matTooltip]="displayOperation(formArray.controls.at(i)?.get('operation')?.value)"
                 />
                 <mat-autocomplete panelClass="auto-width-panel" #autOperation="matAutocomplete" [displayWith]="displayOperation" (optionSelected)="selectOperation($event,i+1)"> 
                   <mat-option *ngFor="let operation of filteredOperations[i] | async " [value]="operation.id_operation">

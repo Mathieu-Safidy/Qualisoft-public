@@ -15,6 +15,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import { AlertConfirm } from "../alert-confirm/alert-confirm";
 import { MatDialog } from '@angular/material/dialog';
+import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8";
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-objectif-qualite',
@@ -28,8 +30,9 @@ import { MatDialog } from '@angular/material/dialog';
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
-    NgbPopoverModule
-  ],
+    NgbPopoverModule,
+    MatTooltip
+],
   templateUrl: './objectif-qualite.html',
   styleUrl: './objectif-qualite.css'
 })
