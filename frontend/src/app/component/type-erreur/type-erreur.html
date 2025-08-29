@@ -67,14 +67,16 @@
             <ng-container *ngFor="let item of colonne()">
               <th class="checker">
                 <div 
+                
+                >
+                <span class="titre-verticale" 
                 [ngbPopover]="item"
                 [placement]="'top'"
                 [autoClose]="'true'"
                 [triggers]="'mouseenter:mouseleave'"
-                popoverClass="my-custom-popover-info"
-                >
-
+                popoverClass="my-custom-popover-info">
                   {{ item }}
+                </span>
                 </div>
               </th>
             </ng-container>

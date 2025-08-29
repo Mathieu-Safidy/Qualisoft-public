@@ -20,3 +20,25 @@ td, th {
     max-width: 10rem;
     overflow: hidden;
 }
+
+th.checker {
+  position: relative;
+  height: 120px;
+  width: 80px;        /* plus large */
+  padding: 0;
+  overflow: visible;
+  left: 3%
+}
+
+th.checker .titre-verticale {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  transform: rotate(-60deg);
+  transform-origin: bottom left;
+  width: 120px;       /* largeur du bloc incliné */
+  white-space: normal; /* autorise le retour à la ligne */
+  word-break: break-word;
+  text-align: left;
+  font-size: 12px;
+}

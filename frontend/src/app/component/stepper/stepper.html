@@ -97,7 +97,7 @@
 
   <mat-step [stepControl]="form3" label="Type d'erreur">
     <app-type-erreur
-      *ngIf="erreurs.length > 0"
+      *ngIf="erreurs.length > 0 && generated"
       [filteredOperations]="filteredOperations"
       [form]="form3"
       [colonne]="colone_form3"

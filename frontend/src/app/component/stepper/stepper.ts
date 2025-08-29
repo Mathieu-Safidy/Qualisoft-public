@@ -116,6 +116,8 @@ export class Stepper {
     { matricule: 'CP5', pseudo: 'Paul' }
   ];
   initializing = true;
+
+  generated = false;
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -496,7 +498,7 @@ export class Stepper {
           try {
             this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
             await this.initDataupdated(false);
-            console.log('data updated', this.data)
+            console.log('data updated', await this.data)
           } catch (error) {
             console.log(error);
           }
@@ -530,6 +532,7 @@ export class Stepper {
     const formArray = this.form2.get('formArray') as FormArray;
     const values = formArray.value;
     this.colone_form3 = values.map((item: any) => item.operation);
+    console.log('colonne form 3 verif', this.colone_form3);
     const colonneForm = this.operations
       .map((operation: Operation) =>
         operation && this.colone_form3.includes(operation.id_operation)
@@ -557,6 +560,7 @@ export class Stepper {
       for (const erreur of this.verification.erreur) {
         this.ajouterLigne(this.colone_form3, erreur, update);
       }
+      this.generated = true;
       this.updateFiltered3();
     }
 
@@ -574,7 +578,7 @@ export class Stepper {
     
     this.updateFiltered3();
     // console.log('initialiser form 1 apres', this.form1.value, this.verification);
-    console.log('form 3 value', this.form3.value);
+    console.log('form 3 value', this.form3.controls);
     // this.detailService.filtre('ligne1', 'plan1', 'fonction1').subscribe((resultats: Operations[]) => {
     //   console.log('resultats', resultats);
     //   this.operations = resultats;
@@ -619,7 +623,7 @@ export class Stepper {
         group['coef'] = [value.coef || 0, Validators.required];
         group['raccourci'] = [value.raccourci || '', Validators.required];
 
-        console.log('value', value, 'group', group, 'idform', this.id_form_colonne);
+        // console.log('value', value, 'group', group, 'idform', this.id_form_colonne);
         if (this.id_form_colonne) {
               const colonneNonVide = colonne.filter(
                 (res) => res != '' && res != null && res != undefined
@@ -629,8 +633,8 @@ export class Stepper {
               }
 
           for (const [index, id_colone] of this.id_form_colonne.entries()) {
-            console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index]);
-            if (id_colone === value.operation_de_control.toString() && this.verification?.erreur.operation_de_control) {
+            console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index] ,"operation de control",this.verification?.erreur.operation_de_control);
+            if (id_colone === value.operation_de_control.toString() && this.verification?.erreur.some((obj : any) => obj.operation_de_control)) {
               group[colonne[index]] = [value.valable];
             }
             // Grouper les colonnes par libellé d'erreur pour éviter la duplication
@@ -714,6 +718,7 @@ export class Stepper {
       console.log('Collonne  non vide : ', colonneNonVide);
       if (!this.updateErreur) {
         for (const col of colonneNonVide) {
+          console.log("Restauration value ", col);
           group.get(col)?.setValue(false);
         }
         

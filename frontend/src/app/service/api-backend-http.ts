@@ -12,6 +12,7 @@ export class ApiBackendHttp {
 
   async get(endpoint: string, withCredentials: boolean = true) {
     const url = this.apiBack + '/api' + endpoint;
+    console.log('GET request to:', url);
     const data = await firstValueFrom(this.http.get(url, { withCredentials }));
     return data;
   }
