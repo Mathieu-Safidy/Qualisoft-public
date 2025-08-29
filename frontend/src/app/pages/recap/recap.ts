@@ -126,7 +126,7 @@ export class Recap {
   }
 
   getUnite(id: string) {
-    return this.unites?.length > 0 ? `(${id} - ${(this.unites.find(unite => unite.id_type_qte_act === id))?.libelle})` : '';
+    return this.unites?.length > 0 ? `(${id} - ${(this.unites.find(unite => unite.id_type_qte_act === parseInt(id)))?.libelle})` : '';
   }
 
   getDegre(deg: string) {

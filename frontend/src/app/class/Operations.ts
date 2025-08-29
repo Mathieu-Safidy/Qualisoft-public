@@ -7,6 +7,8 @@ export class Operations implements Operation {
     libelle: string;
     id_type_operation: string;
     date_susp: Date;
+    id_type_qte_act: number = 0;
+
 
     constructor(
         id_cgu: string = '',
@@ -31,7 +33,8 @@ export class Operations implements Operation {
                     id_cgu: item.id_cgu ?? '',
                     id_operation: item.id_operation ?? '',
                     libelle: item.lib_operation ?? '',
-                    id_type_operation: item.id_type_operation ?? ''
+                    id_type_operation: item.id_type_operation ?? '',
+                    id_type_qte_act: item.id_type_qte_act ?? 0,
                 } as Operation);
             }
         });

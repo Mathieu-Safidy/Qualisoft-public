@@ -193,13 +193,15 @@
                   </mat-chip>
 
                   <input
-                    matInput
+                    matInput  
+                    (keydown.tab)="onTab($event)"
                     placeholder="Ex: Rakoto..."
                     [matChipInputFor]="chipList"
                     [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                     (matChipInputTokenEnd)="add($event)"
                     [matAutocomplete]="auto"
-                    #contactInput [formControl]="contactCtrl"
+                    #contactInput
+                    [formControl]="contactCtrl"
                     placeholder="-- Responsable --"
                   />
                 </mat-chip-grid>

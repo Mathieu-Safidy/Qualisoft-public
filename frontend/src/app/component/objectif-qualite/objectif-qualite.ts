@@ -52,6 +52,7 @@ export class ObjectifQualite {
   @Input() verifier: boolean = false;
   generer = output<void>();
   showAlert = false;
+  onOperationChange = output<{ id_operation: string, index: number }>();
 
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];
@@ -216,8 +217,9 @@ export class ObjectifQualite {
     this.operationSelected = this.operationSelected.filter(sel => sel.index !== index);
 
     this.operationSelected.push({ index: index, value: value });
-
     console.log('ato', this.operationSelected);
+    // let operation = this.operations.find(op => op.id_operation === value);
+    this.onOperationChange.emit({ id_operation: value, index: index-1 });
     this.updateFilteredOperations(index);
   }
 

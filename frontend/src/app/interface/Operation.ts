@@ -4,4 +4,5 @@ export interface Operation {
     libelle : string,
     id_type_operation : string,
     date_susp : Date
+    id_type_qte_act: number
 }

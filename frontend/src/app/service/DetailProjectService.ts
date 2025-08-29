@@ -83,6 +83,15 @@ export class DetailProjectService {
     }
   }
 
+  async getUniteById(id: number) {
+    try {
+      return await this.http.get(`/unites/${id}`);
+    } catch (error) {
+      throw error 
+    }
+    
+  }
+
   resolveFilter(ligne:any,plan:any,fonction:any) {
       // const plan = route.paramMap.get('id') ?? '';
       // const ligne = '';
@@ -252,6 +261,8 @@ export class DetailProjectService {
     return null
   }
 
+
+
   getFilter(ligne: string = "", plan: string = "", fonction: string = "") {
     const responses$ = this.filtre(ligne, plan, fonction).pipe(
       shareReplay(1)
@@ -268,6 +279,8 @@ export class DetailProjectService {
     const operation$ = responses$.pipe(
       map(responsesv => new Operations().cast(responsesv))
     );
+
+    // const unite$ = 
 
     const fonctions$ = lignes$.pipe(
       switchMap(lignes => {

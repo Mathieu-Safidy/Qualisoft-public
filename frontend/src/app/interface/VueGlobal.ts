@@ -10,4 +10,5 @@ export interface VueGlobal {
     id_operation : string;
     lib_operation : string;
     id_type_operation : string;
+    id_type_qte_act: number;
 }

@@ -7,9 +7,9 @@ import { ActivatedRoute, Route, Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Ligne } from '../../interface/Ligne';
 import { Fonction } from '../../interface/Fonction';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatAutocomplete, MatAutocompleteModule, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { map, Observable, startWith } from 'rxjs';
+import { filter, fromEvent, map, Observable, startWith, Subscription } from 'rxjs';
 import { MatInputModule } from '@angular/material/input';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
@@ -69,7 +69,6 @@ export class ProjectDetail {
   @Output() ligneChange = new EventEmitter<{ ligne: string, plan: string }>();
   @Output() onFunctionChange = new EventEmitter<{ ligne: string, plan: string, fonction: string }>();
 
-
   formulaire !: FormGroup;
 
   contactCtrl = new FormControl();
@@ -98,9 +97,14 @@ export class ProjectDetail {
   ]);
 
   separatorKeysCodes: number[] = [ENTER, COMMA];
-
   @ViewChild('contactInput') contactInput!: ElementRef<HTMLInputElement>;
 
+  // Référence à l'instance de la directive MatAutocompleteTrigger sur cet input
+  @ViewChild('contactInput', { read: MatAutocompleteTrigger }) autocompleteTrigger!: MatAutocompleteTrigger;
+
+  @ViewChild('auto') matAutocomplete!: MatAutocomplete;
+
+  private subscription!: Subscription;
 
   constructor(private builder: FormBuilder, private router: Router, private route: ActivatedRoute) {
     this.isStepper = false;
@@ -113,7 +117,7 @@ export class ProjectDetail {
     const value = (event.value || '').trim();
     console.log('Adding contact:', this.allContacts());
     const contact = this.allContacts().find((c: any) => c.matricule.toLowerCase() === value.toLowerCase());
-    console.log('Found contact:', contact, "entrer" , value);
+    console.log('Found contact:', contact, "entrer", value);
     // Check if the contact exists and is not already in the selectedContacts array
     if (contact && !this.selectedContacts.some((c: any) => c.matricule === contact.matricule)) {
       this.selectedContacts.push(contact);
@@ -265,6 +269,58 @@ export class ProjectDetail {
     return ligne.filter(option =>
       option.libelle?.toLowerCase().includes(filterValue)
     );
+  }
+
+  ngAfterViewInit() {
+    this.handleTabAsEnter();
+  }
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
+  }
+  handleTabAsEnter() {
+    this.subscription = fromEvent(this.contactInput.nativeElement, 'keydown')
+      .pipe(
+        filter((event: Event) =>
+          (event as KeyboardEvent).key === 'Tab' && this.autocompleteTrigger.panelOpen
+        )
+      )
+      .subscribe((event: Event) => {
+        event.preventDefault();
+        const selectedOption = this.matAutocomplete.options.first;
+        if (selectedOption) {
+          const selectionEvent: MatAutocompleteSelectedEvent = {
+            option: selectedOption,
+            source: this.matAutocomplete
+          };
+          this.matAutocomplete.optionSelected.emit(selectionEvent);
+        }
+      });
+  }
+   onTab(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    console.log("tabulation in event");
+    // Si le panneau est ouvert, on “transforme” Tab en sélection
+    // if (this.autocompleteTrigger?.panelOpen || this.matAutocomplete.isOpen) {
+      keyboardEvent.preventDefault();
+
+      // On essaie d'abord de prendre l’option active (celle survolée)
+      const active: any =
+        (this.autocompleteTrigger as any).activeOption
+        || this.matAutocomplete.options?.first;
+
+      if (active) {
+        // Émet l’événement de sélection comme si l’utilisateur avait pressé Enter
+        const fakeEvent: MatAutocompleteSelectedEvent = {
+          option: active,
+          source: this.matAutocomplete
+        } as MatAutocompleteSelectedEvent;
+
+        this.matAutocomplete.optionSelected.emit(fakeEvent);
+
+        // Optionnel : referme le panneau proprement
+        this.autocompleteTrigger.closePanel();
+      // }
+    }
   }
 
 

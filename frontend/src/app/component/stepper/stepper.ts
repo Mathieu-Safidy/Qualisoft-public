@@ -270,6 +270,15 @@ export class Stepper {
 
   private lastCpResponsable: string = '';
 
+  async operationChange(value : any) {
+    const { id_operation, index} = value;
+    let id_act = this.operations.find(op => op.id_operation === id_operation)?.id_type_qte_act || 0;
+    let unite: any = await this.detailService.getUniteById(id_act);
+    console.log("Unite change", unite);
+    // let uniteSelectioner = this.unites.find(u => u.id_type_qte_act === unite.id_type_qte_act);
+    (this.form2.controls['formArray'] as FormArray).at(index)?.get('unite')?.setValue(unite?.id_type_qte_act);
+  }
+
   ngOnInit() {
 
     this.route.data.subscribe(res => {
