@@ -152,7 +152,9 @@
               </div>
               <div class="col-2 text-center">
                 <!-- <input formControlName="operationAControler" class="form-control"  value="{{ fg.get('operationAControler')?.value }}" /> -->
-                <select formControlName="operationAControler" class="form-control" >
+                <select formControlName="operationAControler" class="form-control" 
+                [matTooltip]="displayOperation(formArray.controls.at(i)?.get('operationAControler')?.value)"
+                >
                  <option *ngFor="let item of filteredOperation[i]" [value]="item.id_operation">{{ item.libelle }}</option>
                 </select>
               </div>
