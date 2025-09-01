@@ -19,6 +19,8 @@ import { TypeTraitement } from '../../interface/TypeTraitement';
 import { MatIconModule } from '@angular/material/icon';
 
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { Debounced } from '../../directive/debounced';
+import { Identification } from '../../directive/identification';
 
 export interface Contact {
   matricule: string;
@@ -37,7 +39,8 @@ export interface Contact {
     MatFormFieldModule,
     MatInputModule,
     MatChipsModule,
-    MatIconModule
+    MatIconModule,
+    Debounced,
   ],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css'
@@ -66,8 +69,11 @@ export class ProjectDetail {
 
   readonly typeTraitement = input.required<TypeTraitement[]>();
 
+  projectID = input<number>(-1);
+
   @Output() ligneChange = new EventEmitter<{ ligne: string, plan: string }>();
   @Output() onFunctionChange = new EventEmitter<{ ligne: string, plan: string, fonction: string }>();
+
 
   formulaire !: FormGroup;
 
@@ -78,6 +84,8 @@ export class ProjectDetail {
 
   // List of selected contacts that will be displayed as chips
   selectedContacts: any = [];
+
+
 
   // All available contacts for filtering
   // allContacts: any = [
@@ -108,16 +116,19 @@ export class ProjectDetail {
 
   constructor(private builder: FormBuilder, private router: Router, private route: ActivatedRoute) {
     this.isStepper = false;
+  }
 
-
+  updateValue(event: any) {
+    const { id, value , name } = event;
+    console.log("Debounced event:", event);
   }
 
   /** Adds a chip when the user presses Enter or adds a comma. */
   add(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
-    console.log('Adding contact:', this.allContacts());
+    // console.log('Adding contact:', this.allContacts());
     const contact = this.allContacts().find((c: any) => c.matricule.toLowerCase() === value.toLowerCase());
-    console.log('Found contact:', contact, "entrer", value);
+    // console.log('Found contact:', contact, "entrer", value);
     // Check if the contact exists and is not already in the selectedContacts array
     if (contact && !this.selectedContacts.some((c: any) => c.matricule === contact.matricule)) {
       this.selectedContacts.push(contact);
@@ -145,10 +156,10 @@ export class ProjectDetail {
   /** Adds a chip when the user selects an option from the autocomplete list. */
   selected(event: MatAutocompleteSelectedEvent): void {
     const selectedContact = event.option.value;
-    console.log("select ", selectedContact);
+    // console.log("select ", selectedContact);
     // Check if the contact is not already selected using a unique property
     if (!this.selectedContacts.some((c: any) => c.matricule === selectedContact.matricule)) {
-      console.log("Select options", selectedContact);
+      // console.log("Select options", selectedContact);
       this.selectedContacts.push(selectedContact);
     }
 
@@ -173,12 +184,12 @@ export class ProjectDetail {
   }
 
   checkDonne() {
-    console.log(this.fonction());
+    // console.log(this.fonction());
   }
 
   ngOnInit() {
 
-    console.log('Adding contact:', this.allContacts());
+    // console.log('Adding contact:', this.allContacts());
     // this.contactCtrl = this.form().get('cp_responsable');
     this.filteredContacts = this.contactCtrl.valueChanges.pipe(
       startWith(null),
@@ -186,7 +197,7 @@ export class ProjectDetail {
     );
 
     const initialValue = this.form().get('cp_responsable')?.value;
-    console.log("intial user", this.allContacts());
+    // console.log("intial user", this.allContacts());
     // 2. Check if the value exists and is not empty
     if (initialValue) {
       // 3. Split the comma-separated string into an array of values
@@ -271,55 +282,46 @@ export class ProjectDetail {
     );
   }
 
-  ngAfterViewInit() {
-    this.handleTabAsEnter();
-  }
-  ngOnDestroy() {
-    this.subscription?.unsubscribe();
-  }
-  handleTabAsEnter() {
-    this.subscription = fromEvent(this.contactInput.nativeElement, 'keydown')
-      .pipe(
-        filter((event: Event) =>
-          (event as KeyboardEvent).key === 'Tab' && this.autocompleteTrigger.panelOpen
-        )
-      )
-      .subscribe((event: Event) => {
-        event.preventDefault();
-        const selectedOption = this.matAutocomplete.options.first;
-        if (selectedOption) {
-          const selectionEvent: MatAutocompleteSelectedEvent = {
-            option: selectedOption,
-            source: this.matAutocomplete
-          };
-          this.matAutocomplete.optionSelected.emit(selectionEvent);
-        }
-      });
-  }
-   onTab(event: Event) {
+  // ngAfterViewInit() {
+  //   this.handleTabAsEnter();
+  // }
+  // ngOnDestroy() {
+  //   this.subscription?.unsubscribe();
+  // }
+  // handleTabAsEnter() {
+  //   this.subscription = fromEvent(this.contactInput.nativeElement, 'keydown')
+  //     .pipe(
+  //       filter((event: Event) =>
+  //         (event as KeyboardEvent).key === 'Tab' && this.autocompleteTrigger.panelOpen
+  //       )
+  //     )
+  //     .subscribe((event: Event) => {
+  //       event.preventDefault();
+  //       const selectedOption = this.matAutocomplete.options.first;
+  //       if (selectedOption) {
+  //         const selectionEvent: MatAutocompleteSelectedEvent = {
+  //           option: selectedOption,
+  //           source: this.matAutocomplete
+  //         };
+  //         this.matAutocomplete.optionSelected.emit(selectionEvent);
+  //       }
+  //     });
+  // }
+  onTab(event: Event) {
     const keyboardEvent = event as KeyboardEvent;
-    console.log("tabulation in event");
-    // Si le panneau est ouvert, on “transforme” Tab en sélection
-    // if (this.autocompleteTrigger?.panelOpen || this.matAutocomplete.isOpen) {
+    // console.log("tabulation in event");
       keyboardEvent.preventDefault();
-
-      // On essaie d'abord de prendre l’option active (celle survolée)
       const active: any =
         (this.autocompleteTrigger as any).activeOption
         || this.matAutocomplete.options?.first;
-
       if (active) {
-        // Émet l’événement de sélection comme si l’utilisateur avait pressé Enter
         const fakeEvent: MatAutocompleteSelectedEvent = {
           option: active,
           source: this.matAutocomplete
         } as MatAutocompleteSelectedEvent;
 
         this.matAutocomplete.optionSelected.emit(fakeEvent);
-
-        // Optionnel : referme le panneau proprement
         this.autocompleteTrigger.closePanel();
-      // }
     }
   }
 
@@ -351,15 +353,11 @@ export class ProjectDetail {
   functionChange(event: any) {
     const selectedLigne = event.option.value;
     const plan = this.route.snapshot.paramMap.get('id') || '';
-    console.log(this.form().value)
-    // this.onFunctionChange.emit({ ligne: selectedLigne, plan: plan });
+    // console.log(this.form().value)
   }
 
-
   suivant() {
-    // console.log('Form submitted:', this.form.value);
     this.router.navigate(['objectif'], { relativeTo: this.route });
-    // console.log('Navigating to project detail');
   }
 
   checkFormBeforeSubmit(): void {
@@ -367,14 +365,12 @@ export class ProjectDetail {
     if (form.invalid) {
       this.markFormGroupTouched(form);
       this.checkFormValidationErrors(form);
-
-      console.log('Formulaire valide, envoi des données :', this.form().value);
+      // console.log('Formulaire valide, envoi des données :', this.form().value);
       return;
     }
-
-    // Si tout est valide, tu peux envoyer les données
-    console.log('Formulaire valide, envoi des données :', this.form().value);
+    // console.log('Formulaire valide, envoi des données :', this.form().value);
   }
+
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();

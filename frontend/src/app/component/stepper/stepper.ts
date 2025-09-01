@@ -88,19 +88,13 @@ export class Stepper {
   erreurs!: Erreur[];
   operations!: Operation[];
   unites!: Unite[];
-
-  // selectedPlan = '';
   selectedLigne = '';
   filteredOperations!: Observable<Erreur[]>[];
-
   verification: any;
-  // selectedFonction = '';
   existVerif: boolean = false;
   id!: Observable<string>;
   fonctionParam!: Observable<string>;
-
   client !: string;
-
   nom_client!: string;
   nom_fonction!: string;
   nom_line!: string;
@@ -108,6 +102,8 @@ export class Stepper {
   defaultFonction!: string;
   defaultOperation!: string;
   cachedata = inject(CacheData);
+  id_projet!: number;
+
   allUser = [
     { matricule: 'CP1', pseudo: 'Rakoto' },
     { matricule: 'CP2', pseudo: 'Rasoa' },
@@ -172,7 +168,7 @@ export class Stepper {
 
   onStepChange(event: StepperSelectionEvent) {
     this.currentStep = event.selectedIndex;
-    console.log('currentStep = ', this.currentStep);
+    // console.log('currentStep = ', this.currentStep);
   }
 
   onLigneChange(event: any) {
@@ -207,13 +203,13 @@ export class Stepper {
   }
 
   updateFiltered3() {
-    console.log('initialiser form 1 avant', this.form1.value, this.verification);
+    // console.log('initialiser form 1 avant', this.form1.value, this.verification);
     this.filteredOperations = this.formGroup3.map((fg, i) => 
       
       fg.get('typeErreur')!.valueChanges.pipe(
         startWith(''),
         map((value) => {
-          console.log('valueChanges déclenché pour ligne', i, 'valeur:', value);
+          // console.log('valueChanges déclenché pour ligne', i, 'valeur:', value);
           return this._filter(value || '');
         })
       )
@@ -221,9 +217,9 @@ export class Stepper {
   }
 
   initData(clone: boolean) {
-    console.log('data ', this.data)
+    // console.log('data ', this.data)
     let data$ = this.cachedata.loadData();
-    console.log("data ", data$);
+    // console.log("data ", data$);
     // if (data$) {
     //   this.ligne = data$.ligne;
     //   this.plan = data$.plan;
@@ -244,9 +240,9 @@ export class Stepper {
   }
 
   async initDataupdated(clone: boolean) {
-    console.log('data ', this.data)
+    // console.log('data ', this.data)
     let data$ = this.cachedata.loadData();
-    console.log("data ", data$);
+    // console.log("data ", data$);
     // if (data$) {
     //   this.ligne = data$.ligne;
     //   this.plan = data$.plan;
@@ -274,7 +270,7 @@ export class Stepper {
     const { id_operation, index} = value;
     let id_act = this.operations.find(op => op.id_operation === id_operation)?.id_type_qte_act || 0;
     let unite: any = await this.detailService.getUniteById(id_act);
-    console.log("Unite change", unite);
+    // console.log("Unite change", unite);
     // let uniteSelectioner = this.unites.find(u => u.id_type_qte_act === unite.id_type_qte_act);
     (this.form2.controls['formArray'] as FormArray).at(index)?.get('unite')?.setValue(unite?.id_type_qte_act);
   }
@@ -301,9 +297,11 @@ export class Stepper {
         this.updateData = true;
         this.existVerif = true;
 
-        console.log('client ', this.nom_client);
+        // console.log('client ', this.nom_client);
 
         let projet_exist = this.verification.projet;
+        this.id_projet = projet_exist.id_projet;
+
         this.form1 = this.fb.group({
           ligne: [this.defaultLine, Validators.required],
           plan: [idValue, Validators.required],
@@ -317,7 +315,7 @@ export class Stepper {
         });
 
         let verifInterlocuteur = this.verification.interlocuteurs;
-        console.log('verifInterlocuteur', verifInterlocuteur);
+        // console.log('verifInterlocuteur', verifInterlocuteur);
         this.formInterlocuteur = this.fb.group({
           client: this.fb.group({
             nom_client: [this.nom_client]
@@ -390,7 +388,7 @@ export class Stepper {
         });
 
 
-        console.log('form 2 value', this.form2.value);
+        // console.log('form 2 value', this.form2.value);
         this.generate();
         
         
@@ -450,7 +448,7 @@ export class Stepper {
       
     
 
-      console.log(typeof this.detailService.filtre);
+      // console.log(typeof this.detailService.filtre);
       let status = this.form1.status;
       if (status == 'VALID') {
         const donne = this.form1.value;
@@ -458,7 +456,7 @@ export class Stepper {
       }
       this.form1.statusChanges.subscribe((status) => {
         
-        console.log('initialiser form 1 subsc', this.form1.value, this.verification);
+        // console.log('initialiser form 1 subsc', this.form1.value, this.verification);
         if (status === 'VALID') {
           const donne = this.form1.value;
           this.initOperation(donne);
@@ -496,35 +494,35 @@ export class Stepper {
   }
 
   subscribeToFormChanges() {
-    merge(this.form1.valueChanges, this.formInterlocuteur.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
-      .pipe(debounceTime(2000))
-      .subscribe(async () => {
-        console.log('Form changes detected',this.form1.value,this.verification,this.initializing);
+    // merge(this.form1.valueChanges, this.formInterlocuteur.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
+    //   .pipe(debounceTime(2000))
+    //   .subscribe(async () => {
+    //     // console.log('Form changes detected',this.form1.value,this.verification,this.initializing);
         
-        if (this.updateData) {
-          // this.verification = verifier;
-          this.update();
-          try {
-            this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
-            await this.initDataupdated(false);
-            console.log('data updated', await this.data)
-          } catch (error) {
-            console.log(error);
-          }
-          this.updateData = true;
-          // console.log(data)
-        } else {
-          this.insert();
-          try {
-            this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
-            await this.initDataupdated(false);
-            console.log('data updated', this.data)
-          } catch (error) {
-            console.log(error);
-          }
-          this.updateData = true;
-        }
-      });
+    //     if (this.updateData) {
+    //       // this.verification = verifier;
+    //       this.update();
+    //       try {
+    //         this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
+    //         await this.initDataupdated(false);
+    //         // console.log('data updated', await this.data)
+    //       } catch (error) {
+    //         // console.log(error);
+    //       }
+    //       this.updateData = true;
+    //       // console.log(data)
+    //     } else {
+    //       this.insert();
+    //       try {
+    //         this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
+    //         await this.initDataupdated(false);
+    //         // console.log('data updated', this.data)
+    //       } catch (error) {
+    //         // console.log(error);
+    //       }
+    //       this.updateData = true;
+    //     }
+    //   });
   }
 
 
@@ -541,7 +539,7 @@ export class Stepper {
     const formArray = this.form2.get('formArray') as FormArray;
     const values = formArray.value;
     this.colone_form3 = values.map((item: any) => item.operation);
-    console.log('colonne form 3 verif', this.colone_form3);
+    // console.log('colonne form 3 verif', this.colone_form3);
     const colonneForm = this.operations
       .map((operation: Operation) =>
         operation && this.colone_form3.includes(operation.id_operation)
@@ -574,20 +572,20 @@ export class Stepper {
     }
 
 
-    console.log('colonne form', this.colone_form3);
-    console.log('form 3 value', this.form3.value);
-    console.log( 'colonne', colonneForm, 'values', values, 'colonneForm', this.colone_form3 );
+    // console.log('colonne form', this.colone_form3);
+    // console.log('form 3 value', this.form3.value);
+    // console.log( 'colonne', colonneForm, 'values', values, 'colonneForm', this.colone_form3 );
 
     let formulaire3 = this.form3.controls['formErreur'] as FormArray;
     this.removeEmptyTypeErreurGroups();
-    console.log('formulauire ', formulaire3, this.verification, (!formulaire3 || formulaire3.length === 0) || !this.verification)
+    // console.log('formulauire ', formulaire3, this.verification, (!formulaire3 || formulaire3.length === 0) || !this.verification)
     if ((!formulaire3 || formulaire3.length === 0) || !this.verification) {
       this.ajouterLigne(colonneForm, '', 0);
     }
     
     this.updateFiltered3();
     // console.log('initialiser form 1 apres', this.form1.value, this.verification);
-    console.log('form 3 value', this.form3.controls);
+    // console.log('form 3 value', this.form3.controls);
     // this.detailService.filtre('ligne1', 'plan1', 'fonction1').subscribe((resultats: Operations[]) => {
     //   console.log('resultats', resultats);
     //   this.operations = resultats;
@@ -642,7 +640,7 @@ export class Stepper {
               }
 
           for (const [index, id_colone] of this.id_form_colonne.entries()) {
-            console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index] ,"operation de control",this.verification?.erreur.operation_de_control);
+            // console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index] ,"operation de control",this.verification?.erreur.operation_de_control);
             if (id_colone === value.operation_de_control.toString() && this.verification?.erreur.some((obj : any) => obj.operation_de_control)) {
               group[colonne[index]] = [value.valable];
             }
@@ -662,12 +660,12 @@ export class Stepper {
 
       } else {
         if (this.id_form_colonne) {
-          console.log('value', value, 'group', (verfierErreur as FormGroup).controls, 'idform', this.id_form_colonne);
+          // console.log('value', value, 'group', (verfierErreur as FormGroup).controls, 'idform', this.id_form_colonne);
           for (const [index, id_colone] of this.id_form_colonne.entries()) {
             // Si le champ n'existe pas dans le FormGroup, on l'ajoute dynamiquement
             if (id_colone === value.operation_de_control.toString()) {
-              console.log('exist ', !verfierErreur.get(colonne[index]))
-              console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index]);
+              // console.log('exist ', !verfierErreur.get(colonne[index]))
+              // console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index]);
               if (!(verfierErreur as FormGroup).contains(colonne[index])) {
                 // Ajoute le contrôle si absent
                 (verfierErreur as FormGroup).addControl(colonne[index], this.fb.control(value.valable));
@@ -724,10 +722,10 @@ export class Stepper {
         (res) => res != '' && res != null && res != undefined
       );
 
-      console.log('Collonne  non vide : ', colonneNonVide);
+      // console.log('Collonne  non vide : ', colonneNonVide);
       if (!this.updateErreur) {
         for (const col of colonneNonVide) {
-          console.log("Restauration value ", col);
+          // console.log("Restauration value ", col);
           group.get(col)?.setValue(false);
         }
         
@@ -784,9 +782,9 @@ export class Stepper {
         clientDetail: this.formInterlocuteur.value,
         id_projet: this.verification.projet.id_projet
       };
-      console.log('Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
+      // console.log('Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
       this.formSubmitService.updateParametre(data).then((response) => {
-        console.log('Réponse du serveur :', response);
+        // console.log('Réponse du serveur :', response);
       }).catch((error) => {
         console.error('Erreur lors de l\'envoi des données :', error);
       });
@@ -810,9 +808,9 @@ export class Stepper {
         clientDetail: this.formInterlocuteur.value,
         id_projet: this.verification.projet.id_projet
       };
-      console.log('update debounce Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
+      // console.log('update debounce Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
       this.formSubmitService.updateParametre(data).then((response) => {
-        console.log('Réponse du serveur :', response);
+        // console.log('Réponse du serveur :', response);
       }).catch((error) => {
         console.error('Erreur lors de l\'envoi des données :', error);
       });
@@ -828,9 +826,9 @@ export class Stepper {
       clientDetail: this.formInterlocuteur.value,
       id_colonnes: this.id_form_colonne
     };
-    console.log('Inserer Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
+    // console.log('Inserer Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
     this.formSubmitService.parametrage(data).then((response) => {
-      console.log('Réponse du serveur :', response);
+      // console.log('Réponse du serveur :', response);
     }).catch((error) => {
       console.error('Erreur lors de l\'envoi des données :', error);
     });
@@ -845,9 +843,9 @@ export class Stepper {
       colonne: this.colone_form3,
       id_colonnes: this.id_form_colonne
     };
-    console.log('Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
+    // console.log('Formulaire complet :', data, 'colonne ', this.colone_form3, 'id', this.id_form_colonne);
     this.formSubmitService.parametrage(data).then((response) => {
-      console.log('Réponse du serveur :', response);
+      // console.log('Réponse du serveur :', response);
     }).catch((error) => {
       console.error('Erreur lors de l\'envoi des données :', error);
     });

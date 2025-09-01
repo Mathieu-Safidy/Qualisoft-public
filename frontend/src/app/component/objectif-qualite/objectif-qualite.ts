@@ -37,7 +37,7 @@ import { MatTooltip } from '@angular/material/tooltip';
   styleUrl: './objectif-qualite.css'
 })
 export class ObjectifQualite {
-  trackByIndex(index: number, fg: FormGroup) {
+  trackByIndex(index: number, fg: any) {
     return fg.get('id')?.value || index;
   }
   items = [''];
@@ -169,7 +169,7 @@ export class ObjectifQualite {
         console.log(`FormGroup à l'index ${index} a des champs invalides :`, invalidControls);
         invalidControls.forEach(controlName => {
           const control = group.get(controlName);
-          console.log(`- Champ "${controlName}" :`, control?.errors);
+          // console.log(`- Champ "${controlName}" :`, control?.errors);
         });
       } else {
         console.log(`FormGroup à l'index ${index} est valide.`);
@@ -217,7 +217,7 @@ export class ObjectifQualite {
     this.operationSelected = this.operationSelected.filter(sel => sel.index !== index);
 
     this.operationSelected.push({ index: index, value: value });
-    console.log('ato', this.operationSelected);
+    // console.log('ato', this.operationSelected);
     // let operation = this.operations.find(op => op.id_operation === value);
     this.onOperationChange.emit({ id_operation: value, index: index-1 });
     this.updateFilteredOperations(index);
@@ -230,9 +230,9 @@ export class ObjectifQualite {
   }
 
   listControl(index: number): Operation[] {
-    console.log('index', index)
+    // console.log('index', index)
     if (this.operationSelected && !this.verifier) {
-      console.log('select', this.operationSelected);
+      // console.log('select', this.operationSelected);
       const selectedValuesExceptCurrent = this.operationSelected
         .filter(sel => sel.index !== index - 1 && sel.index !== 0)
         .map(sel => sel.value);
@@ -243,7 +243,7 @@ export class ObjectifQualite {
         .map((fg, i) => fg ? [i, fg.get('operation')?.value] : [])
         .filter(val => val !== null && val !== undefined);
 
-      console.log('previous ', previousOperation)
+      // console.log('previous ', previousOperation)
 
       const excluded = previousOperation
         .map((value, idx) => (currentOperation && value[1] && ((value[1]).includes(currentOperation.toString())) ? value[0] : null))
@@ -260,7 +260,7 @@ export class ObjectifQualite {
       const operationNew = this.operations.map((value, ici) => !allExcluded.includes(value.id_operation) ? value : null)
         .filter((value => value !== null && value !== undefined))
 
-      console.log('exclu ', excluded, 'previous', previousOperation, 'current', currentOperation, 'index', index, ' operation exclu ', operationExclu, 'new operation', operationNew)
+      // console.log('exclu ', excluded, 'previous', previousOperation, 'current', currentOperation, 'index', index, ' operation exclu ', operationExclu, 'new operation', operationNew)
 
       return operationNew;
     } else if (this.operationSelected && this.verifier) {
@@ -271,7 +271,7 @@ export class ObjectifQualite {
 
   updateFilteredOperations(index: number) {
     this.filteredOperation[index - 1] = this.listControl(index);
-    console.log('operations ', index, this.filteredOperation)
+    // console.log('operations ', index, this.filteredOperation)
   }
 
   formatSeuilQualite(index: number): void {
@@ -375,11 +375,11 @@ export class ObjectifQualite {
   removeItem(index: number) {
     // const formArray = this.form.get('formArray') as FormArray | null;
     const formArray = this.formArray
-    console.log('avant', formArray.controls)
+    // console.log('avant', formArray.controls)
     if (formArray) {
       formArray.removeAt(index);
     }
-    console.log('apres', formArray.controls)
+    // console.log('apres', formArray.controls)
 
   }
 
@@ -389,7 +389,7 @@ export class ObjectifQualite {
       formArray.markAllAsTouched(); // active les messages d’erreur
       // sinon tu récupères les données valides :
       const data = formArray.getRawValue(); // ou .value si tu ne veux pas les champs disabled
-      console.log('Données à envoyer', data);
+      // console.log('Données à envoyer', data);
 
       // ici : appel API, console, ou autre traitement
       return;

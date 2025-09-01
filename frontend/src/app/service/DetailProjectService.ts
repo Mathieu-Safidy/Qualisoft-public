@@ -117,6 +117,7 @@ export class DetailProjectService {
           users: allUsers
         });
   }
+
   async resolveFilterSimple(ligne:any,plan:any,fonction:any) {
       // const plan = route.paramMap.get('id') ?? '';
       // const ligne = '';
@@ -261,8 +262,6 @@ export class DetailProjectService {
     return null
   }
 
-
-
   getFilter(ligne: string = "", plan: string = "", fonction: string = "") {
     const responses$ = this.filtre(ligne, plan, fonction).pipe(
       shareReplay(1)
@@ -304,6 +303,7 @@ export class DetailProjectService {
       operations: operation$
     };
   }
+
   async getFilterSimple(ligne: string = "", plan: string = "", fonction: string = "") {
     const responses$ = await firstValueFrom(this.filtre(ligne, plan, fonction))
       
@@ -325,12 +325,18 @@ export class DetailProjectService {
     };
   }
 
-
   getData() {
     return { operations: this.getOperation() };
   }
 
-
+  async updateUnitaire(id: string|number, value:any , name:string){ 
+    const body = {
+      id,
+      value,
+      name
+    };
+    return await this.http.post(`/updateUnit`, body);
+  }
 }
 
 

@@ -31,7 +31,7 @@ export class App {
     library.addIcons(faCoffee, faUser, faBlog, faGear, faArrowLeft, faArrowAltCircleLeft, faArrowRight, faChevronRight, faArrowRight, faPlusCircle, faMinusCircle, faUser, faKey);
   }
   ngOnInit() {
-    console.log("test")
+    // console.log("test")
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         let currentUrl = event.urlAfterRedirects;
@@ -47,7 +47,7 @@ export class App {
         const allMenus = document.querySelectorAll('.menu');
 
         allMenus.forEach(el => {
-          console.log(allMenus)
+          // console.log(allMenus)
           const lien = el.querySelector('a');
           let href = '';
           if (lien) {
@@ -57,10 +57,10 @@ export class App {
           const isHome = ((href && (lien?.getAttribute('routerLink') === '')) || lienactuel.length == 0 && href.includes(this.domaine)) && (currentUrl === '/');
           const isIncluded = href && currentUrl.includes(href) && currentUrl !== '/';
 
-          console.log('href:', href, 'currentUrl:', currentUrl, 'lienactuel:', lienactuel);
+          // console.log('href:', href, 'currentUrl:', currentUrl, 'lienactuel:', lienactuel);
           const isSubMenu = lienactuel.length > 1 && lienactuel[0].includes(href);
 
-          console.log('isHome:', isHome, 'isIncluded:', isIncluded, 'isSubMenu:', isSubMenu);
+          // console.log('isHome:', isHome, 'isIncluded:', isIncluded, 'isSubMenu:', isSubMenu);
 
           if (isHome || isIncluded || isSubMenu) {
             el.classList.add('active');
@@ -75,7 +75,7 @@ export class App {
     const log = event.loginSuccess
     if (log) {
       this.loggedIn = true
-      console.log('login ',this.loggedIn)
+      // console.log('login ',this.loggedIn)
       this.router.navigate(['Dashboard'], { relativeTo: this.route } );
     }
   }

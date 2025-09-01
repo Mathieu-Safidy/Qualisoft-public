@@ -148,7 +148,7 @@
               <td class="text-center align-middle checker">
                 <div class="d-flex justify-content-center align-items-center">
                   <input
-                    *ngIf="col !== ''"
+                    *ngIf="col && col !== ''"
                     type="checkbox"
                     name="{{ col }}"
                     class="form-check-input"
@@ -158,7 +158,7 @@
                     (click)="(lister()[1] == '' && !exist()) ? $event.preventDefault() : null"
                   />
                   <input
-                    *ngIf="col == ''"
+                    *ngIf="col && col == ''"
                     formControlName="{{ col }}"
                     type="checkbox"
                     name="control"
