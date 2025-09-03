@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, input } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, inject, input } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -21,6 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { Debounced } from '../../directive/debounced';
 import { Identification } from '../../directive/identification';
+import { DetailProjectService } from '../../service/DetailProjectService';
 
 export interface Contact {
   matricule: string;
@@ -40,7 +41,7 @@ export interface Contact {
     MatInputModule,
     MatChipsModule,
     MatIconModule,
-    Debounced,
+    Debounced
   ],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css'
@@ -56,6 +57,8 @@ export class ProjectDetail {
   filteredOptionsLigne !: Observable<Ligne[]>;
 
   readonly form = input.required<FormGroup>();
+
+  private detailService = inject(DetailProjectService);
 
   // TODO: Skipped for migration because:
   //  Your application code writes to the input. This prevents migration.
@@ -73,7 +76,7 @@ export class ProjectDetail {
 
   @Output() ligneChange = new EventEmitter<{ ligne: string, plan: string }>();
   @Output() onFunctionChange = new EventEmitter<{ ligne: string, plan: string, fonction: string }>();
-
+  verifier = input<any>();
 
   formulaire !: FormGroup;
 
@@ -118,9 +121,10 @@ export class ProjectDetail {
     this.isStepper = false;
   }
 
-  updateValue(event: any) {
+  async updateValue(event: any) {
     const { id, value , name } = event;
     console.log("Debounced event:", event);
+    await this.detailService.updateUnitaire(id, value, name)
   }
 
   /** Adds a chip when the user presses Enter or adds a comma. */

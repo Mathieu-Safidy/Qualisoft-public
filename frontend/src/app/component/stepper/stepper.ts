@@ -114,6 +114,13 @@ export class Stepper {
   initializing = true;
 
   generated = false;
+
+  async updateValue(event: any) {
+    const { id, value, name } = event;
+    console.log("Debounced event:", event);
+    await this.detailService.updateUnitaire(id, value, name)
+  }
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -204,8 +211,8 @@ export class Stepper {
 
   updateFiltered3() {
     // console.log('initialiser form 1 avant', this.form1.value, this.verification);
-    this.filteredOperations = this.formGroup3.map((fg, i) => 
-      
+    this.filteredOperations = this.formGroup3.map((fg, i) =>
+
       fg.get('typeErreur')!.valueChanges.pipe(
         startWith(''),
         map((value) => {
@@ -225,7 +232,7 @@ export class Stepper {
     //   this.plan = data$.plan;
     //   this.fonction = data$.fonction;
     // } else {
-    this.allUser = this.data.users.users; 
+    this.allUser = this.data.users.users;
     this.ligne = this.data.ligne;
     this.plan = this.data.plan;
     this.fonction = this.data.fonction;
@@ -248,8 +255,8 @@ export class Stepper {
     //   this.plan = data$.plan;
     //   this.fonction = data$.fonction;
     // } else {
-      
-    this.allUser = this.data.users.users; 
+
+    this.allUser = this.data.users.users;
     this.ligne = this.data.ligne;
     this.plan = this.data.plan;
     this.fonction = this.data.fonction;
@@ -266,8 +273,8 @@ export class Stepper {
 
   private lastCpResponsable: string = '';
 
-  async operationChange(value : any) {
-    const { id_operation, index} = value;
+  async operationChange(value: any) {
+    const { id_operation, index } = value;
     let id_act = this.operations.find(op => op.id_operation === id_operation)?.id_type_qte_act || 0;
     let unite: any = await this.detailService.getUniteById(id_act);
     // console.log("Unite change", unite);
@@ -318,24 +325,61 @@ export class Stepper {
         // console.log('verifInterlocuteur', verifInterlocuteur);
         this.formInterlocuteur = this.fb.group({
           client: this.fb.group({
-            nom_client: [this.nom_client]
+            nom_client: [{ value: this.nom_client, disabled: true }]
           }),
           interlocuteur: this.fb.array(
             (verifInterlocuteur && verifInterlocuteur.length > 0)
-              ? verifInterlocuteur.map((item: any) =>
-                this.fb.group({
+              ? verifInterlocuteur.map((item: any) => {
+                const group = this.fb.group({
+                  id_interlocuteur: [item.id_interlocuteur], 
                   nom_interlocuteur: [item.nom_interlocuteur, Validators.required],
-                  contact_interlocuteur: [item.contact_interlocuteur, [Validators.required, Validators.email]]
-                })
-              )
+                  contact_interlocuteur: this.fb.control(
+                    { value: item.contact_interlocuteur, disabled: !item.nom_interlocuteur },
+                    [Validators.required, Validators.email]
+                  )
+                });
+
+                // 🔑 Ajout d'une logique dynamique
+                group.get('nom_interlocuteur')?.valueChanges.subscribe(value => {
+                  const contactCtrl = group.get('contact_interlocuteur');
+                  if (!value) {
+                    contactCtrl?.disable({ emitEvent: false });
+                    // contactCtrl?.reset(); // optionnel, si tu veux vider le champ
+                  } else {
+                    contactCtrl?.enable({ emitEvent: false });
+                  }
+                });
+
+                return group;
+              })
               : [
-                this.fb.group({
-                  nom_interlocuteur: ['', Validators.required],
-                  contact_interlocuteur: ['', [Validators.required, Validators.email]]
-                })
+                (() => {
+                  const group = this.fb.group({
+                    id_interlocuteur: [-1],
+                    nom_interlocuteur: ['', Validators.required],
+                    contact_interlocuteur: this.fb.control(
+                      { value: '', disabled: true },
+                      [Validators.required, Validators.email]
+                    )
+                  });
+
+                  // même logique
+                  group.get('nom_interlocuteur')?.valueChanges.subscribe(value => {
+                    const contactCtrl = group.get('contact_interlocuteur');
+                    if (!value) {
+                      contactCtrl?.disable({ emitEvent: false });
+                      contactCtrl?.reset();
+                    } else {
+                      contactCtrl?.enable({ emitEvent: false });
+                    }
+                  });
+
+                  return group;
+                })()
               ]
           )
-        })
+        });
+
 
 
         // Remplir form2 avec les données existantes si elles sont présentes dans verifier
@@ -343,57 +387,94 @@ export class Stepper {
 
         this.form2 = this.fb.group({
           formArray: this.fb.array(
-            formArrayData.length > 0
-              ? formArrayData.map((item: any) =>
-                this.fb.group({
-                  id: [item.id || uuidv4()],
-                  id_etape_qualite: [item.id_etape_qualite || ''],
-                  operation: [item.operation_de_control?.toString() || '', Validators.required],
-                  unite: [item.id_unite_de_controle || '', Validators.required],
-                  seuilQualite: [
-                    item.seuil_qualite || '',
-                    [
-                      Validators.required,
-                      Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
-                      Validators.min(0),
-                      Validators.max(100),
-                    ],
-                  ],
-                  typeControl: [item.type_de_controle || 0, Validators.required],
-                  operationAControler: [item.operation_a_controller + '' || '', Validators.required],
-                  critereRejet: [item.coef_rejet || '', Validators.required],
-                })
-              )
-              : this.items.map((item) =>
-                this.fb.group({
-                  id: [uuidv4()],
-                  id_etape_qualite: [''],
-                  operation: ['', Validators.required],
-                  unite: ['', Validators.required],
-                  seuilQualite: [
-                    '',
-                    [
-                      Validators.required,
-                      Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
-                      Validators.min(0),
-                      Validators.max(100),
-                    ],
-                  ],
-                  typeControl: ['', Validators.required],
-                  operationAControler: ['', Validators.required],
-                  critereRejet: ['', Validators.required],
-                })
-              )
-          ),
+            (formArrayData.length > 0 ? formArrayData : this.items).map((item: any) => {
+              const group = this.fb.group({
+                id: [item.id || uuidv4()],
+                id_etape_qualite: [item.id_etape_qualite || ''],
+                operation: [item.operation_de_control?.toString() || '', Validators.required],
+                unite: this.fb.control(
+                  { value: item.id_unite_de_controle || '', disabled: !item.operation_de_control },
+                  Validators.required
+                ),
+                seuilQualite: this.fb.control(
+                  { value: item.seuil_qualite || '', disabled: !item.operation_de_control },
+                  [
+                    Validators.required,
+                    Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
+                    Validators.min(0),
+                    Validators.max(100),
+                  ]
+                ),
+                typeControl: this.fb.control(
+                  { value: item.type_de_controle || '', disabled: !item.operation_de_control },
+                  Validators.required
+                ),
+                operationAControler: this.fb.control(
+                  { value: item.operation_a_controller?.toString() || '', disabled: !item.operation_de_control },
+                  Validators.required
+                ),
+                critereRejet: this.fb.control(
+                  { value: item.coef_rejet || '', disabled: !item.operation_de_control },
+                  Validators.required
+                ),
+              });
+
+              // 🔑 Abonnement dynamique
+              group.get('operation')?.valueChanges.subscribe(value => {
+                const controlsToToggle = [
+                  'unite',
+                  'seuilQualite',
+                  'typeControl',
+                  'operationAControler',
+                  'critereRejet'
+                ];
+                controlsToToggle.forEach(ctrlName => {
+                  const ctrl = group.get(ctrlName);
+                  if (!value) {
+                    ctrl?.disable({ emitEvent: false });
+                    // ctrl?.reset(); // optionnel : vide le champ
+                  } else {
+                    ctrl?.enable({ emitEvent: false });
+                  }
+                });
+              });
+
+              return group;
+            })
+          )
         });
+
 
 
         // console.log('form 2 value', this.form2.value);
         this.generate();
-        
-        
+
+
         this.initializing = false;
       } else {
+        let donne = {
+          id: -1,
+          value: { id_ligne: this.defaultLine, id_plan: idValue, id_fonction: this.defaultFonction, id_client: idValue },
+          name: 'detail_projet.projet:_'
+        };
+
+
+        this.detailService.updateUnitaire(donne.id, donne.value, donne.name).then(() => {
+
+        });
+
+        //   {
+        //     id: -1,
+        //     value: idValue,
+        //     name: 'detail_projet.projet:id_plan'
+        //   },
+        //   {
+        //     id: -1,
+        //     value: this.defaultFonction,
+        //     name: 'detail_projet.projet:id_fonction'
+        //   }
+        // ];
+
 
         this.form1 = this.fb.group({
           ligne: [this.defaultLine, Validators.required],
@@ -445,8 +526,8 @@ export class Stepper {
         });
       }
 
-      
-    
+
+
 
       // console.log(typeof this.detailService.filtre);
       let status = this.form1.status;
@@ -455,7 +536,7 @@ export class Stepper {
         this.initOperation(donne);
       }
       this.form1.statusChanges.subscribe((status) => {
-        
+
         // console.log('initialiser form 1 subsc', this.form1.value, this.verification);
         if (status === 'VALID') {
           const donne = this.form1.value;
@@ -494,36 +575,40 @@ export class Stepper {
   }
 
   subscribeToFormChanges() {
-    // merge(this.form1.valueChanges, this.formInterlocuteur.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
-    //   .pipe(debounceTime(2000))
-    //   .subscribe(async () => {
-    //     // console.log('Form changes detected',this.form1.value,this.verification,this.initializing);
-        
-    //     if (this.updateData) {
-    //       // this.verification = verifier;
-    //       this.update();
-    //       try {
-    //         this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
-    //         await this.initDataupdated(false);
-    //         // console.log('data updated', await this.data)
-    //       } catch (error) {
-    //         // console.log(error);
-    //       }
-    //       this.updateData = true;
-    //       // console.log(data)
-    //     } else {
-    //       this.insert();
-    //       try {
-    //         this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
-    //         await this.initDataupdated(false);
-    //         // console.log('data updated', this.data)
-    //       } catch (error) {
-    //         // console.log(error);
-    //       }
-    //       this.updateData = true;
-    //     }
-    //   });
+    // this.formInterlocuteur?.valueChanges.subscribe((value) => {
+
+    // });
   }
+  // merge(this.form1.valueChanges, this.formInterlocuteur.valueChanges, this.form2.valueChanges, this.form3?.valueChanges ?? of(null))
+  //   .pipe(debounceTime(2000))
+  //   .subscribe(async () => {
+  //     // console.log('Form changes detected',this.form1.value,this.verification,this.initializing);
+
+  //     if (this.updateData) {
+  //       // this.verification = verifier;
+  //       this.update();
+  //       try {
+  //         this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
+  //         await this.initDataupdated(false);
+  //         // console.log('data updated', await this.data)
+  //       } catch (error) {
+  //         // console.log(error);
+  //       }
+  //       this.updateData = true;
+  //       // console.log(data)
+  //     } else {
+  //       this.insert();
+  //       try {
+  //         this.data = await this.detailService.resolveFilterSimple(this.defaultLine, this.client, this.defaultFonction);
+  //         await this.initDataupdated(false);
+  //         // console.log('data updated', this.data)
+  //       } catch (error) {
+  //         // console.log(error);
+  //       }
+  //       this.updateData = true;
+  //     }
+  //   });
+  // }
 
 
   private _filter(value: string): Erreur[] {
@@ -582,7 +667,7 @@ export class Stepper {
     if ((!formulaire3 || formulaire3.length === 0) || !this.verification) {
       this.ajouterLigne(colonneForm, '', 0);
     }
-    
+
     this.updateFiltered3();
     // console.log('initialiser form 1 apres', this.form1.value, this.verification);
     // console.log('form 3 value', this.form3.controls);
@@ -612,7 +697,7 @@ export class Stepper {
   }
 
   genererGroup(colonne: string[] = [], value: any, update: number): FormGroup | null {
-    let unique : boolean = false;
+    let unique: boolean = false;
     let group: { [key: string]: any } = {};
     if (value) {
 
@@ -630,60 +715,30 @@ export class Stepper {
         group['coef'] = [value.coef || 0, Validators.required];
         group['raccourci'] = [value.raccourci || '', Validators.required];
 
-        // console.log('value', value, 'group', group, 'idform', this.id_form_colonne);
         if (this.id_form_colonne) {
-              const colonneNonVide = colonne.filter(
-                (res) => res != '' && res != null && res != undefined
-              );
-              if (colonneNonVide.length === 1) {
-                unique = true;
-              }
+          const colonneNonVide = colonne.filter(
+            (res) => res != '' && res != null && res != undefined
+          );
+          if (colonneNonVide.length === 1) {
+            unique = true;
+          }
 
           for (const [index, id_colone] of this.id_form_colonne.entries()) {
-            // console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index] ,"operation de control",this.verification?.erreur.operation_de_control);
-            if (id_colone === value.operation_de_control.toString() && this.verification?.erreur.some((obj : any) => obj.operation_de_control)) {
+            if (id_colone === value.operation_de_control.toString() && this.verification?.erreur.some((obj: any) => obj.operation_de_control)) {
               group[colonne[index]] = [value.valable];
             }
-            // Grouper les colonnes par libellé d'erreur pour éviter la duplication
-            // colonne.forEach((col, index) => {
-            //   // Si le libellé d'erreur correspond à la colonne et que la colonne correspond à l'opération
-            //   if (
-            //     this.id_form_colonne[index] == value.operation_de_control
-            //   ) {
-            //     group[col] = [value.valable];
-            //   } else {
-            //     group[col] = [false];
-            //   }
-            // });
           }
         }
 
       } else {
         if (this.id_form_colonne) {
-          // console.log('value', value, 'group', (verfierErreur as FormGroup).controls, 'idform', this.id_form_colonne);
           for (const [index, id_colone] of this.id_form_colonne.entries()) {
-            // Si le champ n'existe pas dans le FormGroup, on l'ajoute dynamiquement
-            if (id_colone === value.operation_de_control.toString()) {
-              // console.log('exist ', !verfierErreur.get(colonne[index]))
-              // console.log('id_colone', id_colone, 'value.operation_de_control', value.operation_de_control.toString(), colonne[index]);
-              if (!(verfierErreur as FormGroup).contains(colonne[index])) {
-                // Ajoute le contrôle si absent
+           if (id_colone === value.operation_de_control.toString()) {         if (!(verfierErreur as FormGroup).contains(colonne[index])) {
                 (verfierErreur as FormGroup).addControl(colonne[index], this.fb.control(value.valable));
               } else {
                 (verfierErreur as FormGroup).get(colonne[index])?.setValue(value.valable);
               }
             }
-            // Grouper les colonnes par libellé d'erreur pour éviter la duplication
-            // colonne.forEach((col, index) => {
-            //   // Si le libellé d'erreur correspond à la colonne et que la colonne correspond à l'opération
-            //   if (
-            //     this.id_form_colonne[index] == value.operation_de_control
-            //   ) {
-            //     group[col] = [value.valable];
-            //   } else {
-            //     group[col] = [false];
-            //   }
-            // });
           }
         }
       }
@@ -728,7 +783,7 @@ export class Stepper {
           // console.log("Restauration value ", col);
           group.get(col)?.setValue(false);
         }
-        
+
         if (colonneNonVide.length === 1 && !value) {
           const col = colonneNonVide[0];
           group.get(col)?.setValue(true);

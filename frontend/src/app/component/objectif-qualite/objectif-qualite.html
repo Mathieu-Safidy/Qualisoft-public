@@ -119,9 +119,18 @@
               <div class="col-2 text-center">
                 <input 
                     formControlName="operation"
-                    class="form-control"
+                    class="selection form-control"
                     type="text"
                     matInput
+                    name="detail_projet.etape_qualite:operation_de_control"
+               
+                    appDebounced
+                    [formul]="formArray.at(i)"
+                    [isAutoComplete]="{value: true, name: 'operation'}"
+                    [colonne]="'id_operation'"
+                    (debouncedValue)="updateValue($event)"
+                    [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                    [liste]="operations"
                     [matAutocomplete]="autOperation"
                     [matTooltip]="displayOperation(formArray.controls.at(i)?.get('operation')?.value)"
                 />

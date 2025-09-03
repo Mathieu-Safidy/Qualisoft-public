@@ -33,19 +33,19 @@ export class ProjectList {
 
   constructor(private router: Router, private route: ActivatedRoute, private cdr: ChangeDetectorRef,
     public dialog: MatDialog) {
-    console.log('ProjectList constructor');
+    // console.log('ProjectList constructor');
   }
 
   ngOnInit() {
     this.mesDonnees = this.route.snapshot.data['projects'].projects;
-    console.log(this.mesDonnees);
+    // console.log(this.mesDonnees);
     // this.projectService.getProjects().subscribe(data => {
     //   this.mesDonnees = data;
     //   this.cdr.markForCheck(); // si besoin de forcer la détection de changement
     // });
   }
   openSimpleModal(event: any): void {
-    console.log('Ouverture du modal de clonage pour l\'élément:', event);
+    // console.log('Ouverture du modal de clonage pour l\'élément:', event);
     this.dialog.open(Clonage, {
       width: '100vh',
       height: 'auto',

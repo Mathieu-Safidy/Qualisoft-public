@@ -154,7 +154,7 @@ export class Liste<T extends Record<string, any> = any> {
   // }
 
   onSort({ column, direction }: SortEvent<T>) {
-    console.log('onSort called', column, direction);
+    // console.log('onSort called', column, direction);
     this.headers.forEach((header) => {
       if (header.sortable() !== column) header.direction = '';
     });

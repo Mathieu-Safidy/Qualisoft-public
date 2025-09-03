@@ -40,12 +40,12 @@ export class TypeErreur {
 
   ngOnInit() {
 
-    console.log('erreur init x', this.erreurs())
+    // console.log('erreur init x', this.erreurs())
     const form = this.form();
-    console.log(form.controls["formErreur"]);
-    console.log('form3 = ', form);
-    console.log('formErreur control = ', form.controls['formErreur']);
-    console.log('formGroup.length = ', this.formGroup.length);
+    // console.log(form.controls["formErreur"]);
+    // console.log('form3 = ', form);
+    // console.log('formErreur control = ', form.controls['formErreur']);
+    // console.log('formGroup.length = ', this.formGroup.length);
 
 
 

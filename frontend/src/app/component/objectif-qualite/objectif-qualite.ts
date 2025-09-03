@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, input, Input, output, SimpleChanges, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, SelectControlValueAccessor, Validators } from '@angular/forms';
+import { ChangeDetectorRef, Component, ElementRef, input, Input, output, SimpleChanges, ViewChild } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, SelectControlValueAccessor, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { FaIconComponent, FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -7,7 +7,7 @@ import { MatAutocomplete, MatAutocompleteModule, MatAutocompleteSelectedEvent } 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Operation } from '../../interface/Operation';
-import { map, Observable, startWith } from 'rxjs';
+import { fromEvent, map, Observable, startWith } from 'rxjs';
 import { DetailProjectService } from '../../service/DetailProjectService';
 import { Operations } from '../../class/Operations';
 import { Unite } from '../../interface/Unite';
@@ -17,6 +17,7 @@ import { AlertConfirm } from "../alert-confirm/alert-confirm";
 import { MatDialog } from '@angular/material/dialog';
 import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8";
 import { MatTooltip } from '@angular/material/tooltip';
+import { Debounced } from '../../directive/debounced';
 
 @Component({
   selector: 'app-objectif-qualite',
@@ -31,7 +32,8 @@ import { MatTooltip } from '@angular/material/tooltip';
     MatFormFieldModule,
     MatInputModule,
     NgbPopoverModule,
-    MatTooltip
+    MatTooltip,
+    Debounced
 ],
   templateUrl: './objectif-qualite.html',
   styleUrl: './objectif-qualite.css'
@@ -43,19 +45,20 @@ export class ObjectifQualite {
   items = [''];
 
   filteredOperations !: Observable<Operation[]>[];
-  // @Input() form !: FormGroup;
   form = input<FormGroup>();
   @Input() operations !: Operation[];
   @Input() formPrecedent !: FormGroup;
-  // @Input() unites !: Unite[];
   unites = input<Unite[]>();
   @Input() verifier: boolean = false;
+  verification = input<any>();
   generer = output<void>();
+  projectID = input<string|number|null>(null);
   showAlert = false;
   onOperationChange = output<{ id_operation: string, index: number }>();
 
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];
+  optionChoisie : boolean = false;
   // @ViewChild('autOperation') autOperation!: MatAutocomplete;
 
 
@@ -70,18 +73,23 @@ export class ObjectifQualite {
 
   get formArray() {
     const formArray = this.form()?.controls["formArray"];
-    return formArray as FormArray;
+    return formArray as FormArray<FormGroup>;
   }
 
   get formul() {
     return this.form();
   }
 
+  async updateValue(event: any) {
+    const { id, value , name } = event;
+    console.log("Debounced event:", event);
+    await this.detailService.updateUnitaire(id, value, name)
+  }
   // get percentage() {
   //   return this.formGroups.at(index)?.get('seuilQualite')?.value;
-  // }
+  // } 
 
-  openAlert(index: number) {
+openAlert(index: number) {
     this.showAlert = true;
     let pourcentage = this.formGroups.at(index)?.get('seuilQualite')?.value;
     console.log("pourcentage ", pourcentage);
@@ -135,10 +143,7 @@ export class ObjectifQualite {
 
   }
 
-  ngAfterViewInit(): void {
 
-
-  }
   ngOnChanges(changes: SimpleChanges) {
     if (changes['operations']) {
       console.log('Opérations mises à jour', this.operations);

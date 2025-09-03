@@ -154,9 +154,9 @@ export class DetailProjectService {
     try {
       let filter = this.getFilter(ligne, plan, fonction);
       let { lignes, plans, fonctions , operations } = filter;
-      lignes.subscribe(data => console.log('📦 LIGNES:', data));
-      plans.subscribe(data => console.log('📦 PLANS:', data));
-      fonctions.subscribe(data => console.log('📦 FONCTIONS:', data));
+      // lignes.subscribe(data => console.log('📦 LIGNES:', data));
+      // plans.subscribe(data => console.log('📦 PLANS:', data));
+      // fonctions.subscribe(data => console.log('📦 FONCTIONS:', data));
       
       // let { operations } = new Operations().cast();
 
@@ -329,11 +329,12 @@ export class DetailProjectService {
     return { operations: this.getOperation() };
   }
 
-  async updateUnitaire(id: string|number, value:any , name:string){ 
+  async updateUnitaire(id: string|number, value:any , name:string , deleted: boolean = false){ 
     const body = {
       id,
       value,
-      name
+      name,
+      deleted
     };
     return await this.http.post(`/updateUnit`, body);
   }

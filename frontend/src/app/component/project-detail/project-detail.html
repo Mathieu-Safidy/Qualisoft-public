@@ -23,6 +23,8 @@
               [matAutocomplete]="autoLigne"
               placeholder="Choisir une ligne"
               readonly="true"
+              name="detail_projet.projet:id_ligne"
+             
             />
             <mat-autocomplete
               #autoLigne="matAutocomplete"
@@ -48,6 +50,8 @@
               id="plan"
               name="plan"
               formControlName="plan"
+              name="detail_projet.projet:id_plan"
+             
             >
               <option value="">----Sélectionner un plan----</option>
               <option *ngFor="let item of plan()" [value]="item.id_plan">
@@ -81,6 +85,8 @@
               [matAutocomplete]="autoFonction"
               placeholder="Choisir une fonction"
               readonly="true"
+              name="detail_projet.projet:id_fonction"
+              
             />
             <mat-autocomplete
               #autoFonction="matAutocomplete"
@@ -104,15 +110,15 @@
           <div class="col-9">
             <!-- <input type="text" class="form-control" name="" id="desc" placeholder="---- Descriptif de traitement ----" formControlName="description_traite"> -->
             <textarea
-              name=""
               id=""
               class="form-control"
               placeholder="---- Descriptif de traitement ----"
               formControlName="description_traite"
               name="detail_projet.projet:description_traitement"
               appDebounced
-              (debouncedEvent)="updateValue($event)"
+              (debouncedValue)="updateValue($event)"
               [identity]="projectID()"
+              [isAutoComplete]="{value: false}"
             ></textarea>
           </div>
         </div>
@@ -126,6 +132,11 @@
               id="fonction"
               name="type-traitement"
               formControlName="type_traite"
+              name="detail_projet.projet:id_type_traitement"
+              appDebounced
+              (debouncedValue)="updateValue($event)"
+              [identity]="projectID()"
+              [isAutoComplete]="{value: false}"
             >
               <option value="">
                 ---- Selectionner un type de traitement ----
@@ -208,10 +219,19 @@
                     #contactInput
                     [formControl]="contactCtrl"
                     placeholder="-- Responsable --"
+                    name="detail_projet.projet:id_cp"
+                    appDebounced
+                    [formul]="form()" 
+                    [isAutoComplete]="{value: true, name: 'cp_responsable'}"
+                    (debouncedValue)="updateValue($event)"
+                    [identity]="projectID()"
                   />
                 </mat-chip-grid>
 
-                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)" panelClass="static-width-panel" >
+                <mat-autocomplete 
+                  #auto="matAutocomplete"  
+                  (optionSelected)="selected($event)" 
+                  panelClass="static-width-panel" >
                   <mat-option *ngFor="let option of filteredContacts | async" [value]="option">
                     {{ option.matricule }}
                   </mat-option>

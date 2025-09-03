@@ -164,7 +164,7 @@ export class Clonage {
 
   private _filter(options: string[], value: string): string[] {
     const filterValue = value.toLowerCase();
-    console.log("Filtrer ",options)
+    // console.log("Filtrer ",options)
     return options.filter(option => option.toLowerCase().includes(filterValue));
   }
 
@@ -178,7 +178,7 @@ export class Clonage {
     // On ferme le modal et on renvoie 'true' au composant appelant.
 
     let value = { destination: { ...this.destinationForm.value } };
-    console.log('data cloning ', value,this.destinationForm.value);
+    // console.log('data cloning ', value,this.destinationForm.value);
     this.cacheData.setData(value);
     const duplicationError: any = this.projetService.duplicateProjetErreur(
       {
@@ -194,14 +194,14 @@ export class Clonage {
     )
 
     duplicationError.then((response: any) => {
-      console.log('Response from duplicationError:', response);
+      // console.log('Response from duplicationError:', response);
       if (response.status === 200) {
         // console.log('Success! Status is 200 OK.');
-        console.log(response);
+        // console.log(response);
         alert('Duplication réussie !');
         return response.json();
       } else {
-        console.log(response);
+        // console.log(response);
         throw new Error(`Unexpected status code: ${response.status}`);
       }
     })

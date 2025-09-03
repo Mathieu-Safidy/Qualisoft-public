@@ -93,7 +93,7 @@ export class Recap {
 
     const donne = history.state.data;
     if (donne) {
-      console.log('Data received in recap:', donne);
+      // console.log('Data received in recap:', donne);
     }
     this.convertToModel(donne);
     console.log(this.value_plus)
@@ -130,7 +130,7 @@ export class Recap {
   }
 
   getDegre(deg: string) {
-    console.log('degre', typeof (deg), deg)
+    // console.log('degre', typeof (deg), deg)
     if (deg.includes('0')) {
       return 'mineur';
     } else {
