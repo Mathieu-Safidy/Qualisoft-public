@@ -39,7 +39,7 @@
                                         [formul]="form()" 
                                         [isAutoComplete]="{value: false}"
                                         (debouncedValue)="updateValue($event)"
-                                        [foreign]="{name:'id_projet', value: projectID()}"
+                                        [foreign]="[{name:'id_projet', value: projectID()}]"
                                         [identity]="FormGroup.at(i).get('id_interlocuteur')?.value"
                                     type="text"  id="" class="form-control" placeholder="-- Nom Interlocuteur --" formControlName="nom_interlocuteur">
                                 </div>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,6 +10,8 @@ import { map, Observable, startWith } from 'rxjs';
 import { MatTooltip } from '@angular/material/tooltip';
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8";
+import { Debounced } from '../../directive/debounced';
+import { DetailProjectService } from '../../service/DetailProjectService';
 
 @Component({
   selector: 'app-type-erreur',
@@ -22,7 +24,8 @@ import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8"
     MatInputModule,
     ReactiveFormsModule,
     NgbPopoverModule,
-    MatTooltip
+    MatTooltip,
+    Debounced
 ],
   templateUrl: './type-erreur.html',
   styleUrl: './type-erreur.css'
@@ -30,11 +33,12 @@ import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8"
 export class TypeErreur {
   readonly form = input.required<FormGroup>();
   readonly colonne = input<string[]>([]);
-  readonly erreurs = input<Erreur[]>([]);
+  readonly erreurs = input<any[]>([]);
   @Output() addLigne = new EventEmitter<void>();
   @Output() removeLigne = new EventEmitter<number>();
   exist = input<boolean>(false);
-
+  detailService = inject(DetailProjectService);
+  projectID = input<number>(-1);
 
   readonly filteredOperations = input.required<Observable<Erreur[]>[]>();
 
@@ -85,6 +89,16 @@ export class TypeErreur {
     return (this.form().controls["formErreur"] as FormArray).controls as FormGroup[];
   }
 
+  get formArray() {
+    return (this.form().controls["formErreur"] as FormArray<FormGroup>)
+  }
+
+  async updateValue(event: any) {
+    const { id, value , name } = event;
+    console.log("Debounced event:", event);
+    await this.detailService.updateUnitaire(id, value, name)
+  }
+
   checkValid() {
     console.log(this.form().valid, (this.form().controls["formErreur"] as FormArray).valid, this.form());
   }
@@ -100,7 +114,7 @@ export class TypeErreur {
   displayErreur = (id: string): string => {
     const erreurs = this.erreurs();
     if (!erreurs) return '';
-    const operations = erreurs.find(l => l.id_erreur.toString() === id);
+    const operations = erreurs.find((l:any) => l.id_erreur.toString() === id);
     return operations ? operations.type_erreur : '';
   }
 

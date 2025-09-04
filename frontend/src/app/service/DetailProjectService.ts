@@ -338,6 +338,15 @@ export class DetailProjectService {
     };
     return await this.http.post(`/updateUnit`, body);
   }
+
+  async deleteDonne(id: string|number, name:string){ 
+    const body = {
+      id,
+      name
+    };
+    return await this.http.post(`/delete`, body);
+  }
+
 }
 
 

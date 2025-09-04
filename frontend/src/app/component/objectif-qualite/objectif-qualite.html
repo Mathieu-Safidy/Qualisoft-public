@@ -1,7 +1,7 @@
 <div class="px-3 py-4">
   <div class="row mb-3">
     <div class="col-10">
-      <!-- <button type="button" (click)="checkValid()">check</button> -->
+      <button type="button" (click)="checkValid()">check</button>
       
     </div>
     <div class="col-2 text-end">
@@ -123,11 +123,11 @@
                     type="text"
                     matInput
                     name="detail_projet.etape_qualite:operation_de_control"
-               
                     appDebounced
                     [formul]="formArray.at(i)"
                     [isAutoComplete]="{value: true, name: 'operation'}"
                     [colonne]="'id_operation'"
+                    [foreign]="[{name:'id_projet', value: projectID()},{name:'id_unite_de_controle', value: formArray.at(i).get('unite')?.value} , {name:'ordre', value: formArray.at(i).get('ordre')?.value}]"
                     (debouncedValue)="updateValue($event)"
                     [identity]="formArray.at(i).get('id_etape_qualite')?.value"
                     [liste]="operations"
@@ -143,16 +143,35 @@
               </div>
               <div class="col-2 text-center">
                 <!-- <input formControlName="unite" class="form-control" value="{{ fg.get('unite')?.value }}" /> -->
-                 <select formControlName="unite" class="form-control" >
+                 <select formControlName="unite" class="form-control" 
+                  name="detail_projet.etape_qualite:id_unite_de_controle"
+                  appDebounced
+                  [statique]="true"
+                  (debouncedValue)="updateValue($event)"
+                  [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                  [isAutoComplete]="{value: false}"
+                 >
                   <option *ngFor="let item of unites()" [value]="item.id_type_qte_act">{{ item.libelle }}</option>
                  </select>
                 </div>
                 <div class="col-1 text-center">
-                  <input formControlName="seuilQualite" class="form-control text-end" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" value="{{ fg.get('seuilQualite')?.value }}" />
+                  <input 
+                    appDebounced
+                    name="detail_projet.etape_qualite:seuil_qualite"
+                    (debouncedValue)="updateValue($event)"
+                    [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                    [isAutoComplete]="{value: false}"
+                  formControlName="seuilQualite" class="form-control text-end" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" value="{{ fg.get('seuilQualite')?.value }}" />
                 </div>
                 <div class="col-2 text-center">
                   <!-- <input formControlName="typeControl" class="form-control"  value="{{ fg.get('typeControl')?.value }}" /> -->
-                  <select formControlName="typeControl" class="form-control">
+                  <select formControlName="typeControl" class="form-control" 
+                     appDebounced
+                     name="detail_projet.etape_qualite:type_de_controle"
+                    (debouncedValue)="updateValue($event)"
+                    [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                    [isAutoComplete]="{value: false}"
+                  >
                     <!-- <option value="" class="text-body-tertiary"><span class="text-body-tertiary">--Type de contrôle--</span></option> -->
                     <option value="0">Interne</option>
                    <option value="1">BCQ</option>
@@ -162,16 +181,28 @@
               <div class="col-2 text-center">
                 <!-- <input formControlName="operationAControler" class="form-control"  value="{{ fg.get('operationAControler')?.value }}" /> -->
                 <select formControlName="operationAControler" class="form-control" 
-                [matTooltip]="displayOperation(formArray.controls.at(i)?.get('operationAControler')?.value)"
+                  appDebounced
+                  name="detail_projet.etape_qualite:operation_a_controller"
+                  (debouncedValue)="updateValue($event)"
+                  [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                  [isAutoComplete]="{value: false}"
+                  [matTooltip]="displayOperation(formArray.controls.at(i)?.get('operationAControler')?.value)"
                 >
                  <option *ngFor="let item of filteredOperation[i]" [value]="item.id_operation">{{ item.libelle }}</option>
                 </select>
               </div>
               <div class="col-1 text-end pe-0">
-                  <input formControlName="critereRejet" class="form-control text-end " (keypress)="filterInput($event)" (blur)="formatCritereRejet(i)" value="{{ fg.get('critereRejet')?.value }}" />
+                  <input 
+                   appDebounced
+                    name="detail_projet.etape_qualite:coef_rejet"
+                    (debouncedValue)="updateValue($event)"
+                    [identity]="formArray.at(i).get('id_etape_qualite')?.value || -1"
+                    [isAutoComplete]="{value: false}"
+                  formControlName="critereRejet" class="form-control text-end " (keypress)="filterInput($event)" (blur)="formatCritereRejet(i)" value="{{ fg.get('critereRejet')?.value }}" />
               </div>
               <div class="col-1 text-end">
-                <button type="button" class="btn btn-danger " (click)="removeItem(i)"> <fa-icon icon="minus-circle" ></fa-icon></button>
+                <button  
+                type="button" class="btn btn-danger " (click)="removeItem(i)"> <fa-icon icon="minus-circle" ></fa-icon></button>
               </div>
           </div>
         </div>

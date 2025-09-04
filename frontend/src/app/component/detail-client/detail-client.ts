@@ -123,7 +123,18 @@ export class DetailClient {
 
 
   deleteLigne(index: number) {
-    this.FormGroup.removeAt(index);
+
+    let id_interlocuteur = this.FormGroup.at(index)?.get('id_interlocuteur')?.value;
+    let name = 'detail_projet.interlocuteur';
+    this.detailService.deleteDonne(id_interlocuteur, name)
+    .then((result:any) => {
+      console.log('Suppression réussie', result, this.FormGroup.at(index));
+      if(this.FormGroup){
+        this.FormGroup.removeAt(index);
+      }
+    })
+    .catch((error:any) => {alert(error.message);});
+  
   }
 
   checkValid() {

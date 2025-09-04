@@ -93,10 +93,20 @@
               <input
                 type="text"
                 name="typeErreur"
-                class="col-2 form-control"
+                class="selection col-2 form-control"
                 id=""
                 formControlName="typeErreur"
                 matInput
+                name="detail_projet.type_erreur:libelle"
+                appDebounced
+                [formul]="formArray.at(i)"
+                [isAutoComplete]="{value: true, name: 'typeErreur'}"
+                [colonne]="'type_erreur'"
+                [idColonne]="'id_erreur'"
+                [foreign]="[{name:'id_projet', value: projectID()}]"
+                (debouncedValue)="updateValue($event)"
+                [identity]="formArray.at(i).get('idErreur')?.value"
+                [liste]="erreurs()"
                 [matTooltip]="formGroup.at(i)?.get('typeErreur')?.value"
                 [matAutocomplete]="autErreur"
               />

@@ -34,7 +34,7 @@ import { Debounced } from '../../directive/debounced';
     NgbPopoverModule,
     MatTooltip,
     Debounced
-],
+  ],
   templateUrl: './objectif-qualite.html',
   styleUrl: './objectif-qualite.css'
 })
@@ -52,17 +52,17 @@ export class ObjectifQualite {
   @Input() verifier: boolean = false;
   verification = input<any>();
   generer = output<void>();
-  projectID = input<string|number|null>(null);
+  projectID = input<string | number | null>(null);
   showAlert = false;
   onOperationChange = output<{ id_operation: string, index: number }>();
 
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];
-  optionChoisie : boolean = false;
+  optionChoisie: boolean = false;
   // @ViewChild('autOperation') autOperation!: MatAutocomplete;
+  ondelete: boolean = false;
 
-
-  constructor(private fb: FormBuilder, private cdref: ChangeDetectorRef, private detailService: DetailProjectService,public dialog: MatDialog) {
+  constructor(private fb: FormBuilder, private cdref: ChangeDetectorRef, private detailService: DetailProjectService, public dialog: MatDialog) {
     this.operationSelected = [{ index: 0, value: '-1' }];
   }
 
@@ -81,15 +81,36 @@ export class ObjectifQualite {
   }
 
   async updateValue(event: any) {
-    const { id, value , name } = event;
+    const { id, value, name } = event;
     console.log("Debounced event:", event);
-    await this.detailService.updateUnitaire(id, value, name)
+    let resultat: any = await this.detailService.updateUnitaire(id, value, name, this.ondelete);
+    console.log("Update result:", resultat );
+    if (resultat?.parametre?.length) {
+      let param = resultat.parametre[0];
+      const interlocuteurs = this.form()?.get('formArray') as FormArray<FormGroup>;
+      console.log('parametre', interlocuteurs.controls);
+      const index = interlocuteurs.controls.findIndex(
+        ctrl => ctrl.get('operation')?.value === param.operation_de_control && ctrl.get('ordre')?.value === param.ordre
+      );
+
+      console.log('index trouvé', index, param);
+
+      if (index !== -1) {
+         const group = interlocuteurs.at(index);
+
+        Object.keys(param).forEach(key => {
+          if (group.get(key)) {
+            group.get(key)?.setValue(param[key], { emitEvent: false });
+          }
+        });
+      }
+    }
   }
   // get percentage() {
   //   return this.formGroups.at(index)?.get('seuilQualite')?.value;
   // } 
 
-openAlert(index: number) {
+  openAlert(index: number) {
     this.showAlert = true;
     let pourcentage = this.formGroups.at(index)?.get('seuilQualite')?.value;
     console.log("pourcentage ", pourcentage);
@@ -174,7 +195,7 @@ openAlert(index: number) {
         console.log(`FormGroup à l'index ${index} a des champs invalides :`, invalidControls);
         invalidControls.forEach(controlName => {
           const control = group.get(controlName);
-          // console.log(`- Champ "${controlName}" :`, control?.errors);
+          console.log(`- Champ "${controlName}" :`, control?.errors);
         });
       } else {
         console.log(`FormGroup à l'index ${index} est valide.`);
@@ -224,7 +245,7 @@ openAlert(index: number) {
     this.operationSelected.push({ index: index, value: value });
     // console.log('ato', this.operationSelected);
     // let operation = this.operations.find(op => op.id_operation === value);
-    this.onOperationChange.emit({ id_operation: value, index: index-1 });
+    this.onOperationChange.emit({ id_operation: value, index: index - 1 });
     this.updateFilteredOperations(index);
   }
 
@@ -291,7 +312,7 @@ openAlert(index: number) {
         if (num > 100) {
           alert("La valeur ne peut pas dépasser 100%");
           num = 0;
-        }else if(num < 90 && num > 0) {
+        } else if (num < 90 && num > 0) {
           this.openAlert(index);
         } else if (num < 0) {
           alert("La valeur ne peut pas être négative");
@@ -356,35 +377,118 @@ openAlert(index: number) {
 
 
 
+  // addItem() {
+  //   const fg = this.fb.group({
+  //     id: [uuidv4()],
+  //     operation: ['', Validators.required],
+  //     unite: ['', Validators.required],
+  //     seuilQualite: ['', Validators.required],
+  //     typeControl: ['', Validators.required],
+  //     operationAControler: ['', Validators.required],
+  //     critereRejet: ['', Validators.required]
+  //   });
+  //   const formArray = this.form()?.get('formArray') as FormArray | null;
+  //   if (formArray) {
+  //     formArray.push(fg);
+  //   }
+  //   const index = this.formArray.length - 1
+  //   this.filteredOperations[index] = fg.get('operation')!.valueChanges.pipe(
+  //     startWith(''),
+  //     map(value => this._filter(value || ''))
+  //   );
+  // }
+
+  findDernierOrdre(id: string): any | null {
+    const formArray = this.form()?.get('formArray') as FormArray | null;
+    if (!formArray) return null;
+
+    const matches = formArray.controls.filter(
+      (fg) => (fg as FormGroup).get('operation')?.value === id
+    ) as FormGroup[];
+
+    if (matches.length === 0) return 0;
+
+    return matches.length - 1;
+  }
+
+
   addItem() {
+
     const fg = this.fb.group({
       id: [uuidv4()],
+      id_etape_qualite: [-1],
       operation: ['', Validators.required],
-      unite: ['', Validators.required],
-      seuilQualite: ['', Validators.required],
-      typeControl: ['', Validators.required],
-      operationAControler: ['', Validators.required],
-      critereRejet: ['', Validators.required]
+      unite: this.fb.control({ value: '', disabled: true }, Validators.required),
+      ordre: [],
+      seuilQualite: this.fb.control({ value: '', disabled: true }, [
+        Validators.required,
+        Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
+        Validators.min(0),
+        Validators.max(100),
+      ]),
+      typeControl: this.fb.control({ value: 0, disabled: true }, Validators.required),
+      operationAControler: this.fb.control({ value: '', disabled: true }, Validators.required),
+      critereRejet: this.fb.control({ value: '', disabled: true }, Validators.required),
     });
+
+    // 🔑 Abonnement dynamique pour activer/désactiver les champs
+    fg.get('operation')?.valueChanges.subscribe(value => {
+      const controlsToToggle = [
+        'seuilQualite',
+        'typeControl',
+        'operationAControler',
+        'critereRejet'
+      ];
+
+      let ordreDernier = this.findDernierOrdre((value ?? ''));
+      fg.get('ordre')?.setValue(ordreDernier !== null ? ordreDernier : 0);
+      controlsToToggle.forEach(ctrlName => {
+        const ctrl = fg.get(ctrlName);
+        if (!value) {
+          ctrl?.disable({ emitEvent: false });
+          // ctrl?.reset(); // optionnel : vide le champ
+        } else {
+          ctrl?.enable({ emitEvent: false });
+        }
+      });
+    });
+
+    // Ajouter le FormGroup au FormArray
     const formArray = this.form()?.get('formArray') as FormArray | null;
-    if (formArray) {
-      formArray.push(fg);
-    }
-    const index = this.formArray.length - 1
+    formArray?.push(fg);
+
+    // Si tu utilises filteredOperations comme dans ton addItem initial
+    const index = formArray && typeof formArray.length === 'number' ? formArray.length - 1 : 0;
     this.filteredOperations[index] = fg.get('operation')!.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || ''))
     );
   }
 
+
   removeItem(index: number) {
     // const formArray = this.form.get('formArray') as FormArray | null;
+
     const formArray = this.formArray
-    // console.log('avant', formArray.controls)
-    if (formArray) {
-      formArray.removeAt(index);
-    }
-    // console.log('apres', formArray.controls)
+
+    let id_etape_qualite = formArray.at(index)?.get('id_etape_qualite')?.value;
+    let name = 'detail_projet.etape_qualite';
+
+    let confirm = false;
+
+    this.detailService.deleteDonne(id_etape_qualite, name).then((value: any) => {
+      console.log('donne', value)
+      // if (value.status == 200) {
+      //   confirm = true;
+      // }
+      if (formArray) {
+        formArray.removeAt(index);
+      }
+    }).catch((error) => {
+      confirm = false;
+      alert(error.message)
+    })
+
 
   }
 

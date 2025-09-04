@@ -76,6 +76,7 @@
       [unites]="unites"
       [verifier]="existVerif"
       (generer)="generate()"
+      [projectID]="id_projet"
       [verification]="verification"
       (onOperationChange)="operationChange($event)"
     ></app-objectif-qualite>
@@ -106,6 +107,7 @@
       [form]="form3"
       [colonne]="colone_form3"
       [erreurs]="erreurs"
+      [projectID]="id_projet"
       [exist]="updateErreur"
       (addLigne)="addLigne()"
       (removeLigne)="substractLigne($event)"

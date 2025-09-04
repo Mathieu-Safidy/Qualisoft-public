@@ -42,3 +42,11 @@ th.checker .titre-verticale {
   text-align: left;
   font-size: 12px;
 }
+
+.selection.ng-valid {
+  border: 2px solid green;
+}
+
+.selection.ng-invalid {
+  border: 2px solid red;
+}

@@ -282,6 +282,19 @@ export class Stepper {
     (this.form2.controls['formArray'] as FormArray).at(index)?.get('unite')?.setValue(unite?.id_type_qte_act);
   }
 
+  findDernierOrdre(id: string): any | null {
+    const formArray = this.form2.get('formArray') as FormArray | null;
+    if (!formArray) return null;
+
+    const matches = formArray.controls.filter(
+      (fg) => (fg as FormGroup).get('operation')?.value === id
+    ) as FormGroup[];
+
+    if (matches.length === 0) return 0;
+
+    return matches.length - 1;
+  }
+
   ngOnInit() {
 
     this.route.data.subscribe(res => {
@@ -331,7 +344,7 @@ export class Stepper {
             (verifInterlocuteur && verifInterlocuteur.length > 0)
               ? verifInterlocuteur.map((item: any) => {
                 const group = this.fb.group({
-                  id_interlocuteur: [item.id_interlocuteur], 
+                  id_interlocuteur: [item.id_interlocuteur],
                   nom_interlocuteur: [item.nom_interlocuteur, Validators.required],
                   contact_interlocuteur: this.fb.control(
                     { value: item.contact_interlocuteur, disabled: !item.nom_interlocuteur },
@@ -392,8 +405,9 @@ export class Stepper {
                 id: [item.id || uuidv4()],
                 id_etape_qualite: [item.id_etape_qualite || ''],
                 operation: [item.operation_de_control?.toString() || '', Validators.required],
+                ordre: [item.ordre || 0],
                 unite: this.fb.control(
-                  { value: item.id_unite_de_controle || '', disabled: !item.operation_de_control },
+                  { value: item.id_unite_de_controle || '', disabled: true },
                   Validators.required
                 ),
                 seuilQualite: this.fb.control(
@@ -406,7 +420,7 @@ export class Stepper {
                   ]
                 ),
                 typeControl: this.fb.control(
-                  { value: item.type_de_controle || '', disabled: !item.operation_de_control },
+                  { value: item.type_de_controle ?? 0, disabled: !item.operation_de_control },
                   Validators.required
                 ),
                 operationAControler: this.fb.control(
@@ -428,6 +442,8 @@ export class Stepper {
                   'operationAControler',
                   'critereRejet'
                 ];
+                let ordreDernier = this.findDernierOrdre(value);
+                group.get('ordre')?.setValue(ordreDernier !== null ? ordreDernier : 0);
                 controlsToToggle.forEach(ctrlName => {
                   const ctrl = group.get(ctrlName);
                   if (!value) {
@@ -463,19 +479,6 @@ export class Stepper {
 
         });
 
-        //   {
-        //     id: -1,
-        //     value: idValue,
-        //     name: 'detail_projet.projet:id_plan'
-        //   },
-        //   {
-        //     id: -1,
-        //     value: this.defaultFonction,
-        //     name: 'detail_projet.projet:id_fonction'
-        //   }
-        // ];
-
-
         this.form1 = this.fb.group({
           ligne: [this.defaultLine, Validators.required],
           plan: [idValue, Validators.required],
@@ -501,64 +504,74 @@ export class Stepper {
         })
 
         this.form2 = this.fb.group({
-          formArray: this.fb.array(
-            this.items.map((item) =>
-              this.fb.group({
-                id: [uuidv4()],
-                id_etape_qualite: [''],
-                operation: ['', Validators.required],
-                unite: ['', Validators.required],
-                seuilQualite: [
-                  '',
-                  [
-                    Validators.required,
-                    Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-                    Validators.min(0),
-                    Validators.max(100),
-                  ],
-                ],
-                typeControl: ['', Validators.required],
-                operationAControler: ['', Validators.required],
-                critereRejet: ['', Validators.required],
-              })
-            )
-          ),
+          formArray: this.items.map(item => {
+            const group = this.fb.group({
+              id: [uuidv4()],
+              id_etape_qualite: [''],
+              operation: ['', Validators.required],
+              unite: [{ value: '', disabled: true }, Validators.required],
+              seuilQualite: [{ value: '', disabled: true }, [
+                Validators.required,
+                Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
+                Validators.min(0),
+                Validators.max(100)
+              ]],
+              typeControl: [{ value: '', disabled: true }, Validators.required],
+              operationAControler: [{ value: '', disabled: true }, Validators.required],
+              critereRejet: [{ value: '', disabled: true }, Validators.required],
+            });
+
+            group.get('operation')?.valueChanges.subscribe(value => {
+              const controls = ['unite', 'seuilQualite', 'typeControl', 'operationAControler', 'critereRejet'];
+              controls.forEach(ctrlName => {
+                const ctrl = group.get(ctrlName);
+                if (!value) {
+                  ctrl?.disable({ emitEvent: false });
+                } else {
+                  ctrl?.enable({ emitEvent: false });
+                }
+              });
+            });
+
+            return group;
+          })
         });
-      }
 
 
 
 
-      // console.log(typeof this.detailService.filtre);
-      let status = this.form1.status;
-      if (status == 'VALID') {
-        const donne = this.form1.value;
-        this.initOperation(donne);
-      }
-      this.form1.statusChanges.subscribe((status) => {
 
-        // console.log('initialiser form 1 subsc', this.form1.value, this.verification);
-        if (status === 'VALID') {
+        // console.log(typeof this.detailService.filtre);
+        let status = this.form1.status;
+        if (status == 'VALID') {
           const donne = this.form1.value;
           this.initOperation(donne);
-          // this.detailService
-          //   .filtre(donne.ligne, donne.plan, donne.fonction)
-          //   .subscribe(async (res: VueGlobal[]) => {
-          //     this.operations = new Operations().cast(res);
-
-          //     const unite = await this.detailService.getUnite();
-          //     // this.detailService.getUnite().subscribe(res => {
-          //     this.unites = unite;
-
-          //   });
         }
-      });
+        this.form1.statusChanges.subscribe((status) => {
+
+          // console.log('initialiser form 1 subsc', this.form1.value, this.verification);
+          if (status === 'VALID') {
+            const donne = this.form1.value;
+            this.initOperation(donne);
+            // this.detailService
+            //   .filtre(donne.ligne, donne.plan, donne.fonction)
+            //   .subscribe(async (res: VueGlobal[]) => {
+            //     this.operations = new Operations().cast(res);
+
+            //     const unite = await this.detailService.getUnite();
+            //     // this.detailService.getUnite().subscribe(res => {
+            //     this.unites = unite;
+
+            //   });
+          }
+        });
 
 
-      this.updateFiltered3();
+        this.updateFiltered3();
 
-      this.subscribeToFormChanges();
-      // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
+        this.subscribeToFormChanges();
+        // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
+      }
     });
   }
 
@@ -624,7 +637,6 @@ export class Stepper {
     const formArray = this.form2.get('formArray') as FormArray;
     const values = formArray.value;
     this.colone_form3 = values.map((item: any) => item.operation);
-    // console.log('colonne form 3 verif', this.colone_form3);
     const colonneForm = this.operations
       .map((operation: Operation) =>
         operation && this.colone_form3.includes(operation.id_operation)
@@ -641,9 +653,6 @@ export class Stepper {
       )
       .filter((ind) => ind !== null && ind !== undefined);
 
-
-    // this.id_form_colonne = this.operations.map((operation: Operation) => (operation && this.colone_form3.includes(operation.id_operation)) ? operation.id_operation : null).filter(ind => ind !== null && ind !== undefined);
-
     this.colone_form3 = colonneForm;
 
     if (this.verification) {
@@ -655,26 +664,13 @@ export class Stepper {
       this.generated = true;
       this.updateFiltered3();
     }
-
-
-    // console.log('colonne form', this.colone_form3);
-    // console.log('form 3 value', this.form3.value);
-    // console.log( 'colonne', colonneForm, 'values', values, 'colonneForm', this.colone_form3 );
-
     let formulaire3 = this.form3.controls['formErreur'] as FormArray;
     this.removeEmptyTypeErreurGroups();
-    // console.log('formulauire ', formulaire3, this.verification, (!formulaire3 || formulaire3.length === 0) || !this.verification)
     if ((!formulaire3 || formulaire3.length === 0) || !this.verification) {
       this.ajouterLigne(colonneForm, '', 0);
     }
 
     this.updateFiltered3();
-    // console.log('initialiser form 1 apres', this.form1.value, this.verification);
-    // console.log('form 3 value', this.form3.controls);
-    // this.detailService.filtre('ligne1', 'plan1', 'fonction1').subscribe((resultats: Operations[]) => {
-    //   console.log('resultats', resultats);
-    //   this.operations = resultats;
-    // });
   }
 
   // filtre() {
@@ -696,77 +692,130 @@ export class Stepper {
     });
   }
 
+  // genererGroup(colonne: string[] = [], value: any, update: number): FormGroup | null {
+  //   let unique: boolean = false;
+  //   let group: { [key: string]: any } = {};
+  //   if (value) {
+
+  //     let verfierErreur = this.verifierTypeErreur(value.libelle_erreur);
+  //     if (!verfierErreur) {
+  //       group = {
+  //         typeErreur: ['', Validators.required],
+  //         degre: ['', Validators.required],
+  //         coef: ['', Validators.required],
+  //         raccourci: ['', Validators.required],
+  //       };
+
+  //       group['typeErreur'] = [value.libelle_erreur || '', Validators.required];
+  //       group['degre'] = [value.est_majeur ? 1 : 0, Validators.required];
+  //       group['coef'] = [value.coef || 0, Validators.required];
+  //       group['raccourci'] = [value.raccourci || '', Validators.required];
+
+  //       if (this.id_form_colonne) {
+  //         const colonneNonVide = colonne.filter(
+  //           (res) => res != '' && res != null && res != undefined
+  //         );
+  //         if (colonneNonVide.length === 1) {
+  //           unique = true;
+  //         }
+
+  //         for (const [index, id_colone] of this.id_form_colonne.entries()) {
+  //           if (id_colone === value.operation_de_control.toString() && this.verification?.erreur.some((obj: any) => obj.operation_de_control)) {
+  //             group[colonne[index]] = [value.valable];
+  //           }
+  //         }
+  //       }
+
+  //     } else {
+  //       if (this.id_form_colonne) {
+  //         for (const [index, id_colone] of this.id_form_colonne.entries()) {
+  //          if (id_colone === value.operation_de_control.toString()) {         if (!(verfierErreur as FormGroup).contains(colonne[index])) {
+  //               (verfierErreur as FormGroup).addControl(colonne[index], this.fb.control(value.valable));
+  //             } else {
+  //               (verfierErreur as FormGroup).get(colonne[index])?.setValue(value.valable);
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   } else if (!value && update == 0) {
+  //     group = {
+  //       typeErreur: ['', Validators.required],
+  //       degre: ['', Validators.required],
+  //       coef: ['', Validators.required],
+  //       raccourci: ['', Validators.required],
+  //     };
+  //     colonne.forEach((col) => {
+  //       group[col] = [''];
+  //     });
+  //   }
+  //   // else {
+  //   //   colonne.forEach((col) => {
+  //   //     group[col] = [''];
+  //   //   });
+
+  //   // }
+
+
+  //   // Only return a FormGroup if group is not null or empty
+  //   if (group && Object.keys(group).length > 0) {
+  //     return this.fb.group(group);
+  //   }
+  //   return null;
+  // }
   genererGroup(colonne: string[] = [], value: any, update: number): FormGroup | null {
-    let unique: boolean = false;
-    let group: { [key: string]: any } = {};
+    let group: any = {};
+
     if (value) {
-
-      let verfierErreur = this.verifierTypeErreur(value.libelle_erreur);
-      if (!verfierErreur) {
+      const err = this.verifierTypeErreur(value.libelle_erreur);
+      if (!err) {
         group = {
-          typeErreur: ['', Validators.required],
-          degre: ['', Validators.required],
-          coef: ['', Validators.required],
-          raccourci: ['', Validators.required],
+          idErreur: [value.id_type_erreur || -1],
+          typeErreur: [value.libelle_erreur || '', Validators.required],
+          degre: [value.est_majeur ? 1 : 0, Validators.required],
+          coef: [value.coef || 0, Validators.required],
+          raccourci: [value.raccourci || '', Validators.required],
         };
-
-        group['typeErreur'] = [value.libelle_erreur || '', Validators.required];
-        group['degre'] = [value.est_majeur ? 1 : 0, Validators.required];
-        group['coef'] = [value.coef || 0, Validators.required];
-        group['raccourci'] = [value.raccourci || '', Validators.required];
-
-        if (this.id_form_colonne) {
-          const colonneNonVide = colonne.filter(
-            (res) => res != '' && res != null && res != undefined
-          );
-          if (colonneNonVide.length === 1) {
-            unique = true;
-          }
-
-          for (const [index, id_colone] of this.id_form_colonne.entries()) {
-            if (id_colone === value.operation_de_control.toString() && this.verification?.erreur.some((obj: any) => obj.operation_de_control)) {
-              group[colonne[index]] = [value.valable];
-            }
-          }
-        }
-
+        this.id_form_colonne?.forEach((id, i) =>
+          id === value.operation_de_control.toString() &&
+          this.verification?.erreur.some((o: any) => o.operation_de_control) &&
+          (group[colonne[i]] = [value.valable])
+        );
       } else {
-        if (this.id_form_colonne) {
-          for (const [index, id_colone] of this.id_form_colonne.entries()) {
-           if (id_colone === value.operation_de_control.toString()) {         if (!(verfierErreur as FormGroup).contains(colonne[index])) {
-                (verfierErreur as FormGroup).addControl(colonne[index], this.fb.control(value.valable));
-              } else {
-                (verfierErreur as FormGroup).get(colonne[index])?.setValue(value.valable);
-              }
-            }
+        this.id_form_colonne?.forEach((id, i) => {
+          if (id === value.operation_de_control.toString()) {
+            const fg = err as FormGroup;
+            fg.contains(colonne[i])
+              ? fg.get(colonne[i])?.setValue(value.valable)
+              : fg.addControl(colonne[i], this.fb.control(value.valable));
           }
-        }
+        });
       }
-    } else if (!value && update == 0) {
+    } else if (!value && update === 0) {
       group = {
+        idErreur: [-1],
         typeErreur: ['', Validators.required],
         degre: ['', Validators.required],
         coef: ['', Validators.required],
         raccourci: ['', Validators.required],
+        ...Object.fromEntries(colonne.map((c) => [c, ['']])),
       };
-      colonne.forEach((col) => {
-        group[col] = [''];
-      });
     }
-    // else {
-    //   colonne.forEach((col) => {
-    //     group[col] = [''];
-    //   });
 
-    // }
+    if (!Object.keys(group).length) return null;
 
+    const fg = this.fb.group(group);
+    const toggle = (enable: boolean) =>
+      Object.keys(fg.controls).forEach(
+        (k) => k !== 'typeErreur' && (enable ? fg.get(k)?.enable({ emitEvent: false }) : fg.get(k)?.disable({ emitEvent: false }))
+      );
 
-    // Only return a FormGroup if group is not null or empty
-    if (group && Object.keys(group).length > 0) {
-      return this.fb.group(group);
-    }
-    return null;
+    toggle(!!fg.get('typeErreur')?.value);
+    fg.get('typeErreur')?.valueChanges.subscribe((v) => toggle(!!v));
+
+    return fg;
   }
+
 
   ajouterLigne(colonne: string[] = [], value: any, update: number) {
     // console.log('ajouter ligne', colonne)
