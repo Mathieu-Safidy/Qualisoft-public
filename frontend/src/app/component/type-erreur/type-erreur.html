@@ -102,7 +102,7 @@
                 [formul]="formArray.at(i)"
                 [isAutoComplete]="{value: true, name: 'typeErreur'}"
                 [colonne]="'type_erreur'"
-                [idColonne]="'id_erreur'"
+                [idColonne]="'type_erreur'"
                 [foreign]="[{name:'id_projet', value: projectID()}]"
                 (debouncedValue)="updateValue($event)"
                 [identity]="formArray.at(i).get('idErreur')?.value"
@@ -124,10 +124,14 @@
               <select
                 name=""
                 id=""
-                name="degre"
+                name="detail_projet.type_erreur:est_majeur"
                 class="col-2 form-control"
                 id=""
                 formControlName="degre"
+                appDebounced
+                (debouncedValue)="updateValue($event)"
+                [identity]="formArray.at(i).get('idErreur')?.value"
+                [isAutoComplete]="{value: false}"
               >
                 <option value="0">Mineure</option>
                 <option value="1">Majeure</option>
@@ -137,7 +141,11 @@
             <td>
               <input
                 type="text"
-                name="coef"
+                appDebounced
+                name="detail_projet.type_erreur:coef"
+                (debouncedValue)="updateValue($event)"
+                [identity]="formArray.at(i).get('idErreur')?.value"
+                [isAutoComplete]="{value: false}"
                 class="col-2 form-control"
                 (blur)="formatSeuilQualite(i)"
                 (keypress)="filterInput($event)"
@@ -148,23 +156,30 @@
             <td>
               <input
                 type="text"
-                name="raccourci"
                 class="col-2 form-control"
                 id=""
                 formControlName="raccourci"
+                name="detail_projet.type_erreur:raccourci"
+                appDebounced
+                (debouncedValue)="updateValue($event)"
+                [identity]="formArray.at(i).get('idErreur')?.value"
               />
             </td>
-            <ng-container *ngFor="let col of lister()">
+            <ng-container *ngFor="let col of lister() ; let j = index ">
               <td class="text-center align-middle checker">
                 <div class="d-flex justify-content-center align-items-center">
                   <input
                     *ngIf="col && col !== ''"
                     type="checkbox"
-                    name="{{ col }}"
                     class="form-check-input"
                     id=""
                     style="width: 30px; height: 30px"
                     formControlName="{{ col }}"
+                    name="detail_projet.erreur_valable:validite"
+                    appDebounced
+                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: j , col} }]"
+                    (debouncedValue)="updateValueCheck($event)"
+                    [identity]="formArray.at(i).get('idErreur')?.value"
                     (click)="(lister()[1] == '' && !exist()) ? $event.preventDefault() : null"
                   />
                   <input
@@ -174,7 +189,10 @@
                     name="control"
                     class="form-check-input"
                     id=""
-                    
+                    appDebounced
+                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value }]"
+                    (debouncedValue)="updateValueCheck($event)"
+                    [identity]="formArray.at(i).get('idErreur')?.value"
                     style="width: 30px; height: 30px"
                     [disabled]="true"
                     
@@ -186,6 +204,7 @@
               <button
                 type="button"
                 class="btn btn-danger form-control"
+                
                 (click)="trigerRemove(i)"
               >
                 Suprimer

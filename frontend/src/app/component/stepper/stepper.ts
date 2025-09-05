@@ -587,6 +587,12 @@ export class Stepper {
       });
   }
 
+  takeIdEtape(id_operation: string): string {
+    const etape_qualite = this.form2.get('formArray') as FormArray;
+    const etape = etape_qualite.controls.find((fg) => (fg as FormGroup).get('operation')?.value === id_operation) as FormGroup | undefined;
+    return etape ? etape.get('id_etape_qualite')?.value : '';
+  }
+
   subscribeToFormChanges() {
     // this.formInterlocuteur?.valueChanges.subscribe((value) => {
 

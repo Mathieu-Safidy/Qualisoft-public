@@ -32,6 +32,7 @@ import { DetailProjectService } from '../../service/DetailProjectService';
 })
 export class TypeErreur {
   readonly form = input.required<FormGroup>();
+  readonly formEtape = input<FormGroup>();
   readonly colonne = input<string[]>([]);
   readonly erreurs = input<any[]>([]);
   @Output() addLigne = new EventEmitter<void>();
@@ -39,6 +40,8 @@ export class TypeErreur {
   exist = input<boolean>(false);
   detailService = inject(DetailProjectService);
   projectID = input<number>(-1);
+  id_colonne = input<string[]|number[]>([]);
+  findIdEtape = input<(id_operation: string) => string>(() => '');
 
   readonly filteredOperations = input.required<Observable<Erreur[]>[]>();
 
@@ -83,6 +86,11 @@ export class TypeErreur {
     return colonne;
   }
 
+  takeIdEtape(id_operation: string): string {
+    const etape_qualite = this.formEtape()?.get('formArray') as FormArray;
+    const etape = etape_qualite.controls.find((fg) => (fg as FormGroup).get('operation')?.value === id_operation) as FormGroup | undefined;
+    return etape ? etape.get('id_etape_qualite')?.value : '';
+  }
 
 
   get formGroup() {
@@ -97,6 +105,30 @@ export class TypeErreur {
     const { id, value , name } = event;
     console.log("Debounced event:", event);
     await this.detailService.updateUnitaire(id, value, name)
+  }
+  
+  async updateValueCheck(event: any) {
+    let { id, value , name } = event;
+    let id_etape = this.takeIdEtape(value.id_operation);
+    let { validite, id_operation, id_type_erreur , champ } = value;
+    let updateValue = { 'id_etape_qualite': id_etape, 'id_type_erreur': id_type_erreur};
+    console.log("Debounced event:", event, 'update value ', updateValue , 'name', champ);
+    let result: any = null;
+    if (validite) {
+      id = -1;
+      console.log("Update result:", result);
+      let checker = this.formArray.at(champ.index).get(champ.col);
+      this.detailService.updateUnitaire(id, updateValue, name).then(res => {
+        checker?.setValue(!(checker?.value), { emitEvent: false });
+      }).catch(err => {
+        checker?.setValue(checker?.value ?? false, { emitEvent: false });
+        alert("Erreur lors de l'ajout d'option");
+      });
+      console.log("Update result:", result );
+    } else {
+      id = 0;
+      result = await this.detailService.updateUnitaire(id, updateValue, name , true)
+    }
   }
 
   checkValid() {

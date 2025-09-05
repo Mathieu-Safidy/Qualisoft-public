@@ -11,7 +11,7 @@ export class Debounced {
 
   timeout = input<number>(300);
   identity = input<string | number>();
-  debouncedValue = output<{ id: string | number; value: string; name: string }>();
+  debouncedValue = output<{ id: string | number; value: string; name: string , event?: Event}>();
   isAutoComplete = input<{ value: boolean, name?: string }>({ value: false, name: '' });
   statique = input<boolean>(false);
   formul = input<FormGroup>();
@@ -47,7 +47,7 @@ export class Debounced {
         .pipe(
           debounceTime(this.timeout()),
           takeUntil(this.destroy$))
-        .subscribe(() => this.emitIfChanged({ element: element }));
+        .subscribe((event) => this.emitIfChanged({ element: element , event: event as Event }));
     } else {
       if (this.formul()) {
         console.log('formulaire field ', this.formul(), this.formul()?.get(this.isAutoComplete().name ?? ''))
@@ -80,7 +80,7 @@ export class Debounced {
     return value;
   }
 
-  private emitIfChanged(corps: { element: any, value?: any }) {
+  private emitIfChanged(corps: { element: any, value?: any, event?: Event }) {
     let verif = false;
     if (this.liste().length) {
       verif = this.validation(corps.value);
@@ -100,10 +100,6 @@ export class Debounced {
     if ((value !== this.lastValue && this.verifier()) || !this.verifier()) {
       const id = this.identity() ?? -1;
       let name = corps.element.getAttribute('name') || '';
-      // if(this.foreign().name && this.foreign().value) {
-      //   let [shema,columName] = name.split(':');
-      //   value = { [columName]: value, [String(this.foreign().name)]: this.foreign().value }
-      // }
       if (this.foreign() && this.foreign().length > 0) {
         let [schema, columName] = name.split(':');
 
@@ -115,8 +111,9 @@ export class Debounced {
 
         value = { [columName]: value, ...extra };
       }
-
-      let val = { id, value, name };
+      
+      let val = { id, value, name, event: corps.event };
+      
       console.log("emitIfChanged ", value, this.lastValue, val, this.foreign());
       this.debouncedValue.emit(val); // fonctionne avec Angular 20+
       this.lastValue = value;
