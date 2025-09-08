@@ -4,20 +4,26 @@
       <a href="#"><span class="icon icon-home"> </span></a>
     </li> -->
     <li>
-      <a><span class="icon icon-beaker"> </span> {{ nom_line }} ({{ defaultLine }})</a>
-    </li>
-    <li>
       <a
-        ><span class="icon icon-double-angle-right"></span> {{ nom_client }} ({{ client }})</a
+        ><span class="icon icon-beaker"> </span> {{ nom_line }} ({{ defaultLine
+        }})</a
       >
     </li>
     <li>
-      <a><span class="icon icon-rocket"> </span> {{ nom_fonction }} ({{ defaultFonction }})</a>
+      <a
+        ><span class="icon icon-double-angle-right"></span> {{ nom_client }} ({{
+        client }})</a
+      >
+    </li>
+    <li>
+      <a
+        ><span class="icon icon-rocket"> </span> {{ nom_fonction }} ({{
+        defaultFonction }})</a
+      >
     </li>
   </ul>
 </div>
 <mat-horizontal-stepper [linear]="true" (selectedIndexChange)="generate()">
-  
   <mat-step [stepControl]="form1" class="" label="Detail de projet">
     <app-project-detail
       [form]="form1"
@@ -47,7 +53,8 @@
   </mat-step>
 
   <mat-step [stepControl]="formInterlocuteur" class="" label="Detail client">
-    <app-detail-client [form]="formInterlocuteur" [projectID]="id_projet"> </app-detail-client>
+    <app-detail-client [form]="formInterlocuteur" [projectID]="id_projet">
+    </app-detail-client>
     <div class="row mt-3">
       <div class="col-9">
         <button mat-button matStepperPrevious class="btn border rounded-3">
@@ -99,6 +106,48 @@
       </div>
     </div>
   </mat-step>
+
+  @if (isBcqControle) {
+  <mat-step label="BCQ Param">
+    <app-bcq-parameter> </app-bcq-parameter>
+    <div class="row mt-3">
+      <div class="col-9">
+        <button mat-button matStepperPrevious class="btn border rounded-3">
+          Précédent
+        </button>
+      </div>
+      <div class="col-3 text-end">
+        <button
+          class="btn border rounded-3 bg-primary text-white"
+          mat-button
+          matStepperNext
+        >
+          Suivant
+        </button>
+      </div>
+    </div>
+  </mat-step>
+  } @if (isExterneControl) {
+  <mat-step label="Contrôle Externe">
+    <app-externe-parameter> </app-externe-parameter>
+    <div class="row mt-3">
+      <div class="col-9">
+        <button mat-button matStepperPrevious class="btn border rounded-3">
+          Précédent
+        </button>
+      </div>
+      <div class="col-3 text-end">
+        <button
+          class="btn border rounded-3 bg-primary text-white"
+          mat-button
+          matStepperNext
+        >
+          Suivant
+        </button>
+      </div>
+    </div>
+  </mat-step>
+  }
 
   <mat-step [stepControl]="form3" label="Type d'erreur">
     <app-type-erreur

@@ -1,4 +1,4 @@
-import { Component, inject, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, Inject } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -34,6 +34,8 @@ import { Clonage } from '../clonage/clonage';
 import { MatDialog } from '@angular/material/dialog';
 import { CacheData } from '../../service/cache-data';
 import { Injectable } from '@angular/core';
+import { BcqParameter } from "../bcq-parameter/bcq-parameter";
+import { ExterneParameter } from "../externe-parameter/externe-parameter";
 
 @Injectable({ providedIn: 'root' })
 export class StepperStateService {
@@ -50,8 +52,10 @@ export class StepperStateService {
     ProjectDetail,
     ObjectifQualite,
     TypeErreur,
-    DetailClient
-  ],
+    DetailClient,
+    BcqParameter,
+    ExterneParameter
+],
   templateUrl: './stepper.html',
   styleUrl: './stepper.css',
 })
@@ -103,6 +107,11 @@ export class Stepper {
   defaultOperation!: string;
   cachedata = inject(CacheData);
   id_projet!: number;
+  isBcqControle: boolean = false;
+  isExterneControl: boolean = false;
+
+  cdr = inject(ChangeDetectorRef)
+
 
   allUser = [
     { matricule: 'CP1', pseudo: 'Rakoto' },
@@ -398,6 +407,16 @@ export class Stepper {
         // Remplir form2 avec les données existantes si elles sont présentes dans verifier
         const formArrayData = this.verification?.etape || [];
 
+      let bcqTypeControle = formArrayData.some((fa: any) => fa.type_de_controle === 1);
+      let externeTypeCtrl = formArrayData.some((fa: any) => fa.type_de_controle === 2);
+      console.log("bcqTypeControle", bcqTypeControle, formArrayData);
+      if (bcqTypeControle) {
+        this.isBcqControle = true;
+      } 
+      if (externeTypeCtrl) {
+        this.isExterneControl = true;
+      }
+
         this.form2 = this.fb.group({
           formArray: this.fb.array(
             (formArrayData.length > 0 ? formArrayData : this.items).map((item: any) => {
@@ -572,6 +591,7 @@ export class Stepper {
         this.subscribeToFormChanges();
         // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
       }
+      this.verfierTypeControl();
     });
   }
 
@@ -587,11 +607,23 @@ export class Stepper {
       });
   }
 
-  takeIdEtape(id_operation: string): string {
-    const etape_qualite = this.form2.get('formArray') as FormArray;
-    const etape = etape_qualite.controls.find((fg) => (fg as FormGroup).get('operation')?.value === id_operation) as FormGroup | undefined;
-    return etape ? etape.get('id_etape_qualite')?.value : '';
+  verfierTypeControl() {
+    this.form2.valueChanges.pipe(debounceTime(500)).subscribe(value => {
+      let formArray = value.formArray;
+      let bcq = formArray.some((fa: any) => parseInt(fa.typeControl) === 1);
+      let externe = formArray.some((fa: any) => parseInt(fa.typeControl) === 2);
+      console.log("verification type de pcontrol ", formArray, 'condition', bcq);
+      if (this.isBcqControle !== bcq) {
+        this.isBcqControle = bcq;
+        this.cdr.detectChanges();
+      }
+      if (this.isExterneControl !== externe) {
+        this.isExterneControl = externe;
+        this.cdr.detectChanges();
+      }
+    })
   }
+
 
   subscribeToFormChanges() {
     // this.formInterlocuteur?.valueChanges.subscribe((value) => {
