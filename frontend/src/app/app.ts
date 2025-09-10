@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Corp } from './component/corp/corp';
 import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
-import { faCoffee, faUser, faBlog, faGear, faArrowLeft, faArrowAltCircleLeft, faArrowRight, faChevronRight, faPlusCircle, faMinusCircle, faKey, } from '@fortawesome/free-solid-svg-icons';
+import { faCoffee, faUser, faBlog, faGear, faArrowLeft, faArrowAltCircleLeft, faArrowRight, faChevronRight, faPlusCircle, faMinusCircle, faKey, faTrash, } from '@fortawesome/free-solid-svg-icons';
 import { Login } from './pages/login/login';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -28,7 +28,7 @@ export class App {
   private domaine = "Dashboard"
   protected title = 'prod';
   constructor(library: FaIconLibrary, private router: Router, private route: ActivatedRoute) {
-    library.addIcons(faCoffee, faUser, faBlog, faGear, faArrowLeft, faArrowAltCircleLeft, faArrowRight, faChevronRight, faArrowRight, faPlusCircle, faMinusCircle, faUser, faKey);
+    library.addIcons(faCoffee, faUser, faBlog, faGear, faArrowLeft, faArrowAltCircleLeft, faArrowRight, faChevronRight, faArrowRight, faPlusCircle, faMinusCircle, faUser, faKey, faTrash);
   }
   ngOnInit() {
     // console.log("test")

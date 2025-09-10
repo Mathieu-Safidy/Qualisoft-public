@@ -1,22 +1,167 @@
 <div class="container mt-3">
   <div class="row">
-    <div class="card">
-      <div class="card-body">
-        <div class="row mt-3">
-            <div class="col-6">Serveur contenant du fichier à contrôler</div>
-            <div class="col-6"><input type="text" class="form-control" placeholder="-----------  Entrez l'URL du serveur fichier à contrôler -----------" /></div>
-        </div>
-        
-        <div class="row mt-3">
-            <div class="col-6">Serveur contenant des images correspondantes</div>
-            <div class="col-6"><input type="text" class="form-control" placeholder="-----------  Entrez l'URL des images correspondantes -----------" /></div>
-        </div>
+    <form action="" [formGroup]="form()!">
+      <div class="card mt-3">
+        <div class="card-body">
+          <table border="1" class="table table-bordered">
+            <thead>
+              <tr class="text-center">
+                <th class="" colspan="3"><h1>Consignes</h1></th>
+              </tr>
+            </thead>
+            <tbody class="" formGroupName="consigne">
+              <tr class="text-center">
+                <th>
+                  <div
+                    [placement]="['top']"
+                    [autoClose]="'true'"
+                    [triggers]="'mouseenter:mouseleave'"
+                    popoverClass="my-custom-popover"
+                    [ngbPopover]="popoverInfo"
+                  >
+                    <span
+                      matBadge="!"
+                      matBadgeOverlap="false"
+                      [matBadgePosition]="'before'"
+                      >Validité</span
+                    >
+                  </div>
+                </th>
+                <th>
+                  <div
+                    [placement]="['top']"
+                    [autoClose]="'true'"
+                    [triggers]="'mouseenter:mouseleave'"
+                    popoverClass="my-custom-popover"
+                    [ngbPopover]="popoverStructure"
+                  >
+                    <span
+                      matBadge="!"
+                      matBadgeOverlap="false"
+                      [matBadgePosition]="'before'"
+                      >Structure</span
+                    >
+                  </div>
+                </th>
+                <th>
+                  <div
+                    [placement]="['top']"
+                    [autoClose]="'true'"
+                    [triggers]="'mouseenter:mouseleave'"
+                    popoverClass="my-custom-popover"
+                    [ngbPopover]="popoverExhaustivite"
+                  >
+                    <span
+                      matBadge="!"
+                      matBadgeOverlap="false"
+                      [matBadgePosition]="'before'"
+                      >Exhaustivite</span
+                    >
+                  </div>
+                </th>
+              </tr>
+              <tr class="text-center">
+                <td>
+                  <textarea formControlName="validite"
+                  appDebounced
+                  name="detail_projet.param_bcq:validite"
+                  (debouncedValue)="updateValueConsigne($event)"
+                  [identity]="consigneGroup.get('id_param_bcq')?.value"
+                  [foreign]="[{name: 'id_projet', value: projectID()}]"
+                  [isAutoComplete]="{value: false}"
+                  class="form-control" id=""></textarea>
+                </td>
+                <td>
+                  <textarea formControlName="structure"
+                  appDebounced
+                  name="detail_projet.param_bcq:structure"
+                  [identity]="consigneGroup.get('id_param_bcq')?.value"
+                  (debouncedValue)="updateValueConsigne($event)"
+                  [foreign]="[{name: 'id_projet', value: projectID()}]"
+                  [isAutoComplete]="{value: false}"
 
-        <div class="row mt-3">
-            <div class="col-6">Serveur contenant des BCQ</div>
-            <div class="col-6"><input type="text" class="form-control" placeholder="--------------------  Entrez l'URL du serveur BCQ ------------------------" /></div>
+                  class="form-control" id=""></textarea>
+                </td>
+                <td>
+                  <textarea formControlName="exhaustivite"
+                  appDebounced
+                  name="detail_projet.param_bcq:exhaustivite"
+                  [identity]="consigneGroup.get('id_param_bcq')?.value"
+                  (debouncedValue)="updateValueConsigne($event)"
+                  [foreign]="[{name: 'id_projet', value: projectID()}]"
+                  [isAutoComplete]="{value: false}"
+                  class="form-control" id=""></textarea>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <ng-template #popoverInfo>
+            <p>
+              Vérifier que les fichiers respectent les formats requis et que le
+              lot à livrer ne contient aucun fichier corrompu
+            </p>
+          </ng-template>
+          <ng-template #popoverStructure>
+            <p>
+              Vérifier que les fichiers respectent la nomenclature requise et
+              que les en-têtes ou balises sont conformes aux spécifications.
+            </p>
+          </ng-template>
+          <ng-template #popoverExhaustivite>
+            <p>Le volume reçu correspond au volume à livrer</p>
+          </ng-template>
         </div>
       </div>
-    </div>
+
+      @if (consigneGroup.get('id_param_bcq')?.value != -1 ) {
+        
+      <div class="card mt-3" formArrayName="stockage">
+        <div class="row pe-3 ps-3">
+          <div class="col-12 mt-3">
+            <div class="row">
+              <div class="col-4 text-center fw-bold align-content-center "><h5>Libelle</h5></div>
+              <div class="col-4 text-center fw-bold align-content-center "><h5>Emplacement</h5></div>
+              <div class="col-4 text-end">
+                <button type="button" class="btn btn-success" (click)="addStockage.emit()"><fa-icon icon="plus-circle" ></fa-icon> Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-0" >
+          @for (stockage of stockageArray.controls; let i = $index; track $index) {
+            <div class="row mt-3" [formGroupName]="i">
+              <div class="col-4">
+                <input type="text"
+                appDebounced
+                name="detail_projet.info_bcq:libelle"
+                [identity]="stockageArray.at(i).get('id_info_bcq')?.value"
+                (debouncedValue)="updateValueInfo($event)"
+                [foreign]="[{name:'id_param_bcq', value: consigneGroup.get('id_param_bcq')?.value},{name:'position', value: i}]"
+                [isAutoComplete]="{value: false}"
+                formControlName="libelle" class="form-control" placeholder="--- Libellé du stockage ---"/>
+              </div>
+              <div class="col-7">
+                <input
+                  type="text"
+                  class="form-control"
+                  appDebounced
+                  name="detail_projet.info_bcq:valeur"
+                  [identity]="stockageArray.at(i).get('id_info_bcq')?.value"
+                  (debouncedValue)="updateValueInfo($event)"
+                  [foreign]="[{name:'id_param_bcq', value: consigneGroup.get('id_param_bcq')?.value},{name:'position', value: i}]"
+                  [isAutoComplete]="{value: false}"
+                  placeholder="-----------  Entrez l'URL (lien vers le fichier) -----------"
+                  formControlName="emplacement"
+                />
+              </div>
+              <div class="col-1">
+                <button type="button" class="btn btn-danger form-control" (click)="deleteStockage.emit(i)" ><fa-icon icon="trash"></fa-icon></button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      }
+    </form>
   </div>
 </div>

@@ -104,10 +104,11 @@ export class Debounced {
         let [schema, columName] = name.split(':');
 
         let extra = Object.fromEntries(
-          this.foreign()
-            .filter(f => f.name && f.value)
-            .map(f => [String(f.name), f.value])
+        this.foreign()
+          .filter(f => f.name && f.value !== null && f.value !== undefined && f.value !== '')
+          .map(f => [String(f.name), f.value])
         );
+
 
         value = { [columName]: value, ...extra };
       }

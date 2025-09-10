@@ -55,7 +55,7 @@ export class StepperStateService {
     DetailClient,
     BcqParameter,
     ExterneParameter
-],
+  ],
   templateUrl: './stepper.html',
   styleUrl: './stepper.css',
 })
@@ -66,6 +66,7 @@ export class Stepper {
   formInterlocuteur!: FormGroup;
   form2!: FormGroup;
   form3!: FormGroup;
+  bcqForm!: FormGroup;
 
   colone_form3: string[] = [];
   id_form_colonne: string[] = [];
@@ -322,6 +323,18 @@ export class Stepper {
       this.nom_client = this.plan[0].libelle || '';
       this.nom_fonction = this.fonction[0].libelle || '';
       this.nom_line = this.ligne[0].libelle || '';
+
+
+      this.bcqForm = this.fb.group({
+        consigne: this.fb.group({
+          id_param_bcq: [-1],
+          validite: ['', Validators.required],
+          structure: ['', Validators.required],
+          exhaustivite: ['', Validators.required],
+        }),
+        stockage: this.fb.array([])
+      });
+
       if (this.verification) {
         this.updateData = true;
         this.existVerif = true;
@@ -407,15 +420,15 @@ export class Stepper {
         // Remplir form2 avec les données existantes si elles sont présentes dans verifier
         const formArrayData = this.verification?.etape || [];
 
-      let bcqTypeControle = formArrayData.some((fa: any) => fa.type_de_controle === 1);
-      let externeTypeCtrl = formArrayData.some((fa: any) => fa.type_de_controle === 2);
-      console.log("bcqTypeControle", bcqTypeControle, formArrayData);
-      if (bcqTypeControle) {
-        this.isBcqControle = true;
-      } 
-      if (externeTypeCtrl) {
-        this.isExterneControl = true;
-      }
+        let bcqTypeControle = formArrayData.some((fa: any) => fa.type_de_controle === 1);
+        let externeTypeCtrl = formArrayData.some((fa: any) => fa.type_de_controle === 2);
+        console.log("bcqTypeControle", bcqTypeControle, formArrayData);
+        if (bcqTypeControle) {
+          this.isBcqControle = true;
+        }
+        if (externeTypeCtrl) {
+          this.isExterneControl = true;
+        }
 
         this.form2 = this.fb.group({
           formArray: this.fb.array(
@@ -480,6 +493,25 @@ export class Stepper {
         });
 
 
+        this.bcqForm.patchValue({
+          consigne: {
+            id_param_bcq: this.verification.bcq_donnees[0]?.id_param_bcq || -1,
+            validite: this.verification.bcq_donnees[0]?.validite || '',
+            structure: this.verification.bcq_donnees[0]?.structure || '',
+            exhaustivite: this.verification.bcq_donnees[0]?.exhaustivite || '',
+          }
+        })
+
+        if (this.verification.info_bcq && this.verification.info_bcq.length > 0) {
+          this.verification.info_bcq.forEach((info: any) => {
+            this.addStockage(info.libelle, info.valeur, info.id_info_bcq);
+          })
+        } else {
+          this.addStockage();
+        }
+         
+
+        console.log("Valeur initiale bcqForm:", this.bcqForm.value, this.verification.bcq_donnees[0]);
 
         // console.log('form 2 value', this.form2.value);
         this.generate();
@@ -586,6 +618,9 @@ export class Stepper {
         });
 
 
+        this.addStockage();
+
+
         this.updateFiltered3();
 
         this.subscribeToFormChanges();
@@ -593,6 +628,44 @@ export class Stepper {
       }
       this.verfierTypeControl();
     });
+  }
+
+  /**
+ * Getter pratique pour accéder facilement au stockage
+ */
+  get stockage(): FormArray {
+    return this.bcqForm.get('stockage') as FormArray;
+  }
+
+  /**
+   * Ajoute un item dans stockage
+   */
+  addStockage(libelle: string = '', emplacement: string = '', id: number|string = -1) {
+    const group = this.fb.group({
+      id_info_bcq: [id],
+      libelle: [libelle, Validators.required],
+      emplacement: this.fb.control(
+        { value: emplacement, disabled: !libelle }, // désactivé si libelle vide
+        Validators.required
+      )
+    });
+
+    // 🔑 Abonnement dynamique : si libelle change, on active/désactive emplacement
+    group.get('libelle')?.valueChanges.subscribe(value => {
+      const emplacementCtrl = group.get('emplacement');
+      if (!value) {
+        emplacementCtrl?.disable({ emitEvent: false });
+        emplacementCtrl?.reset('', { emitEvent: false });
+      } else {
+        emplacementCtrl?.enable({ emitEvent: false });
+      }
+    });
+
+    this.stockage.push(group);
+  }
+
+  deleteStockage(index: number) {
+    this.stockage.removeAt(index);
   }
 
   initOperation(donne: any) {
