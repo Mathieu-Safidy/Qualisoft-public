@@ -67,6 +67,7 @@ export class Stepper {
   form2!: FormGroup;
   form3!: FormGroup;
   bcqForm!: FormGroup;
+  externeForm!: FormGroup;
 
   colone_form3: string[] = [];
   id_form_colonne: string[] = [];
@@ -141,28 +142,6 @@ export class Stepper {
   ) {
     this.id = route.params.pipe(map((p) => p['id']));
     this.fonctionParam = route.params.pipe(map((p) => p['fonction']));
-    // this.form1 = this.fb.group({
-    //   ligne: ['', Validators.required],
-    //   plan: ['', Validators.required],
-    //   fonction: ['', Validators.required],
-    //   description_traite: ['', Validators.required],
-    //   type_traite: ['', Validators.required],
-    //   client_nom: ['', Validators.required],
-    //   interlocuteur_nom: ['', Validators.required],
-    //   contact_interlocuteur: ['', [Validators.required]],
-    //   cp_responsable: ['', Validators.required],
-    // });
-    // this.form2 = this.fb.group({
-    //   formArray: this.fb.array(this.items.map(item => this.fb.group({
-    //     operation: ['', Validators.required],
-    //     unite: ['', Validators.required],
-    //     seuilQualite: ['', Validators.required],
-    //     typeControl: ['', Validators.required],
-    //     operationAControler: ['', Validators.required],
-    //     critereRejet: ['', Validators.required]
-    //   })
-    //   ))
-    // });
     this.form3 = this.fb.group({
       formErreur: this.fb.array([]),
     });
@@ -200,20 +179,6 @@ export class Stepper {
       );
     // this.fonction = fonctions;
   }
-
-  // onFunctionChange(event: any) {
-  //   let ligne = event.ligne;
-  //   let plan = event.plan;
-  //   let fonction = event.fonction;
-  //   this.operations = this.detailService.filtre(ligne , plan , fonction).pipe(
-  //     map((result: VueGlobal[]) => new Operations().cast(result))
-  //   )
-  // }
-
-  // onFonctionChange(fonction: string) {
-  //   this.selectedFonction = fonction;
-  // }
-
   get formGroup3() {
     return (this.form3.controls['formErreur'] as FormArray)
       .controls as FormGroup[];
@@ -334,6 +299,12 @@ export class Stepper {
         }),
         stockage: this.fb.array([])
       });
+
+      this.externeForm = this.fb.group({
+        indexation: this.fb.array([])
+      });
+
+
 
       if (this.verification) {
         this.updateData = true;
@@ -509,6 +480,14 @@ export class Stepper {
         } else {
           this.addStockage();
         }
+
+        if (this.verification.param_externe && this.verification.param_externe.length > 0) {
+          console.log("param_externe insertion", this.verification.param_externe);
+          this.verification.param_externe.forEach((info: any) => {
+            this.addIndexation(info.libelle, info.onglet || '', info.colonne || '', info.id_param_externe, info.id_champ_param_interne);
+          })
+          console.log("Valeur initiale externeForm après patch:", this.externeForm.controls);
+        }
          
 
         console.log("Valeur initiale bcqForm:", this.bcqForm.value, this.verification.bcq_donnees[0]);
@@ -662,6 +641,30 @@ export class Stepper {
     });
 
     this.stockage.push(group);
+  }
+  addIndexation(libelle: string = '', onglet: string = '', colonne: string = '', id: number|string = -1, id_champ_param_interne: string|number = -1) {
+    const group = this.fb.group({
+      id_param_externe: [id],
+      id_champ_param_interne: [id_champ_param_interne],
+      libelle: [libelle, Validators.required],
+      onglet: [{ value: onglet, disabled: !libelle }, Validators.required],
+      colonne: [{ value: colonne, disabled: !libelle }, Validators.required]
+    });
+
+    // 🔑 Abonnement dynamique : si libelle change, on active/désactive onglet et colonne
+    group.get('libelle')?.valueChanges.subscribe(value => {
+      const ongletCtrl = group.get('onglet');
+      const colonneCtrl = group.get('colonne');
+      if (!value) {
+        ongletCtrl?.disable({ emitEvent: false });
+        colonneCtrl?.disable({ emitEvent: false });
+      } else {
+        ongletCtrl?.enable({ emitEvent: false });
+        colonneCtrl?.enable({ emitEvent: false });
+      }
+    });
+
+    (this.externeForm.get('indexation') as FormArray).push(group);
   }
 
   deleteStockage(index: number) {

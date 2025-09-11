@@ -1,48 +1,58 @@
-<div class="container mt-3">
+<form action="" [formGroup]="form()!">
+  <div class="container mt-3">
     <div class="row text-center mb-3">
-        <h4>Correspondance paramétrage interne vs fichier client</h4>
+      <h4>Correspondance paramétrage interne vs fichier client</h4>
     </div>
     <div class="row">
-        
-        <div class="card">
-            <div class="card-body d-flex justify-content-center">
-                <table class="w-75 table align-middle ">
-                    <thead>
-                        <tr class="text-center">
-                            <th></th>
-                            <th>Onglet</th>
-                            <th>Colonne</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Date Controle</td>
-                            <td><input type="text" class="form-control text-center" name="" id=""></td>
-                            <td><input type="text" class="form-control text-center" name="" id="" maxlength="1"></td>
-                        </tr>
-                        <tr>
-                            <td>Nom du fichier</td>
-                            <td><input type="text" class="form-control text-center" name="" id=""></td>
-                            <td><input type="text" class="form-control text-center" name="" id="" maxlength="1"></td>
-                        </tr>
-                        <tr>
-                            <td>Intervenant</td>
-                            <td><input type="text" class="form-control text-center" name="" id=""></td>
-                            <td><input type="text" class="form-control text-center" name="" id="" maxlength="1"></td>
-                        </tr>
-                        <tr>
-                            <td>Quantite contrôlé</td>
-                            <td><input type="text" class="form-control text-center" name="" id=""></td>
-                            <td><input type="text" class="form-control text-center" name="" id="" maxlength="1"></td>
-                        </tr>
-                        <tr>
-                            <td>Type de faute</td>
-                            <td><input type="text" class="form-control text-center" name="" id=""></td>
-                            <td><input type="text" class="form-control text-center" name="" id="" maxlength="1"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+      <div class="card">
+        <div class="card-body d-flex justify-content-center">
+          <table class="w-75 table align-middle">
+            <thead>
+              <tr class="text-center">
+                <th>Libelle</th>
+                <th>Onglet</th>
+                <th>Colonne</th>
+              </tr>
+            </thead>
+            <tbody formArrayName="indexation">
+              @for (param of paramExterne; track $index) {
+              <tr [formGroupName]="$index">
+                <td>{{ paramExterne.at($index)?.get('libelle')?.value }}</td>
+                <td>
+                  <input
+                    type="text"
+                    formControlName="onglet"
+                    name="detail_projet.param_externe:onglet"
+                    appDebounced
+                    [identity]="paramExterne.at($index)?.get('id_param_externe')?.value"
+                    (debouncedValue)="updateValue($event)"
+                    [foreign]="[{name:'id_projet', value: projectID()},{name:'id_champ_param_interne', value: paramExterne.at($index)?.get('id_champ_param_interne')?.value}]"
+                    [isAutoComplete]="{value: false}"
+                    class="form-control text-center"
+                    id=""
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    formControlName="colonne"
+                    class="form-control text-center"
+                    name="detail_projet.param_externe:colonne"
+                    appDebounced
+                    [identity]="paramExterne.at($index)?.get('id_param_externe')?.value"
+                    (debouncedValue)="updateValue($event)"
+                    [foreign]="[{name:'id_projet', value: projectID()},{name:'id_champ_param_interne', value: paramExterne.at($index)?.get('id_champ_param_interne')?.value}]"
+                    [isAutoComplete]="{value: false}"
+                    id=""
+                    maxlength="1"
+                  />
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
-</div>
+  </div>
+</form>

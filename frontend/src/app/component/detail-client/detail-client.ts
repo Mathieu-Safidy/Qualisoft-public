@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, input, output } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, input, output } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,7 +35,7 @@ export class DetailClient {
 
   projectID = input<number>(-1);
   detailService = inject(DetailProjectService);
-
+  cdref: ChangeDetectorRef = inject(ChangeDetectorRef);
   // async updateValue(event: any) {
   //   const { id, value, name } = event;
   //   console.log("Debounced event:", event);
@@ -77,6 +77,9 @@ export class DetailClient {
         }
       } else {
         console.warn("Aucune ligne trouvée pour nom_interlocuteur :", updated.nom_interlocuteur);
+      }
+      if (deleted) {
+        this.deleteLigne(index);
       }
     } else {
       const interlocuteurs = this.form()?.get('interlocuteur') as FormArray<FormGroup>;
@@ -131,10 +134,11 @@ export class DetailClient {
       console.log('Suppression réussie', result, this.FormGroup.at(index));
       if(this.FormGroup){
         this.FormGroup.removeAt(index);
+        this.cdref.detectChanges();
       }
     })
     .catch((error:any) => {alert(error.message);});
-  
+    
   }
 
   checkValid() {

@@ -172,12 +172,12 @@
                     *ngIf="col && col !== ''"
                     type="checkbox"
                     class="form-check-input"
-                    id=""
+                    id="{{ 'check' + i }}"
                     style="width: 30px; height: 30px"
                     formControlName="{{ col }}"
                     name="detail_projet.erreur_valable:validite"
                     appDebounced
-                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: j , col} }]"
+                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: i , col} }]"
                     (debouncedValue)="updateValueCheck($event)"
                     [identity]="formArray.at(i).get('idErreur')?.value"
                     (click)="(lister()[1] == '' && !exist()) ? $event.preventDefault() : null"
@@ -188,7 +188,7 @@
                     type="checkbox"
                     name="control"
                     class="form-check-input"
-                    id=""
+                    id="{{ 'check' + i }}"
                     appDebounced
                     [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value }]"
                     (debouncedValue)="updateValueCheck($event)"
