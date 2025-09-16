@@ -24,7 +24,7 @@ export class ExterneParameter {
   detailService = inject(DetailProjectService);
 
   get paramExterne() {
-    console.log("Accès à paramExterne, form value:", this.form()?.value);
+    // console.log("Accès à paramExterne, form value:", this.form()?.value);
     return (this.form()?.get('indexation') as FormArray<FormGroup>).controls;
   }
 

@@ -82,6 +82,9 @@ export class ObjectifQualite {
 
   async updateValue(event: any) {
     const { id, value, name } = event;
+    if (!value && !id) {
+      return;
+    }
     console.log("Debounced event:", event);
     let resultat: any = await this.detailService.updateUnitaire(id, value, name, this.ondelete);
     console.log("Update result:", resultat );
@@ -478,11 +481,10 @@ export class ObjectifQualite {
 
     this.detailService.deleteDonne(id_etape_qualite, name).then((value: any) => {
       console.log('donne', value)
-      // if (value.status == 200) {
-      //   confirm = true;
-      // }
       if (formArray) {
         formArray.removeAt(index);
+        formArray.updateValueAndValidity();
+        this.cdref.detectChanges();
       }
     }).catch((error) => {
       confirm = false;

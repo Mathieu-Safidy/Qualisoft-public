@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, inject, input } from '@angular/core';
+import { Component, EventEmitter, Output, inject, input, output } from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,7 +26,7 @@ import { DetailProjectService } from '../../service/DetailProjectService';
     NgbPopoverModule,
     MatTooltip,
     Debounced
-],
+  ],
   templateUrl: './type-erreur.html',
   styleUrl: './type-erreur.css'
 })
@@ -35,13 +35,17 @@ export class TypeErreur {
   readonly formEtape = input<FormGroup>();
   readonly colonne = input<string[]>([]);
   readonly erreurs = input<any[]>([]);
+  readonly verifier = input<any>();
   @Output() addLigne = new EventEmitter<void>();
   @Output() removeLigne = new EventEmitter<number>();
   exist = input<boolean>(false);
   detailService = inject(DetailProjectService);
   projectID = input<number>(-1);
-  id_colonne = input<string[]|number[]>([]);
+  id_colonne = input<string[] | number[]>([]);
   findIdEtape = input<(id_operation: string) => string>(() => '');
+  addErreur = output<any>();
+  annuler = output<any>();
+  valider = false;
 
   readonly filteredOperations = input.required<Observable<Erreur[]>[]>();
 
@@ -101,34 +105,93 @@ export class TypeErreur {
     return (this.form().controls["formErreur"] as FormArray<FormGroup>)
   }
 
-  async updateValue(event: any) {
-    const { id, value , name } = event;
-    console.log("Debounced event:", event);
-    await this.detailService.updateUnitaire(id, value, name)
+  valideChange(event: boolean) {
+    this.valider = event;
   }
-  
+
+  async updateValue(event: any) {
+    let { id, value, name } = event;
+    let { id_projet, libelle, index , est_majeur} = value;
+    if (typeof value === 'object') {
+      if (value.libelle !== null && value.libelle !== undefined) {
+        value = { id_projet, libelle };
+      } else if (value.est_majeur !== null && value.est_majeur !== undefined) {
+        value = est_majeur;
+        this.valider = true;
+      }
+    } else {
+      this.valider = true;
+    }
+    console.log("Debounced event:", event, this.valider);
+    console.log("Valeur avant vérification:", this.verify(value.libelle), this.valider);
+    console.log("Valeur ajoutée, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (value.libelle ?? '').toLowerCase() ));
+    if (!this.verify(value.libelle) && this.valider) {
+      let idTo = -1;
+      let nameTo = 'detail_projet.erreur_suggestion:libelle';
+      let valueTo = { 'libelle': value.libelle };
+      this.detailService.updateUnitaire(idTo, valueTo, nameTo).then((res:any) => {
+        console.log("Option ajoutée avec succès :", res, this.erreurs());
+        if (res.parametre && res.parametre.length > 0 ) {
+          let newErreur = { id_erreur: res.parametre[0].id_erreur_suggestion, type_erreur: res.parametre[0].libelle };
+          // this.erreurs()?.push(newErreur);
+          this.addErreur.emit(newErreur);
+          console.log("Valeur ajoutée, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (value.libelle ?? '').toLowerCase() ));
+          this.updateValue(event);
+          this.valider = false;
+        }
+      }).catch(err => {
+        console.log("Erreur lors de l'ajout d'option");
+      });
+      console.log("Valeur non valide, mise à jour annulée.");
+      return;
+    } else if (this.verify(value.libelle) && this.valider) {
+      console.log("Valeur existante, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (value.libelle ?? '').toLowerCase() ));
+      
+      this.detailService.updateUnitaire(id, value, name)
+      .then((res : any) => {
+        console.log("Update result:", res, this.formGroup[index]);
+        this.formGroup[index].patchValue({idErreur: res.parametre[0].id_type_erreur}, { emitEvent: false })
+      })
+      .catch(err => {
+        console.error("Erreur lors de la mise à jour :", err);
+      })
+    } else {
+      console.log("Valeur non valide, mise à jour annulée.", value);
+    }
+  }
+
   async updateValueCheck(event: any) {
-    let { id, value , name } = event;
+    let { id, value, name } = event;
     let id_etape = this.takeIdEtape(value.id_operation);
-    let { validite, id_operation, id_type_erreur , champ } = value;
-    let updateValue = { 'id_etape_qualite': id_etape, 'id_type_erreur': id_type_erreur};
-    console.log("Debounced event:", event, 'update value ', updateValue , 'name', champ);
+    let { validite, id_operation, id_type_erreur, champ } = value;
+    let updateValue = { 'id_etape_qualite': id_etape, 'id_type_erreur': id_type_erreur };
+    console.log("Debounced event:", event, 'update value ', updateValue, 'name', champ);
     let result: any = null;
     if (validite) {
       id = -1;
-      console.log("Update result:", result);
       let checker = this.formArray.at(champ.index).get(champ.col);
+      let form = this.formArray.at(champ.index).value;
+      // if (this.verify(updateValue.))
       this.detailService.updateUnitaire(id, updateValue, name).then(res => {
-        checker?.setValue(!(checker?.value), { emitEvent: false });
+        console.log("Update result:", res);
+        checker?.setValue(form[champ.col], { emitEvent: false });
       }).catch(err => {
-        checker?.setValue(checker?.value ?? false, { emitEvent: false });
+        checker?.setValue(form[champ.col], { emitEvent: false });
         alert("Erreur lors de l'ajout d'option");
       });
-      console.log("Update result:", result );
+      console.log("Update result insert:", this.formArray.at(champ.index).value);
     } else {
       id = 0;
-      result = await this.detailService.updateUnitaire(id, updateValue, name , true)
+      result = await this.detailService.updateUnitaire(id, updateValue, name, true)
+      console.log("Update result delete :", result,);
     }
+  }
+
+  verify(value: string): boolean {
+    if (this.erreurs()) {
+      return this.erreurs().some(item => (item.type_erreur ?? '').toLowerCase() === (value ?? '').toLowerCase() );
+    }
+    return false;
   }
 
   checkValid() {
@@ -140,15 +203,27 @@ export class TypeErreur {
   }
 
   trigerRemove(index: number) {
-    this.removeLigne.emit(index);
+
+    let id = this.formArray.at(index).get('idErreur')?.value;
+    let name = 'detail_projet.type_erreur';
+    this.detailService.deleteDonne(id, name)
+    .then(res => {
+      if (res) {
+        this.removeLigne.emit(index);
+      }
+    })
+    .catch((err: any) => {
+      alert("Erreur lors de la suppression de l'erreur " + err.message);
+    });
   }
 
   displayErreur = (id: string): string => {
     const erreurs = this.erreurs();
     if (!erreurs) return '';
-    const operations = erreurs.find((l:any) => l.id_erreur.toString() === id);
+    const operations = erreurs.find((l: any) => l.id_erreur.toString() === id);
     return operations ? operations.type_erreur : '';
   }
+
 
   formatSeuilQualite(index: number): void {
     const ctrl = this.formGroup.at(index)?.get('coef');

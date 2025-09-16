@@ -22,6 +22,11 @@
       >
     </li>
   </ul>
+
+
+</div>
+<div class="text-end me-3 mb-3">
+    <button type="button" class="btn btn-dark" (click)="ficheQualite()">Fiche qualité</button>
 </div>
 <mat-horizontal-stepper [linear]="true" (selectedIndexChange)="generate()">
   <mat-step [stepControl]="form1" class="" label="Detail de projet">
@@ -166,8 +171,11 @@
       [colonne]="colone_form3"
       [id_colonne]="id_form_colonne"
       [erreurs]="erreurs"
+      (addErreur)="addErreur($event)"
+      (annuler)="annuler($event)"
       [projectID]="id_projet"
       [exist]="updateErreur"
+      [verifier]="verification"
       (addLigne)="addLigne()"
       (removeLigne)="substractLigne($event)"
     ></app-type-erreur>

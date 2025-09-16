@@ -124,7 +124,9 @@ export class ProjectDetail {
   async updateValue(event: any) {
     const { id, value , name } = event;
     console.log("Debounced event:", event);
-    await this.detailService.updateUnitaire(id, value, name)
+    if (value !== null && value !== undefined) {
+      await this.detailService.updateUnitaire(id, value, name)
+    }
   }
 
   /** Adds a chip when the user presses Enter or adds a comma. */

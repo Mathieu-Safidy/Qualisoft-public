@@ -6,8 +6,28 @@
       <p><span class="fw-medium">Plan : </span> {{ getPlan() }}</p>
       <p><span class="fw-medium">Fonction : </span> {{ getFonction() }}</p>
 
-      <p><span class="fw-medium">Nom du client :</span> {{ client_nom }}</p>
-      <p>
+      <p><span class="fw-medium">Nom du client :</span> {{ getClient() }}</p>
+      
+      <div class="row mb-5 mt-5 border border-black p-3 rounded-3">
+        <p><span class="fw-medium">Interlocuteur : </span></p>
+        <div class="table-responsive bg-info-subtle pt-2 rounded-3">
+          <table class="table table-info">
+          <thead>
+            <tr>
+              <th>Nom de l'interlocuteur client</th>
+              <th>Contact de l'interlocuteur client</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let interlocuteur of getAllInterlocuteur()">
+              <td>{{ interlocuteur.nom_interlocuteur }}</td>
+              <td>{{ interlocuteur.contact_interlocuteur }}</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <!-- <p>
         <span class="fw-medium">Nom de l'interlocuteur client :</span> {{
         interlocuteur_nom }}
       </p>
@@ -18,10 +38,29 @@
         interlocuteur_contact }}"
           >{{ interlocuteur_contact }}</a
         >
-      </p>
-      <p>
+      </p> -->
+      <!-- <p>
         <span class="fw-medium">CP responsable :</span> {{ cp_responsable }}
-      </p>
+      </p> -->
+      <div class="row mb-5 mt-5 border border-black p-3 rounded-3">
+        <p><span class="fw-medium">CP responsable  : </span></p>
+        <div class="table-responsive bg-info-subtle pt-2 rounded-3">
+          <table class="table table-info">
+          <thead>
+            <tr>
+              <th>Matricule CP responsable</th>
+              <th>pseudo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let contact of getAllContact()">
+              <td>{{ contact.matricule }}</td>
+              <td>{{ contact.pseudo }}</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
       <p>
         <span class="fw-medium">Type de traitement : </span> {{ getTypeTraitement() }}
       </p>

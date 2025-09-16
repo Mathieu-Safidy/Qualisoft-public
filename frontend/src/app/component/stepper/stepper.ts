@@ -616,6 +616,10 @@ export class Stepper {
     return this.bcqForm.get('stockage') as FormArray;
   }
 
+  addErreur({ id_erreur, type_erreur }: { id_erreur: number; type_erreur: string }) {
+    this.erreurs.push({ id_erreur, type_erreur, coef: 0, id_gravite: 0 });
+  }
+
   /**
    * Ajoute un item dans stockage
    */
@@ -668,7 +672,17 @@ export class Stepper {
   }
 
   deleteStockage(index: number) {
-    this.stockage.removeAt(index);
+    let id = (this.stockage.at(index) as FormGroup)?.get('id_info_bcq')?.value || -1;
+    let name = 'detail_projet.info_bcq';
+    this.detailService.deleteDonne(id,name)
+    .then((donne) => {
+      console.log("Donnée supprimée :", donne);
+      this.stockage.removeAt(index);
+      this.cdr.detectChanges();
+    })
+    .catch((res: any) => {
+      alert('Erreur lors de la suppression : ' + res.message);
+    });
   }
 
   initOperation(donne: any) {
@@ -969,6 +983,10 @@ export class Stepper {
     this.typeErreur.removeAt(event);
   }
 
+  annuler(value: {form: FormGroup, controlName: string, ancienValue: any}) {
+    value.form.get(value.controlName)?.setValue(value.ancienValue, { emitEvent: false });
+  }
+
   addLigne() {
     let before = this.updateData;
     this.updateErreur = false;
@@ -1067,6 +1085,25 @@ export class Stepper {
     }).catch((error) => {
       console.error('Erreur lors de l\'envoi des données :', error);
     });
+    this.router.navigate(['/Dashboard/recap'], { state: { data: data } });
+  }
+
+  ficheQualite() {
+    const cp_responsable = (this.form1.get('cp_responsable')?.value || '').split(',').map((v: string) => v.trim());
+    const contact = this.allUser.filter(u => cp_responsable.includes(u.matricule));
+    console.log('cp_responsable', cp_responsable, 'contact', contact);
+    const data = {
+      ...this.form1.value,
+      ...(this.form2.getRawValue()),
+      ...this.form3.value,
+      ...this.formInterlocuteur.value,
+      contact: contact ?? [],
+      colonne: this.colone_form3,
+      id_colonnes: this.id_form_colonne,
+      fonction: this.fonction[0]
+    };
+    console.log('form envoyer data' , data);
+    
     this.router.navigate(['/Dashboard/recap'], { state: { data: data } });
   }
 }

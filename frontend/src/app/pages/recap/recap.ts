@@ -9,11 +9,13 @@ import { Operation } from '../../interface/Operation';
 import { Unite } from '../../interface/Unite';
 import { ActivatedRoute } from '@angular/router';
 import { DetailProjectService } from '../../service/DetailProjectService';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-recap',
   imports: [
-    CommonModule
+    CommonModule,
+    ReactiveFormsModule
   ],
   templateUrl: './recap.html',
   styleUrl: './recap.css'
@@ -64,6 +66,8 @@ export class Recap {
     unites: []
   };
 
+  donne: any = null;
+
   constructor(private route: ActivatedRoute, private detailService: DetailProjectService) { }
 
   convertToValue(donne: { [key: string]: any }) {
@@ -91,11 +95,11 @@ export class Recap {
     // this.operation = `(${this.operation}) ${((this.operations.find(operation => operation.id_operation === this.operation))?.libelle)}`;
 
 
-    const donne = history.state.data;
-    if (donne) {
-      // console.log('Data received in recap:', donne);
+    this.donne = history.state.data;
+    if (this.donne) {
+      console.log('Data received in recap:', this.donne);
     }
-    this.convertToModel(donne);
+    this.convertToModel(this.donne);
     console.log(this.value_plus)
   }
 
@@ -113,8 +117,14 @@ export class Recap {
     return `(${this.plan}) - ${((this.plans.find(plan => plan.id_plan === this.plan))?.libelle)}`;
   }
 
+  getClient() {
+     return `${((this.plans.find(plan => plan.id_plan === this.plan))?.libelle)}`;
+  }
+
   getFonction() {
-    return `(${this.fonction}) - ${((this.fonctions.find(fonction => fonction.id_fonction === this.fonction))?.libelle)}`;
+    console.log('fonction', this.fonction, this.fonctions);
+    
+    return `(${this.donne.fonction.id_fonction}) - ${this.donne.fonction.libelle}`;
   }
 
   getTypeTraitement() {
@@ -126,12 +136,28 @@ export class Recap {
   }
 
   getUnite(id: string) {
-    return this.unites?.length > 0 ? `(${id} - ${(this.unites.find(unite => unite.id_type_qte_act === parseInt(id)))?.libelle})` : '';
+    // Convert both id and id_type_qte_act to string for comparison
+    return this.unites?.length > 0
+      ? `(${id} - ${(this.unites.find(unite => String(unite.id_type_qte_act) === String(id))?.libelle)})`
+      : '';
   }
 
-  getDegre(deg: string) {
-    // console.log('degre', typeof (deg), deg)
-    if (deg.includes('0')) {
+  getInterlocuteur(interlocuteur: any) {
+    return `${interlocuteur.nom_interlocuteur} - ${interlocuteur.contact_interlocuteur}`;
+  }
+
+  getAllInterlocuteur() {
+    return this.donne.interlocuteur;
+  }
+
+  getAllContact() {
+    return this.donne.contact;
+  }
+
+
+  getDegre(deg: any) {
+    console.log('degre', typeof (deg), deg)
+    if ((deg.toString()).includes('0')) {
       return 'mineur';
     } else {
       return 'majeur';
@@ -139,7 +165,7 @@ export class Recap {
   }
 
   getTypeControl(control: string) {
-    switch (control) {
+    switch (String(control)) {
       case '0':
         return 'Interne';
       case '1':
@@ -189,6 +215,9 @@ export class Recap {
       type_de_control: item.typeControl,
       critere_de_rejet: item.critereRejet
     }));
+
+    console.log('Objectif qualité:', this.objectif_qualite, 'donne ',donne.formArray );
+    
 
     // Type d'erreurs
     this.type_erreur = (donne.formErreur || []).map((item: any) => ({

@@ -1,0 +1,19 @@
+<h1 mat-dialog-title>Choisissez un élément</h1>
+<div mat-dialog-content>
+  <mat-radio-group [(ngModel)]="selected">
+    <!-- Option pour garder la valeur tapée -->
+    <mat-radio-button [value]="data.value" style="display:block; margin: 4px 0; font-style: italic;">
+      Utiliser ma saisie : "{{ data.value }}"
+    </mat-radio-button>
+
+    <!-- Liste des suggestions -->
+    <mat-radio-button *ngFor="let item of data.liste" [value]="item[data.colonne]" style="display:block; margin: 4px 0;">
+      {{ item[data.colonne] }}
+    </mat-radio-button>
+  </mat-radio-group>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-button (click)="close()">Annuler</button>
+  <button mat-button color="primary" [disabled]="!selected" (click)="confirm()">Valider</button>
+</div>
