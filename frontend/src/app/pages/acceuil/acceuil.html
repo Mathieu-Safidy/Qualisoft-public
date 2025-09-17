@@ -1,6 +1,41 @@
  <div >
     <div class="row ">
       <div class="col-3 p-3">
+        <div class="bg-white p-3 pb-1 shadow rounded-3">
+          <h5 class="mini-titre text-end">Projet actif</h5>
+          <p class="text-end"><span class="display-4 me-3">255</span></p>
+        </div>
+      </div>
+      
+      <div class="col-3 p-3">
+        <div class="bg-white p-3 pb-1 shadow rounded-3">
+          <h5 class="mini-titre text-end">Projet parametrer</h5>
+          <p class="text-end"><span class="display-4">58</span></p>
+        </div>
+      </div>
+      
+      <div class="col-3 p-3">
+        <div class="bg-white p-3 pb-1 shadow rounded-3">
+          <h5 class="mini-titre text-end">Nombre de document total</h5>
+          <p class="text-end"><span class="display-4">1050</span></p>
+        </div>
+      </div>
+      
+      <div class="col-3 p-3">
+        <div class="bg-white p-3 pb-1 shadow rounded-3">
+          <h5 class="mini-titre text-end">Nombre de document traiter</h5>
+          <p class="text-end"><span class="display-4">1050</span></p>
+        </div>
+      </div>
+
+
+        <!-- <div class="col-3 p-3">
+          <div class="bg-white p-3 shadow rounded-3">
+            <h5 class="mini-titre">Projet parametrer</h5>
+            <p>58 projet</p>
+          </div>
+        </div> -->
+      <!-- <div class="col-3 p-3">
         <div class="bg-white p-3 shadow rounded-3">
           <h5 class="mini-titre">Faute</h5>
           <p>commentaire Lorem ipsum dolor sit amet</p>
@@ -11,30 +46,52 @@
           <h5 class="mini-titre">Faute</h5>
           <p>commentaire Lorem ipsum dolor sit amet</p>
         </div>
-      </div>
-      <div class="col-3 p-3">
-        <div class="bg-white p-3 shadow rounded-3">
-          <h5 class="mini-titre">Faute</h5>
-          <p>commentaire Lorem ipsum dolor sit amet</p>
-        </div>
-      </div>
-      <div class="col-3 p-3">
-        <div class="bg-white p-3 shadow rounded-3">
-          <h5 class="mini-titre">Faute</h5>
-          <p>commentaire Lorem ipsum dolor sit amet</p>
-        </div>
-      </div>
+      </div> -->
     </div>
     <div class="row">
-      <div class="col-8 p-3">
+      <div class="col-4 p-3">
         <div class="bg-white p-3 shadow rounded-3">
-          <h4>Statistique</h4>
-          <canvas #myCanvas height="100"></canvas>
+          <h4 class="text-center mb-3">Departage de type d'operation</h4>
+          <select class="form-select form-control" [(ngModel)]="selectedOption" (change)="updateChart()">
+            <option value="projets">Nombre de projets</option>
+            <option value="total">Total par projet</option>
+          </select>
+          <canvas #myCanvas height="50"></canvas>
+          <div class="row p-3">
+        <div class="bg-white p-3 ">
+          <h4 class=" text-center">Detail (Nombre)</h4>
+          <table class="table table-striped text-center">
+            <thead>
+              <tr>
+                <th>Interne</th>
+                <th>Bcq</th>
+                <th>Externe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>150</td>
+                <td>50</td>
+                <td>30</td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- <canvas #myCanvas height="50"></canvas> -->
+        </div>
+      </div>
+        </div>
+        
+      </div>
+      
+      <div class="col-4 p-3">
+        <div class="bg-white p-3 shadow rounded-3">
+          <h4 class="text-center mb-3">Taux de conformite de seuil (%)</h4>
+          <canvas #conform ></canvas>
         </div>
       </div>
       <div class="col-4 p-3">
         <div class="bg-white p-3 shadow rounded-3">
-          <h4>Tache</h4>
+          <h4>Projet les plus actifs</h4>
           <!-- Timeline 1 - Bootstrap Brain Component -->
           <section class="bsb-timeline-1 p-4 pt-1">
             <div class="container">
@@ -47,7 +104,7 @@
                           <div class="card border-0">
                             <div class="card-body p-0">
                               <h6 class="card-subtitle text-secondary mb-1">
-                                Parametrage BCQ
+                                Prodigy
                               </h6>
                             </div>
                           </div>
@@ -60,21 +117,7 @@
                           <div class="card border-0">
                             <div class="card-body p-0">
                               <h6 class="card-subtitle text-secondary mb-1">
-                                Parametrage BCQ
-                              </h6>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-
-                    <li class="timeline-item danger">
-                      <div class="timeline-body">
-                        <div class="timeline-content">
-                          <div class="card border-0">
-                            <div class="card-body p-0">
-                              <h6 class="card-subtitle text-secondary mb-1">
-                                Parametrage interne
+                                Labrador
                               </h6>
                             </div>
                           </div>
@@ -88,7 +131,21 @@
                           <div class="card border-0">
                             <div class="card-body p-0">
                               <h6 class="card-subtitle text-secondary mb-1">
-                                Parametrage autre
+                                CEGEDIM
+                              </h6>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+
+                    <li class="timeline-item danger">
+                      <div class="timeline-body">
+                        <div class="timeline-content">
+                          <div class="card border-0">
+                            <div class="card-body p-0">
+                              <h6 class="card-subtitle text-secondary mb-1">
+                                GDR
                               </h6>
                             </div>
                           </div>
@@ -102,6 +159,16 @@
           </section>
         </div>
       </div>
+
+      <div class="col-12 p-3">
+        <div class="bg-white p-3 shadow rounded-3">
+          <h4 class="text-center">Projet actif par mois</h4>
+          <canvas #projetByMonth></canvas>
+        </div>
+      </div>
+      
+      
+      
       <div class="col-12 p-3">
         <div class="p-3 bg-white shadow rounded-3">
           <h4 class="mb-3">Tableau</h4>
