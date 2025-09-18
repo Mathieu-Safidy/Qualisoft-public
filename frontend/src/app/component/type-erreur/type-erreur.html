@@ -64,18 +64,18 @@
                 Raccourci
               </div>
             </th>
-            <ng-container *ngFor="let item of colonne()">
+            <ng-container *ngFor="let col of colonneObserve() | async ; let j = index ">
               <th class="checker">
                 <div 
                 
                 >
                 <span class="titre-verticale" 
-                [ngbPopover]="item"
+                [ngbPopover]="col.name"
                 [placement]="'top'"
                 [autoClose]="'true'"
                 [triggers]="'mouseenter:mouseleave'"
                 popoverClass="my-custom-popover-info">
-                  {{ item }}
+                  {{ col.name }}
                 </span>
                 </div>
               </th>
@@ -84,15 +84,15 @@
         </thead>
         <tbody class="table-group-divider p-3" formArrayName="formErreur">
           <tr
-            *ngFor="let item of formGroup ; let i = index"
+            *ngFor="let item of formGroup; let i = index"
             class="p-3"
             [formGroupName]="i"
           >
+          @if(item) {
             <td>
               <!-- <input type="text" name="typeErreur" class="col-12 form-control" id="" formControlName="typeErreur"> -->
               <input
                 type="text"
-                name="typeErreur"
                 class="selection col-2 form-control"
                 id=""
                 formControlName="typeErreur"
@@ -155,6 +155,7 @@
                 (debouncedValue)="updateValue($event)"
                 [identity]="formArray.at(i).get('idErreur')?.value"
                 [isAutoComplete]="{value: false}"
+                [foreign]="[{name: 'index', value: i},{name:'coef', value: formArray.at(i).get('coef')?.value}]"
                 class="col-2 form-control"
                 (blur)="formatSeuilQualite(i)"
                 (keypress)="filterInput($event)"
@@ -169,21 +170,22 @@
                 id=""
                 formControlName="raccourci"
                 name="detail_projet.type_erreur:raccourci"
+                [foreign]="[{name: 'index', value: i},{name:'raccourci', value: formArray.at(i).get('raccourci')?.value}]"
                 appDebounced
                 (debouncedValue)="updateValue($event)"
                 [identity]="formArray.at(i).get('idErreur')?.value"
               />
             </td>
-            <ng-container *ngFor="let col of lister() ; let j = index ">
+            <ng-container *ngFor="let col of colonneObserve() | async ; let j = index ">
               <td class="text-center align-middle checker">
                 <div class="d-flex justify-content-center align-items-center">
                   <input
-                    *ngIf="col && col !== ''"
+                    *ngIf="col && col.name !== '' && formArray.at(i).get(col.name)"
                     type="checkbox"
                     class="form-check-input"
-                    id="{{ 'check' + i }}"
+                    id="{{ 'check' + col.id }}"
                     style="width: 30px; height: 30px"
-                    formControlName="{{ col }}"
+                    formControlName="{{ col.name }}"
                     name="detail_projet.erreur_valable:validite"
                     appDebounced
                     [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: i , col} }]"
@@ -192,12 +194,12 @@
                     (click)="(lister()[1] == '' && !exist()) ? $event.preventDefault() : null"
                   />
                   <input
-                    *ngIf="col && col == ''"
-                    formControlName="{{ col }}"
+                    *ngIf="col && col.name === ''"
+                    formControlName="{{ col.name }}"
                     type="checkbox"
                     name="control"
                     class="form-check-input"
-                    id="{{ 'check' + i }}"
+                    id="{{ 'check' + col.id }}"
                     appDebounced
                     [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value }]"
                     (debouncedValue)="updateValueCheck($event)"
@@ -219,6 +221,8 @@
                 Suprimer
               </button>
             </td>
+
+          }
           </tr>
         </tbody>
         <tfoot></tfoot>

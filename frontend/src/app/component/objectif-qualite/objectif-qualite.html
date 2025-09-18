@@ -127,9 +127,9 @@
                     [formul]="formArray.at(i)"
                     [isAutoComplete]="{value: true, name: 'operation'}"
                     [colonne]="'id_operation'"
-                    [foreign]="[{name:'id_projet', value: projectID()},{name:'id_unite_de_controle', value: formArray.at(i).get('unite')?.value} , {name:'ordre', value: formArray.at(i).get('ordre')?.value}]"
+                    [foreign]="[{name:'id_projet', value: projectID()},{name:'id_unite_de_controle', value: formArray.at(i).get('unite')?.value} , {name: 'type_de_controle', value: ((formArray.at(i).get('typeControl')?.value != null && formArray.at(i).get('typeControl')?.value!=undefined) ? formArray.at(i).get('typeControl')?.value : 0 ) } ,  {name:'ordre', value: formArray.at(i).get('ordre')?.value}, {name: 'index', value: i}]"
                     (debouncedValue)="updateValue($event)"
-                    [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                    [identity]="(formArray.at(i).get('id_etape_qualite')?.value || -1)"
                     [liste]="operations"
                     [matAutocomplete]="autOperation"
                     [matTooltip]="displayOperation(formArray.controls.at(i)?.get('operation')?.value)"
@@ -149,6 +149,7 @@
                   [statique]="true"
                   (debouncedValue)="updateValue($event)"
                   [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                  [foreign]="[{name: 'index', value: i}]"
                   [isAutoComplete]="{value: false}"
                  >
                   <option *ngFor="let item of unites()" [value]="item.id_type_qte_act">{{ item.libelle }}</option>
@@ -160,8 +161,9 @@
                     name="detail_projet.etape_qualite:seuil_qualite"
                     (debouncedValue)="updateValue($event)"
                     [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                    [foreign]="[{name: 'index', value: i}]"
                     [isAutoComplete]="{value: false}"
-                  formControlName="seuilQualite" class="form-control text-end" (blur)="formatSeuilQualite(i)" (keypress)="filterInput($event)" value="{{ fg.get('seuilQualite')?.value }}" />
+                  formControlName="seuilQualite" class="form-control text-end" (keypress)="filterInput($event)" value="{{ fg.get('seuilQualite')?.value }}" />
                 </div>
                 <div class="col-2 text-center">
                   <!-- <input formControlName="typeControl" class="form-control"  value="{{ fg.get('typeControl')?.value }}" /> -->
@@ -170,6 +172,7 @@
                      name="detail_projet.etape_qualite:type_de_controle"
                     (debouncedValue)="updateValue($event)"
                     [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                    [foreign]="[{name: 'index', value: i}]"
                     [isAutoComplete]="{value: false}"
                   >
                     <!-- <option value="" class="text-body-tertiary"><span class="text-body-tertiary">--Type de contrôle--</span></option> -->
@@ -185,6 +188,7 @@
                   name="detail_projet.etape_qualite:operation_a_controller"
                   (debouncedValue)="updateValue($event)"
                   [identity]="formArray.at(i).get('id_etape_qualite')?.value"
+                  [foreign]="[{name: 'index', value: i}]"
                   [isAutoComplete]="{value: false}"
                   [matTooltip]="displayOperation(formArray.controls.at(i)?.get('operationAControler')?.value)"
                 >
@@ -196,6 +200,7 @@
                    appDebounced
                     name="detail_projet.etape_qualite:coef_rejet"
                     (debouncedValue)="updateValue($event)"
+                    [foreign]="[{name: 'index', value: i}]"
                     [identity]="formArray.at(i).get('id_etape_qualite')?.value || -1"
                     [isAutoComplete]="{value: false}"
                   formControlName="critereRejet" class="form-control text-end " (keypress)="filterInput($event)" (blur)="formatCritereRejet(i)" value="{{ fg.get('critereRejet')?.value }}" />

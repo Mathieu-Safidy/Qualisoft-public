@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, input, Input, output, SimpleChanges, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, SelectControlValueAccessor, Validators } from '@angular/forms';
+import { Form, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, SelectControlValueAccessor, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { FaIconComponent, FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -7,14 +7,14 @@ import { MatAutocomplete, MatAutocompleteModule, MatAutocompleteSelectedEvent } 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Operation } from '../../interface/Operation';
-import { fromEvent, map, Observable, startWith } from 'rxjs';
+import { fromEvent, map, Observable, of, startWith } from 'rxjs';
 import { DetailProjectService } from '../../service/DetailProjectService';
 import { Operations } from '../../class/Operations';
 import { Unite } from '../../interface/Unite';
 import { v4 as uuidv4 } from 'uuid';
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import { AlertConfirm } from "../alert-confirm/alert-confirm";
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8";
 import { MatTooltip } from '@angular/material/tooltip';
 import { Debounced } from '../../directive/debounced';
@@ -55,12 +55,14 @@ export class ObjectifQualite {
   projectID = input<string | number | null>(null);
   showAlert = false;
   onOperationChange = output<{ id_operation: string, index: number }>();
-
+  updateEtape = output<void>();
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];
   optionChoisie: boolean = false;
   // @ViewChild('autOperation') autOperation!: MatAutocomplete;
   ondelete: boolean = false;
+
+  dialogRef: MatDialogRef<AlertConfirm, any> = {} as MatDialogRef<AlertConfirm, any>;
 
   constructor(private fb: FormBuilder, private cdref: ChangeDetectorRef, private detailService: DetailProjectService, public dialog: MatDialog) {
     this.operationSelected = [{ index: 0, value: '-1' }];
@@ -73,6 +75,8 @@ export class ObjectifQualite {
 
   get formArray() {
     const formArray = this.form()?.controls["formArray"];
+    // console.log('formArray', formArray?.value);
+    
     return formArray as FormArray<FormGroup>;
   }
 
@@ -81,31 +85,52 @@ export class ObjectifQualite {
   }
 
   async updateValue(event: any) {
-    const { id, value, name } = event;
-    if (!value && !id) {
+    let { id, value, name } = event;
+    console.log("Debounced event:", event);
+
+    if (!value || !id) {
       return;
     }
-    console.log("Debounced event:", event);
-    let resultat: any = await this.detailService.updateUnitaire(id, value, name, this.ondelete);
-    console.log("Update result:", resultat );
+    let { index, ...reste } = value;
+    value = reste;
+    if (name.includes('seuil_qualite')) {
+        this.formatSeuilQualite(index).subscribe((res) => {
+          if (res) {
+            console.log('Mety ve ny format');
+            
+            this.detailService.updateUnitaire(id, value, name, this.ondelete).then((resultat: any) => {
+              console.log("Update result:", resultat );
+              this.handlerUpdate(resultat, index);
+              this.updateEtape.emit();
+            });
+          } else {
+            let valueAncien = this.verification().etape[index]?.seuil_qualite || 0;
+            console.log('Format tsy mety',this.formGroups.at(index)?.get('seuilQualite')?.value , 'ancien', valueAncien);
+            this.formGroups.at(index)?.get('seuilQualite')?.setValue(valueAncien, { emitEvent: false });
+            // this.cdref.detectChanges();
+          }
+        })
+    } 
+    else {
+      let resultat: any = await this.detailService.updateUnitaire(id, value, name, this.ondelete);
+      console.log("Update result:", resultat );
+      this.handlerUpdate(resultat, index);
+      this.updateEtape.emit();
+      return;
+    }
+  }
+
+  handlerUpdate(resultat: any, index: number) {
     if (resultat?.parametre?.length) {
       let param = resultat.parametre[0];
       const interlocuteurs = this.form()?.get('formArray') as FormArray<FormGroup>;
       console.log('parametre', interlocuteurs.controls);
-      const index = interlocuteurs.controls.findIndex(
-        ctrl => ctrl.get('operation')?.value === param.operation_de_control && ctrl.get('ordre')?.value === param.ordre
-      );
 
       console.log('index trouvé', index, param);
 
       if (index !== -1) {
          const group = interlocuteurs.at(index);
-
-        Object.keys(param).forEach(key => {
-          if (group.get(key)) {
-            group.get(key)?.setValue(param[key], { emitEvent: false });
-          }
-        });
+        group.get('id_etape_qualite')?.setValue(param.id_etape_qualite, { emitEvent: false });
       }
     }
   }
@@ -117,22 +142,25 @@ export class ObjectifQualite {
     this.showAlert = true;
     let pourcentage = this.formGroups.at(index)?.get('seuilQualite')?.value;
     console.log("pourcentage ", pourcentage);
-    const dialogRef = this.dialog.open(AlertConfirm, {
+    this.dialogRef = this.dialog.open(AlertConfirm, {
       width: 'auto',
       height: 'auto',
       data: { pourcentage: pourcentage }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      let cotrl = this.formGroups.at(index)?.get('seuilQualite');
-      // Le `result` est `true` si l'utilisateur a cliqué sur "OK", `false` si "Annuler"
-      if (result) {
-        alert(`Action confirmée ! Votre seuil reste à ${pourcentage}%.`);
-      } else {
-        cotrl?.setValue(0);
-        alert('Action annulée. Votre seuil a été remis à 0%.');
-      }
-    });
+    return this.dialogRef.afterClosed()
+    // .subscribe(result => {
+    //   let cotrl = this.formGroups.at(index)?.get('seuilQualite');
+    //   // Le `result` est `true` si l'utilisateur a cliqué sur "OK", `false` si "Annuler"
+    //   if (result) {
+    //     alert(`Action confirmée ! Votre seuil reste à ${pourcentage}%.`);
+    //     return true;
+    //   } else {
+    //     cotrl?.setValue(0);
+    //     alert('Action annulée. Votre seuil a été remis à 0%.');
+    //     return false;
+    //   }
+    // });
   }
 
   // onConfirmed(isConfirmed: boolean) {
@@ -303,7 +331,7 @@ export class ObjectifQualite {
     // console.log('operations ', index, this.filteredOperation)
   }
 
-  formatSeuilQualite(index: number): void {
+  formatSeuilQualite(index: number): Observable<boolean> {
     const ctrl = this.formGroups.at(index)?.get('seuilQualite');
     let value = ctrl?.value;
 
@@ -315,15 +343,18 @@ export class ObjectifQualite {
         if (num > 100) {
           alert("La valeur ne peut pas dépasser 100%");
           num = 0;
+          return of(false);
         } else if (num < 90 && num > 0) {
-          this.openAlert(index);
+          return this.openAlert(index);
         } else if (num < 0) {
           alert("La valeur ne peut pas être négative");
           num = 0;
+          return of(false)
         }
         ctrl?.setValue(num);
       }
     }
+    return of(true);
   }
 
   formatCritereRejet(index: number): void {
@@ -484,6 +515,7 @@ export class ObjectifQualite {
       if (formArray) {
         formArray.removeAt(index);
         formArray.updateValueAndValidity();
+        this.updateEtape.emit();
         this.cdref.detectChanges();
       }
     }).catch((error) => {

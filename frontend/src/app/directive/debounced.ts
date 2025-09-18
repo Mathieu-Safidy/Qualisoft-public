@@ -12,7 +12,7 @@ export class Debounced {
 
   constructor() { }
 
-  timeout = input<number>(300);
+  timeout = input<number>(700);
   identity = input<string | number>();
   debouncedValue = output<{ id: string | number; value: string; name: string, event?: Event }>();
   isAutoComplete = input<{ value: boolean, name?: string }>({ value: false, name: '' });
@@ -45,7 +45,7 @@ export class Debounced {
     const element = this.elementRef.nativeElement;
     this.lastValue = this.ngControl.value;
     console.log('last value init', this.lastValue);
-
+   
     console.log('condition ', !this.verifier() && this.statique(), 'verifier', this.verifier(), this.statique(), this.isAutoComplete() && this.isAutoComplete().value, 'valeur', this.isAutoComplete().name);
     if (!this.verifier() && this.statique()) {
       let value = this.formul()?.get(this.isAutoComplete().name ?? '')?.value;
@@ -68,9 +68,9 @@ export class Debounced {
           .pipe(debounceTime(this.timeout()), takeUntil(this.destroy$))
           .subscribe(val => this.emitIfChanged({ element: element, value: val })
           );
-        fromEvent(element, 'blur')
-          .pipe(takeUntil(this.destroy$))
-          .subscribe((val) => this.emitIfChanged({ element: element, typeEvent: 'blur', event: val as Event }));
+        // fromEvent(element, 'blur')
+        //   .pipe(takeUntil(this.destroy$))
+        //   .subscribe((val) => this.emitIfChanged({ element: element, typeEvent: 'blur', event: val as Event }));
       }
     }
 
@@ -202,6 +202,8 @@ export class Debounced {
 
 
               value = { [columName]: value, ...extra };
+              console.log('value with foreign', value);
+              
             }
 
             let val = { id, value, name, event: corps.event };

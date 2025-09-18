@@ -28,7 +28,8 @@
 <div class="text-end me-3 mb-3">
     <button type="button" class="btn btn-dark" (click)="ficheQualite()">Fiche qualité</button>
 </div>
-<mat-horizontal-stepper [linear]="true" (selectedIndexChange)="generate()">
+
+<mat-horizontal-stepper [linear]="true" #stepper (selectionChange)="onStepChange($event)">
   <mat-step [stepControl]="form1" class="" label="Detail de projet">
     <app-project-detail
       [form]="form1"
@@ -87,8 +88,8 @@
       [operations]="operations"
       [unites]="unites"
       [verifier]="existVerif"
-      (generer)="generate()"
       [projectID]="id_projet"
+      (updateEtape)="updateColonne()"
       [verification]="verification"
       (onOperationChange)="operationChange($event)"
     ></app-objectif-qualite>
@@ -103,9 +104,9 @@
           mat-button
           matStepperNext
           [disabled]="form2!.invalid"
-          (click)="generate()"
           class="btn border rounded-3 bg-primary text-white"
-        >
+          >
+          <!-- (click)="generate()" -->
           Suivant
         </button>
       </div>
@@ -171,11 +172,13 @@
       [colonne]="colone_form3"
       [id_colonne]="id_form_colonne"
       [erreurs]="erreurs"
+      [colonneObserve]="colonneObserver.asObservable()"
       (addErreur)="addErreur($event)"
       (annuler)="annuler($event)"
       [projectID]="id_projet"
       [exist]="updateErreur"
       [verifier]="verification"
+      (updateEtape)="updateColonne()"
       (addLigne)="addLigne()"
       (removeLigne)="substractLigne($event)"
     ></app-type-erreur>
