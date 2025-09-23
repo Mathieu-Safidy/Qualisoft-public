@@ -1,0 +1,124 @@
+<div class="row bg-white rounded-3 shadow-lg ps-3 pb-5 h-100">
+    <h1 class="p-3 text-decoration-underline">Migration des données</h1>
+    <div class="row">
+        <div class="col-12">
+            @for (item of canMigrate; track $index) {
+                <button type="button" class="col-2 me-3 btn btn-default-p text-white shadow " (click)="startingMigration(item)">{{ item }}</button>
+            }
+        </div>
+    </div>
+    @if (operation) {
+        <div class="row">
+            <div class="col-12 mt-4">
+                <h3 class="text-decoration-underline text-center mb-3">Colonnes à migrer pour la table : {{ operation }}</h3>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row p-3 ">
+
+                            <div class="col-3 pe-3">
+                                <div class="">
+                                    <div class="col-12 border border-1 border-black rounded-3 p-3">
+                                        @for (item of getColonnes(operation); track $index) {
+                                            <span class="me-3">
+                                                <input 
+                                                [checked]="isChecked(item)"
+                                                (change)="toggleSelection(item, $event)"
+                                                type="checkbox" name="column_{{ $index }}" id="column_{{ $index }}">
+                                            </span>
+                                            <span>{{ item }}</span>
+                                            <br>
+                                        }
+                                    </div>
+                                    
+                                    <div class="col-12 mt-3 border border-1 border-black rounded-3 p-3">
+                                        <p>Nombre de ligne : {{ allData().length }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-9 border border-1 border-black rounded-3 p-3">
+
+                                <div class="row ">
+                                    <div class="col-4 d-flex justify-content-end align-items-center">
+                                        <label for="">Type de fichier:</label>
+                                    </div>
+                                    <div class="col-8">
+                                        <select name="" id="" class="form-select " [(ngModel)]="fileType">
+                                            @for (item of typeFichier; track $index) {
+                                                <option value="{{ item }}">{{ item }}</option>
+                                            } @empty {
+                                                <option value="" disabled>Aucun type de fichier trouvé</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                @if (fileType() === 'csv') {
+                                <div class="row mt-3">
+                                    <div class="col-4 d-flex justify-content-end align-items-center">
+                                        <label for="">Separateur :</label>
+                                    </div>
+                                    <div class="col-8">
+                                        <input type="text" class="form-control" name="" id="">
+                                    </div>
+                                </div>
+                            }
+                                
+                                
+                                <div class="row mt-3">
+                                    <div class="col-4 d-flex justify-content-end align-items-center">
+                                        <label for="">Fichier :</label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="file" (change)="onFileChange($event)" class="form-control" name="" id="" [attr.accept]="fileType() === 'csv' ? '.csv' : '.xlsx,.xls'">
+                                    </div>
+                                    <div class="col-2">
+                                        @if (watch()) {
+                                            <button type="button" class="btn btn-danger form-control text-white shadow" (click)="fermerApercu()" >Fermer</button>
+                                        } @else {
+                                            <button type="button" class="btn btn-default-p form-control text-white shadow" (click)="apercu()" >Aperçu</button>
+                                        }
+                                    </div>
+                                </div>
+
+                                
+                                <div class="row mt-4">
+                                    <div class="col-12 d-flex justify-content-center">
+                                        <button (click)="importer()" type="button" class="ms-3 btn btn-default-p text-white shadow">Import</button>
+                                        <button type="button" class="ms-3 btn btn-default-p text-white shadow">Export</button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                
+                @if(previewData().length && watch()) {
+                <div class="card mt-3 overflow-y-scroll overflow-x-hidden" style="max-height: 300px;">
+                        <table class="table table-striped mt-3">
+                            <thead>
+                            <tr>
+                            @for(header of previewData()[0]; track $index) {
+                            <th>{{ header }}</th>
+                            }
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @for(row of previewData().slice(1); track $index) {
+                                <tr>
+                                @for(cell of row; track $index) {
+                                    <td>{{ cell ?? '' }}</td>
+                                }
+                                </tr>
+                            } 
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+            </div>
+        </div>
+    }
+</div>

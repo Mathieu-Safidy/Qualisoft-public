@@ -87,77 +87,77 @@ export class DetailProjectService {
     try {
       return await this.http.get(`/unites/${id}`);
     } catch (error) {
-      throw error 
+      throw error
     }
-    
+
   }
 
-  resolveFilter(ligne:any,plan:any,fonction:any) {
-      // const plan = route.paramMap.get('id') ?? '';
-      // const ligne = '';
-      // const fonction = route.paramMap.get('fonction') ?? '';
-    
-        const dataFilter = this.getDataFilter(ligne, plan, fonction);
-        if (!dataFilter) {
-          throw new Error('Failed to get data filter');
-        }
-        const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
-        const allUsers = this.getAllUser();
+  resolveFilter(ligne: any, plan: any, fonction: any) {
+    // const plan = route.paramMap.get('id') ?? '';
+    // const ligne = '';
+    // const fonction = route.paramMap.get('fonction') ?? '';
 
-        return forkJoin({
-          ligne: lignes,
-          plan: plans,
-          fonction: fonctions,
-          operation: operations,
-          typetraitements: typetraitements,
-          erreurs: erreurTypes,
-          unites: unites,
-          verif: verifs,
-          client: clients,
-          users: allUsers
-        });
+    const dataFilter = this.getDataFilter(ligne, plan, fonction);
+    if (!dataFilter) {
+      throw new Error('Failed to get data filter');
+    }
+    const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
+    const allUsers = this.getAllUser();
+
+    return forkJoin({
+      ligne: lignes,
+      plan: plans,
+      fonction: fonctions,
+      operation: operations,
+      typetraitements: typetraitements,
+      erreurs: erreurTypes,
+      unites: unites,
+      verif: verifs,
+      client: clients,
+      users: allUsers
+    });
   }
 
-  async resolveFilterSimple(ligne:any,plan:any,fonction:any) {
-      // const plan = route.paramMap.get('id') ?? '';
-      // const ligne = '';
-      // const fonction = route.paramMap.get('fonction') ?? '';
-      try {
-        const dataFilter = await this.getDataFilterSimple(ligne, plan, fonction);
-        if (!dataFilter) {
-          throw new Error('Failed to get data filter');
-        }
-        const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
-        const allUsers = await this.getAllUser();
-
-    
-        return {
-          ligne: lignes,
-          plan: plans,
-          fonction: fonctions,
-          operation: operations,
-          typetraitements: typetraitements,
-          erreurs: erreurTypes,
-          unites: unites,
-          verif: verifs,
-          client: clients,
-          users: allUsers
-        };
-        
-      } catch (error) {
-        console.log(error)
+  async resolveFilterSimple(ligne: any, plan: any, fonction: any) {
+    // const plan = route.paramMap.get('id') ?? '';
+    // const ligne = '';
+    // const fonction = route.paramMap.get('fonction') ?? '';
+    try {
+      const dataFilter = await this.getDataFilterSimple(ligne, plan, fonction);
+      if (!dataFilter) {
+        throw new Error('Failed to get data filter');
       }
-      return 
+      const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
+      const allUsers = await this.getAllUser();
+
+
+      return {
+        ligne: lignes,
+        plan: plans,
+        fonction: fonctions,
+        operation: operations,
+        typetraitements: typetraitements,
+        erreurs: erreurTypes,
+        unites: unites,
+        verif: verifs,
+        client: clients,
+        users: allUsers
+      };
+
+    } catch (error) {
+      console.log(error)
+    }
+    return
   }
 
   getDataFilter(ligne: any, plan: any, fonction: any) {
     try {
       let filter = this.getFilter(ligne, plan, fonction);
-      let { lignes, plans, fonctions , operations } = filter;
+      let { lignes, plans, fonctions, operations } = filter;
       // lignes.subscribe(data => console.log('📦 LIGNES:', data));
       // plans.subscribe(data => console.log('📦 PLANS:', data));
       // fonctions.subscribe(data => console.log('📦 FONCTIONS:', data));
-      
+
       // let { operations } = new Operations().cast();
 
       let typetraitement = this.getTypeTraitement();
@@ -205,7 +205,7 @@ export class DetailProjectService {
     }
     return null
   }
-  
+
   async getDataFilterSimple(ligne: any, plan: any, fonction: any) {
     try {
       const { lignes, plans, fonctions, operation } = await this.getFilterSimple(ligne, plan, fonction);
@@ -306,7 +306,7 @@ export class DetailProjectService {
 
   async getFilterSimple(ligne: string = "", plan: string = "", fonction: string = "") {
     const responses$ = await firstValueFrom(this.filtre(ligne, plan, fonction))
-      
+
 
     const lignes$ = new LigneModel().cast(responses$);
 
@@ -329,7 +329,7 @@ export class DetailProjectService {
     return { operations: this.getOperation() };
   }
 
-  async updateUnitaire(id: string|number, value:any , name:string , deleted: boolean = false){ 
+  async updateUnitaire(id: string | number, value: any, name: string, deleted: boolean = false) {
     const body = {
       id,
       value,
@@ -339,7 +339,7 @@ export class DetailProjectService {
     return await this.http.post(`/updateUnit`, body);
   }
 
-  async deleteDonne(id: string|number, name:string){ 
+  async deleteDonne(id: string | number, name: string) {
     const body = {
       id,
       name
@@ -347,77 +347,102 @@ export class DetailProjectService {
     return await this.http.post(`/delete`, body);
   }
 
+  async getColonne(schema: string, tables: string[]) {
+    return await this.http.post(`/migre/column`, { schema, tables });
+  }
+
+  async importerData(table: string | undefined, columns: string[] | undefined, donne: { formData?: FormData, data?: any[] }) {
+
+
+    if (donne.data && donne.data.length > 0) {
+      const body = {
+        table,
+        columns,
+        data: donne.data
+      };
+
+      return await this.http.post(`/import`, body);
+    } else {
+
+      let configuration = {
+        reportProgress: true,
+        observe: 'events'
+      }
+
+      return await this.http.post(`/import`, donne.formData, configuration);
+    }
+
+  }
+
+
+  // getTypeTraitement() {
+  //     return this.http.get<TypeRtr
+  // }
+
+
+  // const vueGlobal: VueGlobal[] = (await this.http.post(
+  //   '/filtre',
+  //   body
+  // )) as VueGlobal[];
+  // return vueGlobal;
+
+  // return this.http.get<Erreur[]>('http://localhost:5000/api/erreur', {
+  //   withCredentials: true,
+  // });
+
+  // return this.http.get<TypeTraitement[]>(
+  //   'http://localhost:4000/typeTraitement',
+  //   { withCredentials: true }
+  // );
+
+
+  // return this.http.get<Unite[]>('http://localhost:3000/unite', {
+  //   withCredentials: true,
+  // });
+
+  // async getProjects() {
+  //   // return this.http.get<Projet[]>('http://localhost:3000/projets', {
+  //   //   withCredentials: true,
+  //   // });
+  //   const projets: Projet[] = (await this.http.get('/projets')) as Projet[];
+  //   return projets;
+  // }
+
+
+  // return this.http.get<Operation[]>('http://localhost:3000/operations', {
+  //   withCredentials: true,
+  // });
+
+  // getProjects() {
+  //     return this.http.get<Projet[]>('http://localhost:3000/projets');
+  // }
+
+  // getPlan() {
+  //     return this.http.get()
+  // }
+
+  // async getLigne() {
+  //   // return this.http.get<Ligne[]>('http://localhost:3000/lignes', {
+  //   //   withCredentials: true,
+  //   // });
+  //   const ligne: Ligne[] = (await this.http.get('/lignes')) as Ligne[];
+  //   return ligne;
+  // }
+
+  // async getLigneByPlan(plan: string) {
+  //   // return this.http.get<VueGlobal[]>('http://localhost:3000/', {
+  //   //   withCredentials: true,
+  //   // });
+  //   const ligne: Ligne[] = (await this.http.get('/')) as Ligne[];
+  //   return ligne;
+  // }
+
+  // async getFonction() {
+  //   // return this.http.get<Fonction[]>('http://localhost:3000/fonctions', {
+  //   //   withCredentials: true,
+  //   // });
+  //   const fonction: Fonction[] = (await this.http.get(
+  //     '/fonctions'
+  //   )) as Fonction[];
+  //   return fonction;
 }
-
-
-// getTypeTraitement() {
-//     return this.http.get<TypeRtr
-// }
-
-
-// const vueGlobal: VueGlobal[] = (await this.http.post(
-//   '/filtre',
-//   body
-// )) as VueGlobal[];
-// return vueGlobal;
-
-// return this.http.get<Erreur[]>('http://localhost:5000/api/erreur', {
-//   withCredentials: true,
-// });
-
-// return this.http.get<TypeTraitement[]>(
-//   'http://localhost:4000/typeTraitement',
-//   { withCredentials: true }
-// );
-
-
-// return this.http.get<Unite[]>('http://localhost:3000/unite', {
-//   withCredentials: true,
-// });
-
-// async getProjects() {
-//   // return this.http.get<Projet[]>('http://localhost:3000/projets', {
-//   //   withCredentials: true,
-//   // });
-//   const projets: Projet[] = (await this.http.get('/projets')) as Projet[];
-//   return projets;
-// }
-
-
-// return this.http.get<Operation[]>('http://localhost:3000/operations', {
-//   withCredentials: true,
-// });
-
-// getProjects() {
-//     return this.http.get<Projet[]>('http://localhost:3000/projets');
-// }
-
-// getPlan() {
-//     return this.http.get()
-// }
-
-// async getLigne() {
-//   // return this.http.get<Ligne[]>('http://localhost:3000/lignes', {
-//   //   withCredentials: true,
-//   // });
-//   const ligne: Ligne[] = (await this.http.get('/lignes')) as Ligne[];
-//   return ligne;
-// }
-
-// async getLigneByPlan(plan: string) {
-//   // return this.http.get<VueGlobal[]>('http://localhost:3000/', {
-//   //   withCredentials: true,
-//   // });
-//   const ligne: Ligne[] = (await this.http.get('/')) as Ligne[];
-//   return ligne;
-// }
-
-// async getFonction() {
-//   // return this.http.get<Fonction[]>('http://localhost:3000/fonctions', {
-//   //   withCredentials: true,
-//   // });
-//   const fonction: Fonction[] = (await this.http.get(
-//     '/fonctions'
-//   )) as Fonction[];
-//   return fonction;
-// }

@@ -96,6 +96,7 @@ export class Stepper {
   unites!: Unite[];
   selectedLigne = '';
   filteredOperations!: Observable<Erreur[]>[];
+  tableauOperations : Array<Erreur[]> = [];
   colonne: Observable<string[]>[] = [];
   verification: any;
   existVerif: boolean = false;
@@ -252,6 +253,26 @@ export class Stepper {
   get formGroup3() {
     return (this.form3.controls['formErreur'] as FormArray)
       .controls as FormGroup[];
+  }
+
+  filterGroupe(fg: FormGroup | null) {
+    if (!fg) return;
+    
+    console.log('filterGroupe', fg, 'TYPE ', fg.get('typeErreur'));
+    fg.get('typeErreur')!.valueChanges.pipe(
+        startWith(''),
+        map((value) => {
+          let valiny = this._filter(value || '');
+          this.cdr.detectChanges();
+          return valiny;
+        })
+      ).subscribe(filtered => {
+        let index = this.formGroup3.indexOf(fg);
+        this.tableauOperations[index] = filtered;
+        console.log('Ajout du groupe car inexistant', this.tableauOperations);
+      
+    })
+
   }
 
   updateFiltered3() {
@@ -1170,7 +1191,10 @@ export class Stepper {
 
     toggle(!!fg.get('typeErreur')?.value);
 
-    fg.get('typeErreur')?.valueChanges.subscribe((v) => toggle(!!v));
+    // fg.get('typeErreur')?.valueChanges.subscribe((v) => {toggle(!!v),this.cdr.detectChanges()});
+    fg.get('typeErreur')?.valueChanges.subscribe((v) => {
+      setTimeout(() => toggle(!!v));
+    });
 
     return fg;
   }
@@ -1296,7 +1320,10 @@ export class Stepper {
       ctrl.get('typeErreur')?.value === group.get('typeErreur')?.value
     );
     if (existIndex === -1) {
+      this.filterGroupe(group);
       this.typeErreur.push(group);
+      let index = this.typeErreur.length - 1;
+      this.tableauOperations[index] = this._filter(value.libelle_erreur || '');
     }
     // Vérifier si le FormGroup existe déjà dans typeErreur
     existIndex = this.typeErreur.controls.findIndex(ctrl =>
@@ -1326,7 +1353,7 @@ export class Stepper {
           }
         }
       });
-      return;
+      return group;
     }
 
     // Sinon → initialisation classique
@@ -1342,7 +1369,7 @@ export class Stepper {
     }
 
     // Ajout seulement si pas existant
-    return;
+    return group;
   }
 
 
@@ -1358,14 +1385,32 @@ export class Stepper {
 
   annuler(value: { form: FormGroup, controlName: string, ancienValue: any }) {
     value.form.get(value.controlName)?.setValue(value.ancienValue, { emitEvent: false });
+    const toggle = (enable: boolean) =>
+    Object.keys(value.form.controls).forEach(k => 
+      k !== value.controlName &&
+      (enable
+        ? value.form.get(k)?.enable({ emitEvent: false })
+        : value.form.get(k)?.disable({ emitEvent: false }))
+    );
+
+    const enable = !!value.ancienValue && value.ancienValue.toString().trim() !== '';
+    toggle(enable);
   }
 
   addLigne() {
     let before = this.updateData;
     this.updateErreur = false;
-    this.ajouterLigne(this.colone_form3, '', 0);
+    
+    this.ajouterLigne(this.colone_form3, '', 0).then(res => {
+      let response = this.filterGroupe(res)
+      // if (response) {
+      //   // this.filteredOperations = [response];
+
+      // }
+    });
     this.updateErreur = before;
-    this.updateFiltered3();
+    // this.updateFiltered3();
+    
   }
   removeEmptyTypeErreurGroups() {
 

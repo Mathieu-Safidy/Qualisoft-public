@@ -10,7 +10,6 @@ export class ApiDataResolver implements Resolve<any> {
   constructor(private projectService: ProjectService) {}
 
   resolve(): Observable<any> {
-    // this.projectService.getProjects().then(projects => console.log(projects));
     return forkJoin({
       projects:this.projectService.getProjects()
     }); 

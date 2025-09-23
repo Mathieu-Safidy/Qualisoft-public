@@ -16,10 +16,10 @@ export class ApiBackendHttp {
     const data = await firstValueFrom(this.http.get(url, { withCredentials }));
     return data;
   }
-  async post(endpoint: string, body: any, withCredentials: boolean = true) {
+  async post(endpoint: string, body: any, configuration?: any, withCredentials?: boolean) {
     const url = this.apiBack + '/api' + endpoint;
     const data = await firstValueFrom(
-      this.http.post(url, body, { withCredentials })
+      this.http.post(url, body, { withCredentials: withCredentials ?? true, ...configuration })
     );
     return data;
   }

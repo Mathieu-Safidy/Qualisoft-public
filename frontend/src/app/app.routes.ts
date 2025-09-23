@@ -12,6 +12,8 @@ import { Login } from './pages/login/login';
 import { DetailProjectResolver } from './service/DetailProjectResolver';
 import { Recap } from './pages/recap/recap';
 import { authGuard } from './guard/auth-guard';
+import { MigrationDonne } from './pages/migration-donne/migration-donne';
+import { MigrationResolver } from './service/MigrationResolver';
 
 
 export const routes: Routes = [
@@ -59,9 +61,17 @@ export const routes: Routes = [
                     { path: 'projet/:id/:fonction/objectif', component: ObjectifQualite } // => /parametrage/projet/detail
                 ]
             }, // => /parametrage
+            {
+                path: 'migration',
+                component: MigrationDonne,
+                resolve: {
+                    data: MigrationResolver
+                },
+            }
             // => /login
         ]
     },
+    
     // {
     //     path: 'parametrage',
     //     component: Parametrage,

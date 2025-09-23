@@ -66,7 +66,7 @@ export class Debounced {
         console.log('formulaire field ', this.formul(), this.formul()?.get(this.isAutoComplete().name ?? ''))
         this.formul()?.get(this.isAutoComplete().name ?? '')?.valueChanges
           .pipe(debounceTime(this.timeout()), takeUntil(this.destroy$))
-          .subscribe(val => this.emitIfChanged({ element: element, value: val })
+          .subscribe(val => this.emitIfChanged({ element: element, typeEvent:'change',value: val })
           );
         // fromEvent(element, 'blur')
         //   .pipe(takeUntil(this.destroy$))
@@ -116,7 +116,7 @@ export class Debounced {
           // const allWords = [...libelleWords, ...colonneWords];
           const allWords = [...colonneWords];
           return allWords.some(word =>
-            word.includes(term) || distance(word, term) <= maxDistance
+            word.includes(term) && distance(word, term) <= maxDistance
           );
         };
 
@@ -146,6 +146,9 @@ export class Debounced {
     if (corps.value != null && corps.value !== undefined) {
       persist = corps.value;
     }
+
+    
+
     let value = corps.element.type === 'checkbox' ? corps.element.checked : persist;
     let last = typeof this.lastValue === 'object' ? this.lastValue?.libelle : this.lastValue;
     console.log('element emit ', corps.element, 'value', value, 'last value', last, 'dif', this.lastValue, 'liste', this.liste(), 'persiste', persist, 'type', corps.element.type, 'verif', verif, 'corps', corps, 'veirifier', this.verifier());

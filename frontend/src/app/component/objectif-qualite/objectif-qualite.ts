@@ -107,7 +107,7 @@ export class ObjectifQualite {
             let valueAncien = this.verification().etape[index]?.seuil_qualite || 0;
             console.log('Format tsy mety',this.formGroups.at(index)?.get('seuilQualite')?.value , 'ancien', valueAncien);
             this.formGroups.at(index)?.get('seuilQualite')?.setValue(valueAncien, { emitEvent: false });
-            // this.cdref.detectChanges();
+            this.cdref.detectChanges();
           }
         })
     } 
@@ -131,6 +131,7 @@ export class ObjectifQualite {
       if (index !== -1) {
          const group = interlocuteurs.at(index);
         group.get('id_etape_qualite')?.setValue(param.id_etape_qualite, { emitEvent: false });
+        this.cdref.detectChanges();
       }
     }
   }
@@ -175,7 +176,7 @@ export class ObjectifQualite {
   // }
 
   ngOnInit() {
-    this.filteredOperations = this.formGroups.map((fg) =>
+    this.filteredOperations = this.formGroups?.map((fg) =>
       fg.get('operation')!.valueChanges.pipe(
         startWith(''),
         map(value => this._filter(value || ''))

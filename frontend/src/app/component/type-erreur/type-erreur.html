@@ -120,12 +120,17 @@
               />
               <mat-autocomplete #autErreur="matAutocomplete" 
                 panelClass="auto-width-panel">
-                <mat-option
-                  *ngFor="let erreur of filteredOperations()[i] | async "
+                @for (erreur of filteredOperationsSignal()[i]; track $index) {
+
+                  <!-- *ngFor="let erreur of filteredOperationsSignal()[i]" -->
+                  <mat-option
                   [value]="erreur.type_erreur"
-                >
+                  >
                   {{ erreur.type_erreur }}
                 </mat-option>
+              } @empty {
+                <mat-option disabled>Aucun résultat</mat-option>
+              }
               </mat-autocomplete>
             </td>
             <td>

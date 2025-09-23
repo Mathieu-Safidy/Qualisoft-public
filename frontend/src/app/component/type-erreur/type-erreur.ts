@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Erreur } from '../../interface/Erreur';
-import { map, Observable, startWith } from 'rxjs';
+import { firstValueFrom, map, Observable, startWith } from 'rxjs';
 import { MatTooltip } from '@angular/material/tooltip';
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8";
@@ -52,9 +52,12 @@ export class TypeErreur {
   rollback = false;
 
   readonly filteredOperations = input.required<Observable<Erreur[]>[]>();
+  readonly filteredOperationsSignal = input<Array<Erreur[]>>([]);
 
   constructor() {
     effect(() => {
+      // console.log("appel operation filtrer", firstValueFrom(this.filteredOperations() as any));
+      
       const form = this.form();
       if (!form) return;
       // group = this.fb.group({
@@ -65,14 +68,19 @@ export class TypeErreur {
       //     raccourci: [value.raccourci || '', Validators.required],
       //   });
       this.ensureControl(form, 'formErreur', this.fb.array([]));
-      let colonne = ['idErreur', 'typeErreur', 'degre', 'coef', 'raccourci'];
       const formErreur = form.get('formErreur') as FormArray;
-
+      
       // On boucle sur chaque FormGroup du FormArray
+      let colonne = ['idErreur', 'typeErreur', 'degre', 'coef', 'raccourci'];
+      if (formErreur.length === 0) {
+        const newRow = this.fb.group({});
+        colonne.forEach(col => newRow.addControl(col, this.fb.control('')));
+        formErreur.push(newRow);
+      }
       formErreur.controls.forEach((fg: AbstractControl) => {
         if (fg instanceof FormGroup) {
           colonne.forEach(col => {
-            if (!fg.get(col)) {
+            if (fg.get(col)) {
               // fg.addControl(col, this.fb.control(''));
               this.ensureControl(fg, col, this.fb.control(''));
             }
@@ -108,6 +116,7 @@ export class TypeErreur {
     this.colonneObserve().subscribe(col => {
       console.log('colonneObserve', col);
     })
+
   }
 
   private ensureControl(form: FormGroup, name: string, control: AbstractControl) {

@@ -202,7 +202,7 @@ export class ProjectDetail {
       map((contact: string | null) => (contact ? this._filterCp(contact) : this.allContacts().slice()))
     );
 
-    const initialValue = this.form().get('cp_responsable')?.value;
+    const initialValue = this.form()?.get('cp_responsable')?.value;
     // console.log("intial user", this.allContacts());
     // 2. Check if the value exists and is not empty
     if (initialValue) {
@@ -256,12 +256,12 @@ export class ProjectDetail {
 
     // console.log('Formulaire initialized with plan:', this.id, ' and ligne:', this.ligne[0]);
 
-    this.filteredOptions = this.form().get('fonction')!.valueChanges.pipe(
+    this.filteredOptions = this.form()?.get('fonction')!.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || ''))
     );
 
-    this.filteredOptionsLigne = this.form().get('ligne')!.valueChanges.pipe(
+    this.filteredOptionsLigne = this.form()?.get('ligne')!.valueChanges.pipe(
       startWith(''),
       map(value => this._filterLigne(value || ''))
     );
