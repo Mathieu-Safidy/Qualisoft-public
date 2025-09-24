@@ -12,6 +12,8 @@ import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8";
 import { Debounced } from '../../directive/debounced';
 import { DetailProjectService } from '../../service/DetailProjectService';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-type-erreur',
@@ -25,7 +27,8 @@ import { DetailProjectService } from '../../service/DetailProjectService';
     ReactiveFormsModule,
     NgbPopoverModule,
     MatTooltip,
-    Debounced
+    Debounced,
+    ToastModule
   ],
   templateUrl: './type-erreur.html',
   styleUrl: './type-erreur.css'
@@ -50,6 +53,7 @@ export class TypeErreur {
   updateEtape = output<any>();
   valider = false;
   rollback = false;
+  messageService = inject(MessageService);
 
   readonly filteredOperations = input.required<Observable<Erreur[]>[]>();
   readonly filteredOperationsSignal = input<Array<Erreur[]>>([]);
@@ -91,6 +95,22 @@ export class TypeErreur {
     );
   }
 
+
+  showSuccess(message: string) {
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Succès',
+      detail: message
+    });
+  }
+
+  showError(message: string) {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: message
+    });
+  }
 
   ngOnInit() {
     // this.initFormGroup();
@@ -274,7 +294,8 @@ export class TypeErreur {
     let updateValue = { 'id_etape_qualite': id_etape, 'id_type_erreur': id_type_erreur };
     console.log("Debounced event:", event, 'update value ', updateValue, 'name', champ);
     let result: any = null;
-    if (validite) {
+    console.log("Valeur avant vérification: validite", this.formArray.at(champ.index)?.get(champ.col.name)?.value);
+    if (id == -1 || id === null || id === undefined) {
       id = -1;
       let checker = this.formArray.at(champ.index).get(champ.col.name);
       let form = this.formArray.at(champ.index).value;
@@ -282,15 +303,21 @@ export class TypeErreur {
       this.detailService.updateUnitaire(id, updateValue, name).then(res => {
         console.log("Update result:", res);
         checker?.setValue(validite, { emitEvent: false });
+        this.showSuccess("Option ajoutée avec succès");
       }).catch(err => {
         checker?.setValue(form[champ.col.name], { emitEvent: false });
-        alert("Erreur lors de l'ajout d'option");
+        this.showError("Erreur lors de l'ajout d'option");
       });
       console.log("Update result insert:", this.formArray.at(champ.index).value);
     } else {
       id = 0;
-      result = await this.detailService.updateUnitaire(id, updateValue, name, true)
-      console.log("Update result delete :", result,);
+      this.detailService.updateUnitaire(id, updateValue, name, true).then(res => {
+        result = res;
+        console.log("Update result delete :", result);
+        this.showSuccess("Option supprimée avec succès");
+      }).catch(err => {
+        this.showError("Erreur lors de la suppression d'option");
+      })
     }
   }
 
