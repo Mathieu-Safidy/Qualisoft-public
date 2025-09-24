@@ -116,7 +116,7 @@ export class Debounced {
           // const allWords = [...libelleWords, ...colonneWords];
           const allWords = [...colonneWords];
           return allWords.some(word =>
-            word.includes(term) && distance(word, term) <= maxDistance
+            word.includes(term) || distance(word, term) <= maxDistance
           );
         };
 

@@ -51,15 +51,16 @@ export class Acceuil {
   
   initConforme() {
     const ctx = this.conformite?.nativeElement?.getContext('2d');
+    let ligne = [{id_ligne: '069', non_conformite:10}, {id_ligne: '070', non_conformite:5}, {id_ligne: '071', non_conformite:15}, {id_ligne: '072', non_conformite:25}, {id_ligne: '073', non_conformite:35}, {id_ligne: '074', non_conformite:45}, {id_ligne: '075', non_conformite:55}, {id_ligne: '076', non_conformite:65}, {id_ligne: '077', non_conformite:75}, {id_ligne: '078', non_conformite:85}, {id_ligne: '079', non_conformite:95}];
     if (ctx) {
       new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Conforme (+90%) ', 'Non Conforme (-90%)'],
+          labels: ligne.map(l => l.id_ligne),
           datasets: [{
             label: 'Valeurs',
-            data: [75, 25],
-            backgroundColor: ['#7ee2a7', '#f94144'],
+            data: ligne.map(l => l.non_conformite),
+            backgroundColor: ligne.map(() => `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)` ),
           }]
         },
         options: {

@@ -84,12 +84,12 @@ export class ObjectifQualite {
     return this.form();
   }
 
-  async updateValue(event: any) {
+  async updateValue(event: any) : Promise<any> {
     let { id, value, name } = event;
     console.log("Debounced event:", event);
 
     if (!value || !id) {
-      return;
+      return false;
     }
     let { index, ...reste } = value;
     value = reste;
@@ -102,6 +102,9 @@ export class ObjectifQualite {
               console.log("Update result:", resultat );
               this.handlerUpdate(resultat, index);
               this.updateEtape.emit();
+              return true;
+            }).catch((error) => {
+              return false;
             });
           } else {
             let valueAncien = this.verification().etape[index]?.seuil_qualite || 0;
@@ -112,11 +115,16 @@ export class ObjectifQualite {
         })
     } 
     else {
-      let resultat: any = await this.detailService.updateUnitaire(id, value, name, this.ondelete);
-      console.log("Update result:", resultat );
-      this.handlerUpdate(resultat, index);
-      this.updateEtape.emit();
-      return;
+      this.detailService.updateUnitaire(id, value, name, this.ondelete).then((resultat: any) => {
+        console.log("Update result:", resultat );
+        this.handlerUpdate(resultat, index);
+        this.updateEtape.emit();
+
+        // let resultat: any = await 
+        return true;
+      }).catch((error) => {
+        return false;
+      });
     }
   }
 
@@ -398,14 +406,42 @@ export class ObjectifQualite {
     const item = formArray.at(event.previousIndex);
 
     formArray.removeAt(event.previousIndex);
+
+
     formArray.insert(event.currentIndex, item);
-    // console.log(formArray.controls.map(fg => fg.value));
-    // this.filteredOperations = this.formGroups.map((fg) =>
-    //   fg.get('operation')!.valueChanges.pipe(
-    //     startWith(''),
-    //     map(value => this._filter(value || ''))
-    //   )
-    // );
+
+    const counters: Record<string, number> = {};
+
+    const newOrder = formArray.controls.map((ctrl, index) => {
+      const op = ctrl.value.operation;
+      if (!(op in counters)) counters[op] = 1;
+      const ordreLocal = counters[op]++;
+      return {
+        id: ctrl.value.id_etape_qualite,
+        operation: ctrl.value.operation,
+        operation_a_controller: ctrl.value.operationAControler,
+        generale_order: index + 1,
+        ordre: ordreLocal
+      }
+    });
+
+    newOrder.forEach((item, index) => {
+      // formArray.at(index).get('ordre')?.setValue(index, { emitEvent: false });
+      let id = item.id;
+      let value = {
+        ordre_generale: item.generale_order,
+        ordre: item.ordre
+      }
+      let name = 'detail_projet.etape_qualite:ordre_generale';
+      this.updateValue({ id, value, name }).then((res) => {
+        if (res) {
+          formArray.at(index).get('ordre')?.setValue(item.ordre, { emitEvent: false });
+        }
+      });
+    });
+      
+    console.log("Nouvel ordre:", newOrder);
+
     this.cdref.detectChanges();
 
   }

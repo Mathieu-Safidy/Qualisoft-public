@@ -496,14 +496,22 @@ export class Stepper {
 
         this.form2 = this.fb.group({
           formArray: this.fb.array(
-            (formArrayData.length > 0 ? formArrayData : this.items).map((item: any) => {
+            (formArrayData.length > 0 ? formArrayData : this.items)
+            .sort((a :any, b :any) => {
+              if (a.ordre_generale !== b.ordre_generale) {
+                return a.ordre_generale - b.ordre_generale; // 🔹 tri par ordre général
+              }
+              return a.ordre - b.ordre; // 🔹 tri secondaire par ordre
+            })
+            .map((item: any) => {
               console.log('id etapes  == ', item.id_etape_qualite);
 
               const group = this.fb.group({
                 id: [item.id || uuidv4()],
                 id_etape_qualite: [item.id_etape_qualite || ''],
                 operation: [item.operation_de_control?.toString() || '', Validators.required],
-                ordre: [item.ordre || 0],
+                ordre: [item.ordre || 1],
+                ordre_generale: [item.ordre_generale || 1],
                 unite: this.fb.control(
                   { value: item.id_unite_de_controle || '', disabled: true },
                   Validators.required
@@ -591,9 +599,12 @@ export class Stepper {
         console.log("Valeur initiale bcqForm:", this.bcqForm.value, this.verification.bcq_donnees[0]);
 
         // console.log('form 2 value', this.form2.value);
-        this.generate();
-
-
+        // this.addErreur({ id_erreur: -1, type_erreur: '' });
+        if (this.verification.erreur.length == 0) {
+          this.addLigne();
+        } else {
+          this.generate();
+        }
         this.initializing = false;
       } else {
         let donne = {
@@ -637,6 +648,8 @@ export class Stepper {
               id: [uuidv4()],
               id_etape_qualite: [''],
               operation: ['', Validators.required],
+              ordre: [1],
+              ordre_generale: [1],
               unite: [{ value: '', disabled: true }, Validators.required],
               seuilQualite: [{ value: '', disabled: true }, [
                 Validators.required,
@@ -701,6 +714,8 @@ export class Stepper {
         this.updateFiltered3();
 
         this.subscribeToFormChanges();
+
+        this.addLigne();
         // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
       }
       this.verfierTypeControl();
