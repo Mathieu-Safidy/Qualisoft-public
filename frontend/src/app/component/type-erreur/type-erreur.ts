@@ -176,7 +176,7 @@ export class TypeErreur {
 
   async updateValue(event: any) {
     let { id, value, name } = event;
-    console.log("UpdateValue appelé avec :", event);
+    console.log("UpdateValue appelé avec :", event, 'typeof value', typeof value);
     
     let { id_projet, libelle, index, est_majeur, raccourci } = value;
     if (libelle && index !== undefined && index !== null) {
@@ -190,35 +190,59 @@ export class TypeErreur {
     }
 
     if (typeof value === 'object') {
-      if (value.libelle !== null && value.libelle !== undefined) {
-        value = { id_projet, libelle };
-      } else if (value.est_majeur !== null && value.est_majeur !== undefined) {
-        value = est_majeur;
-        this.valider = true;
-      } else if (value.raccourci !== null && value.raccourci !== undefined) {
-        value = raccourci;
-        this.valider = true;
-      } else if (value.coef !== null && value.coef !== undefined) {
-        value = value.coef;
-        this.valider = true;
+      console.log("Valeur avant vérification type value:", this.verify(libelle), this.valider , value);
+      
+      // if (value.libelle !== null && value.libelle !== undefined) {
+      //   value = { id_projet, libelle };
+      //   console.log('libelle modifié', value);
+      // } 
+      // if (value.est_majeur !== null && value.est_majeur !== undefined) {
+      //   console.log('est_majeur modifié', value.est_majeur);
+        
+      //   value = est_majeur;
+      //   this.valider = true;
+      // } else if (value.raccourci !== null && value.raccourci !== undefined) {
+      //   value = raccourci;
+      //   console.log('raccourci modifié', value);
+      //   this.valider = true;
+      // } else if (value.coef !== null && value.coef !== undefined) {
+      //   value = value.coef;
+      //   console.log('coef modifié', value);
+        
+      //   this.valider = true;
+      // }
+      const champs = [
+        { key: 'est_majeur', log: 'est_majeur modifié', transform: () => est_majeur },
+        { key: 'raccourci', log: 'raccourci modifié', transform: () => raccourci },
+        { key: 'coef', log: 'coef modifié', transform: () => value.coef },
+        { key: 'libelle', log: 'libelle modifié', transform: () => ({ id_projet, libelle }) }
+      ];
+
+      for (const champ of champs) {
+        if (value[champ.key] != null) {
+          value = champ.transform();
+          console.log(champ.log, value);
+          this.valider = true;
+          break;
+        }
       }
     } else {
       this.valider = true;
     }
     console.log("Debounced event:", event, this.valider);
-    console.log("Valeur avant vérification:", this.verify(value.libelle), this.valider);
-    console.log("Valeur ajoutée, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (value.libelle ?? '').toLowerCase()));
-    if (!this.verify(value.libelle) && this.valider) {
+    console.log("Valeur avant vérification:", this.verify(libelle), this.valider);
+    console.log("Valeur ajoutée, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (libelle ?? '').toLowerCase()));
+    if (!this.verify(libelle) && this.valider) {
       let idTo = -1;
       let nameTo = 'detail_projet.erreur_suggestion:libelle';
-      let valueTo = { 'libelle': value.libelle };
+      let valueTo = { 'libelle': libelle };
       this.detailService.updateUnitaire(idTo, valueTo, nameTo).then((res: any) => {
         console.log("Option ajoutée avec succès :", res, this.erreurs());
         if (res.parametre && res.parametre.length > 0) {
           let newErreur = { id_erreur: res.parametre[0].id_erreur_suggestion, type_erreur: res.parametre[0].libelle };
           // this.erreurs()?.push(newErreur);
           this.addErreur.emit(newErreur);
-          console.log("Valeur ajoutée, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (value.libelle ?? '').toLowerCase()));
+          console.log("Valeur ajoutée, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (libelle ?? '').toLowerCase()));
           this.updateValue(event);
           this.valider = false;
         }
@@ -227,8 +251,8 @@ export class TypeErreur {
       });
       console.log("Valeur non valide, mise à jour annulée.");
       return;
-    } else if (this.verify(value.libelle) && this.valider) {
-      console.log("Valeur existante, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (value.libelle ?? '').toLowerCase()));
+    } else if (this.verify(libelle) && this.valider) {
+      console.log("Valeur existante, ", this.erreurs().find(item => (item.type_erreur ?? '').toLowerCase() === (libelle ?? '').toLowerCase()));
 
       this.detailService.updateUnitaire(id, value, name)
         .then((res: any) => {

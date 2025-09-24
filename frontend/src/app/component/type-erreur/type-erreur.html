@@ -143,7 +143,7 @@
                 formControlName="degre"
                 appDebounced
                 (debouncedValue)="updateValue($event)"
-                [foreign]="[{name: 'index', value: i}]"
+                [foreign]="[{name: 'index', value: i},{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()}]"
                 [identity]="formArray.at(i).get('idErreur')?.value"
                 [isAutoComplete]="{value: false}"
               >
@@ -160,7 +160,7 @@
                 (debouncedValue)="updateValue($event)"
                 [identity]="formArray.at(i).get('idErreur')?.value"
                 [isAutoComplete]="{value: false}"
-                [foreign]="[{name: 'index', value: i},{name:'coef', value: formArray.at(i).get('coef')?.value}]"
+                [foreign]="[{name: 'index', value: i},{name:'coef', value: formArray.at(i).get('coef')?.value},{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()}]"
                 class="col-2 form-control"
                 (blur)="formatSeuilQualite(i)"
                 (keypress)="filterInput($event)"
@@ -175,7 +175,7 @@
                 id=""
                 formControlName="raccourci"
                 name="detail_projet.type_erreur:raccourci"
-                [foreign]="[{name: 'index', value: i},{name:'raccourci', value: formArray.at(i).get('raccourci')?.value}]"
+                [foreign]="[{name: 'index', value: i},{name:'raccourci', value: formArray.at(i).get('raccourci')?.value},{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()}]"
                 appDebounced
                 (debouncedValue)="updateValue($event)"
                 [identity]="formArray.at(i).get('idErreur')?.value"
@@ -193,7 +193,7 @@
                     formControlName="{{ col.name }}"
                     name="detail_projet.erreur_valable:validite"
                     appDebounced
-                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: i , col} }]"
+                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: i , col} },{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()}]"
                     (debouncedValue)="updateValueCheck($event)"
                     [identity]="formArray.at(i).get('idErreur')?.value"
                     (click)="(lister()[1] == '' && !exist()) ? $event.preventDefault() : null"
@@ -206,7 +206,7 @@
                     class="form-check-input"
                     id="{{ 'check' + col.id }}"
                     appDebounced
-                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value }]"
+                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()}]"
                     (debouncedValue)="updateValueCheck($event)"
                     [identity]="formArray.at(i).get('idErreur')?.value"
                     style="width: 30px; height: 30px"
