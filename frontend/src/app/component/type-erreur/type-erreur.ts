@@ -294,26 +294,28 @@ export class TypeErreur {
     let updateValue = { 'id_etape_qualite': id_etape, 'id_type_erreur': id_type_erreur };
     console.log("Debounced event:", event, 'update value ', updateValue, 'name', champ);
     let result: any = null;
-    console.log("Valeur avant vérification: validite", this.formArray.at(champ.index)?.get(champ.col.name)?.value);
-    if (id == -1 || id === null || id === undefined) {
+    let checker = this.formArray.at(champ.index).get(champ.col.name);
+    console.log("Valeur avant vérification: validite", this.formArray.at(champ.index)?.get(champ.col.name)?.value, 'chekcer',checker?.value);
+    if (checker?.value) {
       id = -1;
-      let checker = this.formArray.at(champ.index).get(champ.col.name);
+      
       let form = this.formArray.at(champ.index).value;
       // if (this.verify(updateValue.))
       this.detailService.updateUnitaire(id, updateValue, name).then(res => {
         console.log("Update result:", res);
-        checker?.setValue(validite, { emitEvent: false });
+        checker?.setValue(true, { emitEvent: false });
         this.showSuccess("Option ajoutée avec succès");
       }).catch(err => {
-        checker?.setValue(form[champ.col.name], { emitEvent: false });
+        // checker?.setValue(form[champ.col.name], { emitEvent: false });
         this.showError("Erreur lors de l'ajout d'option");
       });
       console.log("Update result insert:", this.formArray.at(champ.index).value);
     } else {
-      id = 0;
+      // id = 0;
       this.detailService.updateUnitaire(id, updateValue, name, true).then(res => {
         result = res;
         console.log("Update result delete :", result);
+        checker?.setValue(false, { emitEvent: false });
         this.showSuccess("Option supprimée avec succès");
       }).catch(err => {
         this.showError("Erreur lors de la suppression d'option");
