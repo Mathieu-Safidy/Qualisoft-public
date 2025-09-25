@@ -374,75 +374,74 @@ export class DetailProjectService {
 
   }
 
+  async getProjetActif(date_debut: string, date_fin: string) : Promise<{row: {id_plan: string, id_fontion: string}, count: number}> {
+    return await this.http.get(`/projets/actif/${date_debut}/to/${date_fin}`) as Promise<{row: {id_plan: string, id_fontion: string}, count: number}>;
+  }
 
-  // getTypeTraitement() {
-  //     return this.http.get<TypeRtr
-  // }
+  async getProjetActifMonth(mois: string, annee: string) : Promise<any> {
+    
+
+    const { startOfMonth, endOfMonth } = DetailProjectService.getMonthRange(annee, mois);
+
+    console.log('date : ',startOfMonth, endOfMonth, mois, annee);
+    
+
+    return await this.http.get(`/projets/actif/${startOfMonth}/to/${endOfMonth}`);
+  }
+
+  async getProjetActifParametrer(mois: string, annee: string, donne: {id_plan: string, id_fontion: string}[]) {
+    const { startOfMonth, endOfMonth } = DetailProjectService.getMonthRange(annee, mois);
+    const body = {
+      date_debut: startOfMonth,
+      date_fin: endOfMonth,
+      donne
+    }
+    return await this.http.post(`/projets/actif/parametrer`, body);
+  }
+
+  async getProjetParametrer() {
+    return await this.http.get(`/projets/parametrer`);
+
+  }
+  async getProjetActifParLigne(mois: string, annee: string) {
+    const { startOfMonth, endOfMonth } = DetailProjectService.getMonthRange(annee, mois);
+    let result:any = await this.http.get(`/projets/actif/lignes/${startOfMonth}/to/${endOfMonth}`);
+    const donneComplet = await Promise.all(
+      result.map(async (item: any) => {
+        const res:any = await this.getLigne(item.ligne) ;
+        const nom = res.libelle;
+        const nombre_projet = item.nombre_projet;
+        return { nom, nombre_projet };
+      })
+    );
+    return donneComplet;
+  }
+
+  async getRepartitionTypeOperation() {
+    return await this.http.get(`/operations/repartition`);
+  }
+
+  static getMonthRange(yearStr: string, monthStr: string) {
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10); // ⚠️ mois en JS commence à 0
+
+    // Début du mois
+    const startOfMonth = new Date(year, month - 1, 1);
+
+    // Fin du mois
+    const endOfMonth = new Date(year, month, 0);
+
+    // console.log('date : ',startOfMonth, endOfMonth , year, 'month',month , yearStr, monthStr);
+
+    const formattedStart = `${startOfMonth.getFullYear()}-${startOfMonth.getMonth() + 1}-${startOfMonth.getDate()}`;
+    const formattedEnd = `${endOfMonth.getFullYear()}-${endOfMonth.getMonth() + 1}-${endOfMonth.getDate()}`;
+
+    return { startOfMonth: formattedStart, endOfMonth: formattedEnd };
+  }
+
+  async getLigne(ligne: string) {
+    return await this.http.get(`/lignes/${ligne}`);
+  }
 
 
-  // const vueGlobal: VueGlobal[] = (await this.http.post(
-  //   '/filtre',
-  //   body
-  // )) as VueGlobal[];
-  // return vueGlobal;
-
-  // return this.http.get<Erreur[]>('http://localhost:5000/api/erreur', {
-  //   withCredentials: true,
-  // });
-
-  // return this.http.get<TypeTraitement[]>(
-  //   'http://localhost:4000/typeTraitement',
-  //   { withCredentials: true }
-  // );
-
-
-  // return this.http.get<Unite[]>('http://localhost:3000/unite', {
-  //   withCredentials: true,
-  // });
-
-  // async getProjects() {
-  //   // return this.http.get<Projet[]>('http://localhost:3000/projets', {
-  //   //   withCredentials: true,
-  //   // });
-  //   const projets: Projet[] = (await this.http.get('/projets')) as Projet[];
-  //   return projets;
-  // }
-
-
-  // return this.http.get<Operation[]>('http://localhost:3000/operations', {
-  //   withCredentials: true,
-  // });
-
-  // getProjects() {
-  //     return this.http.get<Projet[]>('http://localhost:3000/projets');
-  // }
-
-  // getPlan() {
-  //     return this.http.get()
-  // }
-
-  // async getLigne() {
-  //   // return this.http.get<Ligne[]>('http://localhost:3000/lignes', {
-  //   //   withCredentials: true,
-  //   // });
-  //   const ligne: Ligne[] = (await this.http.get('/lignes')) as Ligne[];
-  //   return ligne;
-  // }
-
-  // async getLigneByPlan(plan: string) {
-  //   // return this.http.get<VueGlobal[]>('http://localhost:3000/', {
-  //   //   withCredentials: true,
-  //   // });
-  //   const ligne: Ligne[] = (await this.http.get('/')) as Ligne[];
-  //   return ligne;
-  // }
-
-  // async getFonction() {
-  //   // return this.http.get<Fonction[]>('http://localhost:3000/fonctions', {
-  //   //   withCredentials: true,
-  //   // });
-  //   const fonction: Fonction[] = (await this.http.get(
-  //     '/fonctions'
-  //   )) as Fonction[];
-  //   return fonction;
 }

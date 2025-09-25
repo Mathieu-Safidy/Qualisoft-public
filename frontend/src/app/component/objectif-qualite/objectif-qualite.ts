@@ -70,7 +70,7 @@ export class ObjectifQualite {
 
   get formGroups(): FormGroup[] {
     const formArray = this.form()?.controls["formArray"];
-    return (formArray as FormArray).controls as FormGroup[];
+    return (formArray as FormArray).controls as FormGroup[] ;
   }
 
   get formArray() {
@@ -108,8 +108,8 @@ export class ObjectifQualite {
             });
           } else {
             let valueAncien = this.verification().etape[index]?.seuil_qualite || 0;
-            console.log('Format tsy mety',this.formGroups.at(index)?.get('seuilQualite')?.value , 'ancien', valueAncien);
-            this.formGroups.at(index)?.get('seuilQualite')?.setValue(valueAncien, { emitEvent: false });
+            console.log('Format tsy mety',this.formGroups?.at(index)?.get('seuilQualite')?.value , 'ancien', valueAncien);
+            this.formGroups?.at(index)?.get('seuilQualite')?.setValue(valueAncien, { emitEvent: false });
             this.cdref.detectChanges();
           }
         })
@@ -149,7 +149,7 @@ export class ObjectifQualite {
 
   openAlert(index: number) {
     this.showAlert = true;
-    let pourcentage = this.formGroups.at(index)?.get('seuilQualite')?.value;
+    let pourcentage = this.formGroups?.at(index)?.get('seuilQualite')?.value;
     console.log("pourcentage ", pourcentage);
     this.dialogRef = this.dialog.open(AlertConfirm, {
       width: 'auto',
@@ -209,7 +209,7 @@ export class ObjectifQualite {
     if (changes['operations']) {
       console.log('Opérations mises à jour', this.operations);
       // mettre à jour les champs internes ici
-      this.filteredOperations = this.formGroups.map((fg) =>
+      this.filteredOperations = this.formGroups?.map((fg) =>
         fg.get('operation')!.valueChanges.pipe(
           startWith(''),
           map(value => this._filter(value || ''))
@@ -290,7 +290,7 @@ export class ObjectifQualite {
   }
 
   updateAllOperation() {
-    this.formGroups.forEach((fg, i) => {
+    this.formGroups?.forEach((fg, i) => {
       this.updateFilteredOperations(i + 1);
     })
   }
@@ -303,10 +303,11 @@ export class ObjectifQualite {
         .filter(sel => sel.index !== index - 1 && sel.index !== 0)
         .map(sel => sel.value);
 
-      const currentOperation = this.formGroups[index - 1]?.get('operation')?.value;
+      if (!this.formGroups) return [];
 
-      const previousOperation = this.formGroups
-        .map((fg, i) => fg ? [i, fg.get('operation')?.value] : [])
+      const currentOperation = this.formGroups?.at(index - 1)?.get('operation')?.value;
+
+      const previousOperation = this.formGroups?.map((fg, i) => fg ? [i, fg.get('operation')?.value] : [])
         .filter(val => val !== null && val !== undefined);
 
       // console.log('previous ', previousOperation)
@@ -315,10 +316,10 @@ export class ObjectifQualite {
         .map((value, idx) => (currentOperation && value[1] && ((value[1]).includes(currentOperation.toString())) ? value[0] : null))
         .filter(idx => idx !== null)
 
-      const operationExclu = this.formGroups.map((fg, i) => excluded.includes(i) ? fg.get('operationAControler')?.value : null)
+      const operationExclu = this.formGroups?.map((fg, i) => excluded.includes(i) ? fg.get('operationAControler')?.value : null)
         .filter((value => value !== null && value !== undefined))
 
-      const operationExcluNonC = this.formGroups.map((fg, i) => excluded.includes(i) ? fg.get('operation')?.value : null)
+      const operationExcluNonC = this.formGroups?.map((fg, i) => excluded.includes(i) ? fg.get('operation')?.value : null)
         .filter((value => value !== null && value !== undefined))
 
       const allExcluded = Array.from(new Set([...operationExclu, ...operationExcluNonC]));
@@ -341,7 +342,7 @@ export class ObjectifQualite {
   }
 
   formatSeuilQualite(index: number): Observable<boolean> {
-    const ctrl = this.formGroups.at(index)?.get('seuilQualite');
+    const ctrl = this.formGroups?.at(index)?.get('seuilQualite');
     let value = ctrl?.value;
 
     if (value !== null && value !== undefined) {
@@ -367,7 +368,7 @@ export class ObjectifQualite {
   }
 
   formatCritereRejet(index: number): void {
-    const ctrl = this.formGroups.at(index)?.get('critereRejet');
+    const ctrl = this.formGroups?.at(index)?.get('critereRejet');
     let value = ctrl?.value;
 
     if (value !== null && value !== undefined) {

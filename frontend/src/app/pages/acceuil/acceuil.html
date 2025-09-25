@@ -1,4 +1,15 @@
- <div >
+@if(loading) {
+  <div class="spinner-overlay bg-light p-5 rounded-3 shadow-lg">
+    <div class="row text-center mb-3">
+      <p-progressSpinner  styleClass="custom-spinner" ></p-progressSpinner>
+    </div>
+    <div class="row">
+      <p>Chargement en cours...</p>
+    </div>
+  </div>
+}
+
+<div >
     <div class="row ">
       <div class="col-4 p-3">
         <div class="bg-white p-3 pb-1 shadow rounded-3">
@@ -6,40 +17,43 @@
           <p class="d-flex justify-content-between">
             <span class="d-flex ">
               <span class=" me-2">
-                <!-- <input type="date" class="form-control" name="" id=""> -->
-                <select name="" id="" class="form-select">
-                  <option value="1">Janvier</option>
-                  <option value="2">Fevrier</option>
-                  <option value="3">Mars</option>
-                  <option value="4">Avril</option>
-                  <option value="5">Mai</option>
+                <select name="" id="" class="form-select" (change)="changeMonth($event)" [value]="moisActuel()">
+                  @for (item of moisExistant; track $index) {
+                    <option [value]="($index + 1).toString()" [selected]="$index + 1 === moisActuel()">
+                      {{ item }}
+                    </option>
+                  }
                 </select>
               </span>
               <span class="">
-                <select name="" id="" class="form-select">
-                  <option value="">2021</option>
-                  <option value="">2022</option>
-                  <option value="">2023</option>
+                <select name="" id="" class="form-select" (change)="changeYear($event)" [value]="anneeActuel()">
+                  <option value="2021">2021</option>
+                  <option value="2022">2022</option>
+                  <option value="2023">2023</option>
+                  <option value="2024">2024</option>
+                  <option value="2025">2025</option>
                 </select>
               </span>
             </span>
-            <span class="display-4 me-3">255</span></p>
-        </div>
-      </div>
-      
-      <div class="col-4 p-3">
-        <div class="bg-white p-3 pb-1 shadow rounded-3">
-          <h5 class="mini-titre text-end">Nombre de projet non conforme</h5>
-          <p class="text-end"><span class="display-4">50</span></p>
+            <span class="display-4 me-3">{{ nombreProjetActif() }}</span></p>
         </div>
       </div>
 
       <div class="col-4 p-3">
         <div class="bg-white p-3 pb-1 shadow rounded-3">
           <h5 class="mini-titre text-end">Projet parametrer</h5>
-          <p class="text-end"><span class="display-4">58</span></p>
+          <p class="text-end"><span class="display-4">{{ nombreProjetParametrer() }}</span></p>
         </div>
       </div>
+      
+      <div class="col-4 p-3">
+        <div class="bg-white p-3 pb-1 shadow rounded-3">
+          <h5 class="mini-titre text-end">Nombre de projet non conforme</h5>
+          <p class="text-end"><span class="display-4">0</span></p>
+        </div>
+      </div>
+
+    
       
       
       
@@ -71,6 +85,56 @@
       </div> -->
     </div>
     <div class="row">
+
+      <div class="col-4 p-3">
+        <div class="bg-white p-3 shadow rounded-3 liste-ligne">
+          <h4>Projet actif par ligne de production</h4>
+          <!-- Timeline 1 - Bootstrap Brain Component -->
+          <section class="bsb-timeline-1 p-4 pt-1">
+            <div class="container">
+              <div class="row">
+                <div class="col-12">
+                  <ul class="timeline">
+                    @for (item of projetACtifParLigne(); track $index) {
+                      <li class="timeline-item">
+                        <div class="timeline-body">
+                          <div class="timeline-content">
+                            <div class="card border-0">
+                              <div class="card-body p-0">
+                                <h6 class="card-subtitle text-secondary mb-1">
+                                  {{ item.nom }} ({{ item.nombre_projet }})
+                                </h6>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    } @empty {
+                      <p class="text-center">Aucun projet actif trouvé pour ce mois.</p>
+                    }
+                    
+                    <!-- <li class="timeline-item danger">
+                      <div class="timeline-body">
+                        <div class="timeline-content">
+                          <div class="card border-0">
+                            <div class="card-body p-0">
+                              <h6 class="card-subtitle text-secondary mb-1">
+                                Labrador
+                              </h6>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>-->
+
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
       <div class="col-4 p-3">
         <div class="bg-white p-3 shadow rounded-3">
           <h4 class="text-center mb-3">Departage de type d'operation</h4>
@@ -80,7 +144,7 @@
           </select>
           <canvas #myCanvas height="50"></canvas>
           <div class="row p-3">
-        <div class="bg-white p-3 ">
+        <!-- <div class="bg-white p-3 ">
           <h4 class=" text-center">Detail (Nombre)</h4>
           <table class="table table-striped text-center">
             <thead>
@@ -98,8 +162,7 @@
               </tr>
             </tbody>
           </table>
-          <!-- <canvas #myCanvas height="50"></canvas> -->
-        </div>
+        </div> -->
       </div>
         </div>
         
@@ -111,76 +174,7 @@
           <canvas #conform ></canvas>
         </div>
       </div>
-      <div class="col-4 p-3">
-        <div class="bg-white p-3 shadow rounded-3">
-          <h4>Projet les plus actifs</h4>
-          <!-- Timeline 1 - Bootstrap Brain Component -->
-          <section class="bsb-timeline-1 p-4 pt-1">
-            <div class="container">
-              <div class="row">
-                <div class="col-12">
-                  <ul class="timeline">
-                    <li class="timeline-item">
-                      <div class="timeline-body">
-                        <div class="timeline-content">
-                          <div class="card border-0">
-                            <div class="card-body p-0">
-                              <h6 class="card-subtitle text-secondary mb-1">
-                                Prodigy
-                              </h6>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                    <li class="timeline-item danger">
-                      <div class="timeline-body">
-                        <div class="timeline-content">
-                          <div class="card border-0">
-                            <div class="card-body p-0">
-                              <h6 class="card-subtitle text-secondary mb-1">
-                                Labrador
-                              </h6>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-
-                    <li class="timeline-item danger">
-                      <div class="timeline-body">
-                        <div class="timeline-content">
-                          <div class="card border-0">
-                            <div class="card-body p-0">
-                              <h6 class="card-subtitle text-secondary mb-1">
-                                CEGEDIM
-                              </h6>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-
-                    <li class="timeline-item danger">
-                      <div class="timeline-body">
-                        <div class="timeline-content">
-                          <div class="card border-0">
-                            <div class="card-body p-0">
-                              <h6 class="card-subtitle text-secondary mb-1">
-                                GDR
-                              </h6>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
+      
 
       <div class="col-12 p-3">
         <div class="bg-white p-3 shadow rounded-3">

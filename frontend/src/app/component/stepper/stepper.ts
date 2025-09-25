@@ -36,6 +36,7 @@ import { CacheData } from '../../service/cache-data';
 import { Injectable } from '@angular/core';
 import { BcqParameter } from "../bcq-parameter/bcq-parameter";
 import { ExterneParameter } from "../externe-parameter/externe-parameter";
+import { A } from '@angular/cdk/keycodes';
 
 @Injectable({ providedIn: 'root' })
 export class StepperStateService {
@@ -363,44 +364,8 @@ export class Stepper {
     return matches.length - 1;
   }
 
-  ngOnInit() {
-
-    this.route.data.subscribe(res => {
-      this.data = res['data'];
-      this.initData(false);
-
-      // let id = this.route.snapshot.paramMap.get('id') || '';
-
-      this.defaultLine = this.ligne[0]?.id_ligne || '';
-      this.defaultFonction = this.fonction[0]?.id_fonction || '';
-      let doneInit = { ligne: this.defaultLine, plan: this.plan[0].id_plan, fonction: this.defaultFonction };
-      this.initOperation(doneInit);
-      this.defaultOperation = this.operations[0]?.id_operation || '';
-      let idValue = this.route.snapshot.paramMap.get('id') || '';
-      this.client = idValue;
-      this.nom_client = this.plan[0].libelle || '';
-      this.nom_fonction = this.fonction[0].libelle || '';
-      this.nom_line = this.ligne[0].libelle || '';
-
-
-      this.bcqForm = this.fb.group({
-        consigne: this.fb.group({
-          id_param_bcq: [-1],
-          validite: ['', Validators.required],
-          structure: ['', Validators.required],
-          exhaustivite: ['', Validators.required],
-        }),
-        stockage: this.fb.array([])
-      });
-
-      this.externeForm = this.fb.group({
-        indexation: this.fb.array([])
-      });
-
-
-
-      if (this.verification) {
-        this.updateData = true;
+  initVerification(id_plan:string) {
+     this.updateData = true;
         this.existVerif = true;
 
         // console.log('client ', this.nom_client);
@@ -410,7 +375,7 @@ export class Stepper {
 
         this.form1 = this.fb.group({
           ligne: [this.defaultLine, Validators.required],
-          plan: [idValue, Validators.required],
+          plan: [id_plan, Validators.required],
           fonction: [this.defaultFonction, Validators.required],
           description_traite: [projet_exist.description_traitement, Validators.required],
           type_traite: [projet_exist.id_type_traitement, Validators.required],
@@ -606,6 +571,46 @@ export class Stepper {
           this.generate();
         }
         this.initializing = false;
+  }
+
+  ngOnInit() {
+
+    this.route.data.subscribe(res => {
+      this.data = res['data'];
+      this.initData(false);
+
+      // let id = this.route.snapshot.paramMap.get('id') || '';
+
+      this.defaultLine = this.ligne[0]?.id_ligne || '';
+      this.defaultFonction = this.fonction[0]?.id_fonction || '';
+      let doneInit = { ligne: this.defaultLine, plan: this.plan[0].id_plan, fonction: this.defaultFonction };
+      this.initOperation(doneInit);
+      this.defaultOperation = this.operations[0]?.id_operation || '';
+      let idValue = this.route.snapshot.paramMap.get('id') || '';
+      this.client = idValue;
+      this.nom_client = this.plan[0].libelle || '';
+      this.nom_fonction = this.fonction[0].libelle || '';
+      this.nom_line = this.ligne[0].libelle || '';
+
+
+      this.bcqForm = this.fb.group({
+        consigne: this.fb.group({
+          id_param_bcq: [-1],
+          validite: ['', Validators.required],
+          structure: ['', Validators.required],
+          exhaustivite: ['', Validators.required],
+        }),
+        stockage: this.fb.array([])
+      });
+
+      this.externeForm = this.fb.group({
+        indexation: this.fb.array([])
+      });
+
+
+
+      if (this.verification) {
+        this.initVerification(idValue);
       } else {
         let donne = {
           id: -1,
@@ -615,107 +620,110 @@ export class Stepper {
 
 
         this.detailService.updateUnitaire(donne.id, donne.value, donne.name).then(() => {
-
+          this.detailService.verifier(this.defaultLine, idValue, this.defaultFonction).then((res) => {
+            this.verification = res;
+            this.initVerification(idValue);
+          });
         });
 
-        this.form1 = this.fb.group({
-          ligne: [this.defaultLine, Validators.required],
-          plan: [idValue, Validators.required],
-          fonction: [this.defaultFonction, Validators.required],
-          description_traite: ['', Validators.required],
-          type_traite: ['', Validators.required],
-          client_nom: [''],
-          interlocuteur_nom: [''],
-          contact_interlocuteur: [''],
-          cp_responsable: [this.lastCpResponsable, Validators.required], // <-- injecte la valeur sauvegardée
-        });
+        // this.form1 = this.fb.group({
+        //   ligne: [this.defaultLine, Validators.required],
+        //   plan: [idValue, Validators.required],
+        //   fonction: [this.defaultFonction, Validators.required],
+        //   description_traite: ['', Validators.required],
+        //   type_traite: ['', Validators.required],
+        //   client_nom: [''],
+        //   interlocuteur_nom: [''],
+        //   contact_interlocuteur: [''],
+        //   cp_responsable: [this.lastCpResponsable, Validators.required], // <-- injecte la valeur sauvegardée
+        // });
 
-        this.formInterlocuteur = this.fb.group({
-          client: this.fb.group({
-            nom_client: [this.nom_client]
-          }),
-          interlocuteur: this.fb.array([
-            this.fb.group({
-              nom_interlocuteur: ['', Validators.required],
-              contact_interlocuteur: ['', [Validators.required, Validators.email]]
-            })
-          ])
-        })
+        // this.formInterlocuteur = this.fb.group({
+        //   client: this.fb.group({
+        //     nom_client: [this.nom_client]
+        //   }),
+        //   interlocuteur: this.fb.array([
+        //     this.fb.group({
+        //       nom_interlocuteur: ['', Validators.required],
+        //       contact_interlocuteur: ['', [Validators.required, Validators.email]]
+        //     })
+        //   ])
+        // })
 
-        this.form2 = this.fb.group({
-          formArray: this.items.map(item => {
-            const group = this.fb.group({
-              id: [uuidv4()],
-              id_etape_qualite: [''],
-              operation: ['', Validators.required],
-              ordre: [1],
-              ordre_generale: [1],
-              unite: [{ value: '', disabled: true }, Validators.required],
-              seuilQualite: [{ value: '', disabled: true }, [
-                Validators.required,
-                Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
-                Validators.min(0),
-                Validators.max(100)
-              ]],
-              typeControl: [{ value: '', disabled: true }, Validators.required],
-              operationAControler: [{ value: '', disabled: true }, Validators.required],
-              critereRejet: [{ value: '', disabled: true }, Validators.required],
-            });
+        // this.form2 = this.fb.group({
+        //   formArray: this.items.map(item => {
+        //     const group = this.fb.group({
+        //       id: [uuidv4()],
+        //       id_etape_qualite: [''],
+        //       operation: ['', Validators.required],
+        //       ordre: [1],
+        //       ordre_generale: [1],
+        //       unite: [{ value: '', disabled: true }, Validators.required],
+        //       seuilQualite: [{ value: '', disabled: true }, [
+        //         Validators.required,
+        //         Validators.pattern(/^\d{1,3}([,]\d{1,2})?$/),
+        //         Validators.min(0),
+        //         Validators.max(100)
+        //       ]],
+        //       typeControl: [{ value: '', disabled: true }, Validators.required],
+        //       operationAControler: [{ value: '', disabled: true }, Validators.required],
+        //       critereRejet: [{ value: '', disabled: true }, Validators.required],
+        //     });
 
-            group.get('operation')?.valueChanges.subscribe(value => {
-              const controls = ['unite', 'seuilQualite', 'typeControl', 'operationAControler', 'critereRejet'];
-              controls.forEach(ctrlName => {
-                const ctrl = group.get(ctrlName);
-                if (!value) {
-                  ctrl?.disable({ emitEvent: false });
-                } else {
-                  ctrl?.enable({ emitEvent: false });
-                }
-              });
-            });
+        //     group.get('operation')?.valueChanges.subscribe(value => {
+        //       const controls = ['unite', 'seuilQualite', 'typeControl', 'operationAControler', 'critereRejet'];
+        //       controls.forEach(ctrlName => {
+        //         const ctrl = group.get(ctrlName);
+        //         if (!value) {
+        //           ctrl?.disable({ emitEvent: false });
+        //         } else {
+        //           ctrl?.enable({ emitEvent: false });
+        //         }
+        //       });
+        //     });
 
-            return group;
-          })
-        });
-
-
+        //     return group;
+        //   })
+        // });
 
 
 
-        // console.log(typeof this.detailService.filtre);
-        let status = this.form1.status;
-        if (status == 'VALID') {
-          const donne = this.form1.value;
-          this.initOperation(donne);
-        }
-        this.form1.statusChanges.subscribe((status) => {
-
-          // console.log('initialiser form 1 subsc', this.form1.value, this.verification);
-          if (status === 'VALID') {
-            const donne = this.form1.value;
-            this.initOperation(donne);
-            // this.detailService
-            //   .filtre(donne.ligne, donne.plan, donne.fonction)
-            //   .subscribe(async (res: VueGlobal[]) => {
-            //     this.operations = new Operations().cast(res);
-
-            //     const unite = await this.detailService.getUnite();
-            //     // this.detailService.getUnite().subscribe(res => {
-            //     this.unites = unite;
-
-            //   });
-          }
-        });
 
 
-        this.addStockage();
+        // // console.log(typeof this.detailService.filtre);
+        // let status = this.form1.status;
+        // if (status == 'VALID') {
+        //   const donne = this.form1.value;
+        //   this.initOperation(donne);
+        // }
+        // this.form1.statusChanges.subscribe((status) => {
+
+        //   // console.log('initialiser form 1 subsc', this.form1.value, this.verification);
+        //   if (status === 'VALID') {
+        //     const donne = this.form1.value;
+        //     this.initOperation(donne);
+        //     // this.detailService
+        //     //   .filtre(donne.ligne, donne.plan, donne.fonction)
+        //     //   .subscribe(async (res: VueGlobal[]) => {
+        //     //     this.operations = new Operations().cast(res);
+
+        //     //     const unite = await this.detailService.getUnite();
+        //     //     // this.detailService.getUnite().subscribe(res => {
+        //     //     this.unites = unite;
+
+        //     //   });
+        //   }
+        // });
 
 
-        this.updateFiltered3();
+        // this.addStockage();
 
-        this.subscribeToFormChanges();
 
-        this.addLigne();
+        // this.updateFiltered3();
+
+        // this.subscribeToFormChanges();
+
+        // this.addLigne();
         // console.log('list ligne', this.ligne, 'list plan ', this.plan, 'list fonction ', this.fonction);
       }
       this.verfierTypeControl();
