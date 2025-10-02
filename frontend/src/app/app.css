@@ -1,0 +1,7 @@
+.spinner-overlay {
+  position: fixed;       /* fixe par rapport à la fenêtre */
+  top: 50%;              /* vertical au milieu */
+  left: 50%;             /* horizontal au milieu */
+  transform: translate(-50%, -50%); /* centre exact */
+  z-index: 9999;         /* au-dessus de tout */
+}

@@ -4,6 +4,14 @@
   --mat-form-field-filled-container-color: white; /* Exemple : un gris très clair comme celui de Bootstrap */
 }
 
+html, body {
+  color-scheme: light !important;
+}
+
+input[type="checkbox"] {
+  accent-color: initial !important;
+}
+
 #bread {
     cursor: pointer;
 }

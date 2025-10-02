@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Corp } from './component/corp/corp';
 import { FontAwesomeModule, FaIconLibrary } from '@fortawesome/angular-fontawesome';
@@ -8,6 +8,8 @@ import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
+import { SpinnerService } from './service/SpinnerService';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
     FontAwesomeModule, 
     RouterOutlet, 
     CommonModule,
-    
+    ProgressSpinnerModule,
     MatChipsModule,
     // BrowserAnimationsModule,
     MatDialogModule,
@@ -25,6 +27,7 @@ import { MatChipsModule } from '@angular/material/chips';
 })
 export class App {
   loggedIn = false
+  spinnerService = inject(SpinnerService);
   private domaine = "Dashboard"
   protected title = 'prod';
   constructor(library: FaIconLibrary, private router: Router, private route: ActivatedRoute) {

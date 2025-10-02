@@ -80,8 +80,12 @@
                                         }
                                     </div>
                                 </div>
-
-                                
+                                @if (load()) {
+                                    <!-- <div class="row mt-4">
+                                        <p>{{ progress() }}%</p>
+                                        <mat-progress-bar mode="determinate" [value]="progress()" *ngIf="progress() >= 0" ></mat-progress-bar>
+                                    </div> -->
+                                }
                                 <div class="row mt-4">
                                     <div class="col-12 d-flex justify-content-center">
                                         <button (click)="importer()" type="button" class="ms-3 btn btn-default-p text-white shadow">Import</button>

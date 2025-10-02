@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { HttpClient, HttpEvent } from '@angular/common/http';
+import { firstValueFrom, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -22,5 +22,16 @@ export class ApiBackendHttp {
       this.http.post(url, body, { withCredentials: withCredentials ?? true, ...configuration })
     );
     return data;
+  }
+
+  postLoad(endpoint: string, body: any, configuration?: any, withCredentials?: boolean): Observable<HttpEvent<ArrayBuffer>> {
+    const url = this.apiBack + '/api' + endpoint;
+    const config = {
+      withCredentials: withCredentials ?? true,
+      observe: 'events' as const,         // ← important pour HttpEvent
+      responseType: 'arraybuffer' as const, // ← correct TS type for arraybuffer
+      ...configuration
+    };
+    return this.http.post<ArrayBuffer>(url, body, config);
   }
 }

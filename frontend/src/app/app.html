@@ -4,3 +4,13 @@
  <ng-template #logginPage>
      <app-login (loginStatus)="handleLoginStatus($event)"></app-login>
  </ng-template> -->
+ @if(spinnerService.loading$ | async ) {
+  <div class="spinner-overlay bg-light p-5 rounded-3 shadow-lg">
+    <div class="row text-center mb-3">
+      <p-progressSpinner  styleClass="custom-spinner" ></p-progressSpinner>
+    </div>
+    <div class="row">
+      <p>Chargement en cours...</p>
+    </div>
+  </div>
+}

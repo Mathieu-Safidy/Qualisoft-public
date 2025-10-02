@@ -351,26 +351,25 @@ export class DetailProjectService {
     return await this.http.post(`/migre/column`, { schema, tables });
   }
 
-  async importerData(table: string | undefined, columns: string[] | undefined, donne: { formData?: FormData, data?: any[] }) {
+  importerData(table: string | undefined, columns: string[] | undefined, donne: { formData?: FormData, data?: any[] }) {
 
 
-    if (donne.data && donne.data.length > 0) {
-      const body = {
-        table,
-        columns,
-        data: donne.data
-      };
+    // if (donne.data && donne.data.length > 0) {
+    //   const body = {
+    //     table,
+    //     columns,
+    //     data: donne.data
+    //   };
 
-      return await this.http.post(`/import`, body);
-    } else {
+    //   return this.http.post(`/import/data`, body);
+    // } else {
 
       let configuration = {
         reportProgress: true,
-        observe: 'events'
       }
 
-      return await this.http.post(`/import`, donne.formData, configuration);
-    }
+      return this.http.postLoad(`/import/file`, donne.formData, configuration);
+    // }
 
   }
 
@@ -403,6 +402,11 @@ export class DetailProjectService {
     return await this.http.get(`/projets/parametrer`);
 
   }
+
+  async getProjetActifAnnuel(anne: string) {
+    return await this.http.get(`/projets/${anne}`);
+  }
+
   async getProjetActifParLigne(mois: string, annee: string) {
     const { startOfMonth, endOfMonth } = DetailProjectService.getMonthRange(annee, mois);
     let result:any = await this.http.get(`/projets/actif/lignes/${startOfMonth}/to/${endOfMonth}`);
@@ -415,6 +419,10 @@ export class DetailProjectService {
       })
     );
     return donneComplet;
+  }
+
+  async getAnneExcercice() {
+    return await this.http.get(`/projets/activite/periode`);
   }
 
   async getRepartitionTypeOperation() {

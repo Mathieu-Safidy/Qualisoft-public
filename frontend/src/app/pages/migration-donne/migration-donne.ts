@@ -5,12 +5,16 @@ import { ActivatedRoute } from '@angular/router';
 import * as ExcelJS from 'exceljs';
 import Papa from 'papaparse';
 import { DetailProjectService } from '../../service/DetailProjectService';
-
+import { Observable } from 'rxjs';
+import { HttpEventType } from '@angular/common/http';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { SpinnerService } from '../../service/SpinnerService';
 @Component({
   selector: 'app-migration-donne',
   imports: [
     CommonModule,
     FormsModule,
+    MatProgressBarModule,
   ],
   templateUrl: './migration-donne.html',
   styleUrl: './migration-donne.css'
@@ -19,6 +23,7 @@ export class MigrationDonne {
   operation !: string;
   detailService = inject(DetailProjectService);
   route = inject(ActivatedRoute);
+  spinnerService = inject(SpinnerService);
   data !: any;
   colonne: { colonnes: string[], table_name: string }[] = [];
   canMigrate: string[] = [];
@@ -30,6 +35,9 @@ export class MigrationDonne {
   selected = signal<string[]>([]);
   allData = signal<any[][]>([]);
   watch = signal(false);
+  progress = signal(0);
+  load = signal(false);
+  fichier = signal<File | null>(null);
 
   ngOnInit() {
     this.data = this.route.snapshot.data['data'];
@@ -82,6 +90,7 @@ export class MigrationDonne {
   }
 
   importer() {
+    this.load.set(true);
     if (this.selected().length === 0) {
       alert('Veuillez sélectionner au moins une colonne à importer.');
       return;
@@ -90,40 +99,82 @@ export class MigrationDonne {
       alert('Aucune donnée à importer. Veuillez charger un fichier.');
       return;
     }
-    let tablename = 'detail_projet.'+this.operation;
+    let tablename = 'detail_projet.' + this.operation;
     // let jsondata = this.allData()
-    let data = this.allData();
-    this.detailService.importerData(tablename, this.selected(), { data })
-      .then((response: any) => {
-        console.log('Importation réussie:', response);
-        alert('Importation réussie !');
-      })
-      .catch((error: any) => {
-        console.error('Erreur lors de l\'importation:', error);
-        alert('Erreur lors de l\'importation. Veuillez vérifier la console pour plus d\'informations.');
-      });
+    // let data = this.allData();
+    this.uploadFile(this.fichier());
+    // this.detailService.importerData(tablename, this.selected(), { data })
+    //   .then((response: any) => {
+    //     console.log('Importation réussie:', response);
+    //     alert('Importation réussie !');
+    //   })
+    //   .catch((error: any) => {
+    //     console.error('Erreur lors de l\'importation:', error);
+    //     alert('Erreur lors de l\'importation. Veuillez vérifier la console pour plus d\'informations.');
+    //   });
+
   }
 
-  uploadFile(file : File) {
+  uploadFile(file: File | null) {
+    if (!file) return;
+    this.load.set(true);
     const formData = new FormData();
-    let tablename = 'detail_projet.'+this.operation;
+    let tablename = 'detail_projet.' + this.operation;
     formData.append('file', file, file.name);
     formData.append('table', tablename);
     formData.append('columns', JSON.stringify(this.selected()));
-    
-    this.detailService.importerData(undefined, undefined, { formData })
-      .then((response: any) => {
-        console.log('Importation réussie:', response);
-        alert('Importation réussie !');
-      })
-      .catch((error: any) => {
-        console.error('Erreur lors de l\'importation:', error);
-        alert('Erreur lors de l\'importation. Veuillez vérifier la console pour plus d\'informations.');
-      });
+
+    this.spinnerService.show();
+    let obs = this.detailService.importerData(undefined, undefined, { formData })
+    // if(obs instanceof Observable) {
+    obs.subscribe(
+      {
+        next: (event) => {
+
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            this.progress.set(Math.round(100 * event.loaded / event.total));
+          } else if (event.type === HttpEventType.Response) {
+            console.log('Importation réussie:', event.body);
+            alert('Importation fichier réussie !');
+            this.load.set(false);
+            
+            // this.progress.set(0);
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.spinnerService.hide();
+        },
+        complete: () => this.spinnerService.hide()
+      }
+    )
+
+    // }
+    //  else {
+    //   obs.then((response: any) => {
+    //     console.log('Importation réussie:', response);
+    //     alert('Importation réussie !');
+    //     this.load.set(false);
+    //   }).catch((error: any) => {
+    //     console.error('Erreur lors de l\'importation:', error);
+    //     alert('Erreur lors de l\'importation. Veuillez vérifier la console pour plus d\'informations.');
+    //     this.load.set(false);
+    //   });
+    // }
+    // this.detailService.importerData(undefined, undefined, { formData })
+    //   .then((response: any) => {
+    //     console.log('Importation réussie:', response);
+    //     alert('Importation réussie !');
+    //   })
+    //   .catch((error: any) => {
+    //     console.error('Erreur lors de l\'importation:', error);
+    //     alert('Erreur lors de l\'importation. Veuillez vérifier la console pour plus d\'informations.');
+    //   });
   }
 
   async onFileChange(event: any) {
     const file = event.target.files[0];
+    this.fichier.set(file);
     if (!file) return;
     console.log(`Selected file: ${file.name} of type ${this.fileType()}`);
 
