@@ -12,6 +12,7 @@
                 <th>Libelle</th>
                 <th>Onglet</th>
                 <th>Colonne</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody formArrayName="indexation">
@@ -47,8 +48,37 @@
                     maxlength="1"
                   />
                 </td>
+                @if (isIdParamInterne(paramExterne.at($index)?.get('id_champ_param_interne')?.value)) {
+                <td class="text-center">
+                  <button
+                    type="button"
+                    class="btn btn-danger"
+                    (click)="deleteLigneParam($index, paramExterne.at($index)?.get('id_param_externe')?.value)"
+                  >
+                    Supprimer
+                  </button>
+                  </td>
+                } @else {
+                  <td></td>
+                }
               </tr>
               }
+              <tr>
+                <td>
+                  <select class="form-select" name="" id="" 
+                      [(ngModel)]="paramModel.id_champ_param_interne"
+                      [ngModelOptions]="{standalone: true}"
+                  >
+                    <option [ngValue]="''" disabled selected>--- Ajout libelle ---</option>
+                    @for(item of paramInterne(); track $index) {
+                      <option [ngValue]="item.id_champ_param_interne">{{item.libelle}}</option>
+                    }
+                  </select>
+                </td>
+                <td><input [(ngModel)]="paramModel.onglet" [ngModelOptions]="{standalone: true}" class="form-control" type="text" name="" id=""></td>
+                <td><input [(ngModel)]="paramModel.colonne" [ngModelOptions]="{standalone: true}" class="form-control" type="text" name="" id="" maxlength="1" ></td>
+                <td class="text-center"><button (click)="addLigneParam()" type="button" class="btn btn-warning">Ajouter</button></td>
+              </tr>
             </tbody>
           </table>
         </div>

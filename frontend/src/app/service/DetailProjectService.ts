@@ -451,5 +451,9 @@ export class DetailProjectService {
     return await this.http.get(`/lignes/${ligne}`);
   }
 
+  async getExterne(id_projet: string | number) {
+    return await this.http.get(`/verifier/param_externe/${id_projet}`);
+  }
+
 
 }
