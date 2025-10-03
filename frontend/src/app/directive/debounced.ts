@@ -31,7 +31,7 @@ export class Debounced {
   valide = input<boolean>(false);
   valideChange = output<boolean>();
   annuler = output<{ form: FormGroup, controlName: string, ancienValue: any }>();
-
+  open = false;
 
   private elementRef = inject(ElementRef);
   private dialog = inject(MatDialog);
@@ -68,9 +68,9 @@ export class Debounced {
           .pipe(debounceTime(this.timeout()), takeUntil(this.destroy$))
           .subscribe(val => this.emitIfChanged({ element: element, typeEvent:'change',value: val })
           );
-        // fromEvent(element, 'blur')
-        //   .pipe(takeUntil(this.destroy$))
-        //   .subscribe((val) => this.emitIfChanged({ element: element, typeEvent: 'blur', event: val as Event }));
+        fromEvent(element, 'blur')
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((val) => this.emitIfChanged({ element: element, typeEvent: 'blur', event: val as Event }));
       }
     }
 
@@ -161,6 +161,7 @@ export class Debounced {
 
         if (this.suggestion() && value !== '' && corps.typeEvent && (corps.typeEvent === 'blur' || corps.typeEvent === 'change')) {
           console.log('open dialog , value', value);
+          if (!this.open) {
           const dialogref = this.dialog.open(ValidationErreur, {
             data: {
               liste: this.findLike(value, 'OR', 2),
@@ -172,6 +173,8 @@ export class Debounced {
               value: value
             }
           });
+          
+          this.open = true;
 
           dialogref.afterClosed().subscribe(result => {
             console.log('dialog close', result, 'valide', this.valide());
@@ -210,14 +213,17 @@ export class Debounced {
             }
 
             let val = { id, value, name, event: corps.event };
+            this.open = false;
             if (permit) {
               console.log("emitIfChanged ", value, this.lastValue, val, this.foreign());
               this.debouncedValue.emit(val); // fonctionne avec Angular 20+
               this.lastValue = value;
+              
               return;
             }
 
           })
+          }
         }
         // return;
       } else  {

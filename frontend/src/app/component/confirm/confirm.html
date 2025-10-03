@@ -1,0 +1,29 @@
+<div class="overflow-hidden">
+    <mat-dialog-content>
+        <p class="text-center">{{ data.message }}</p>
+    </mat-dialog-content>
+
+    <div class="row mt-3">
+      <div class="col ">
+        <mat-dialog-actions align="start" >
+        <button
+          mat-button
+          (click)="onNoClick()"
+          class="btn border rounded-3"
+        >
+          Annuler
+        </button>
+        </mat-dialog-actions>
+      </div>
+      <div class="col">
+        <mat-dialog-actions align="end" >
+        <button
+          mat-button
+          (click)="confirm()"
+          class="btn rounded-3 bg-primary text-white"
+        >
+          Confirmer
+        </button>
+        </mat-dialog-actions>
+      </div>
+</div>

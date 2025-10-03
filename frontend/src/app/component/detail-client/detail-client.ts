@@ -10,6 +10,8 @@ import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Debounced } from '../../directive/debounced';
 import { DetailProjectService } from '../../service/DetailProjectService';
+import { MatDialog } from '@angular/material/dialog';
+import { Confirm } from '../confirm/confirm';
 
 @Component({
   selector: 'app-detail-client',
@@ -32,6 +34,7 @@ export class DetailClient {
   form = input<FormGroup>();
   fb = inject(FormBuilder);
   verifier = input<any>();
+  dialog = inject(MatDialog);
 
   projectID = input<number>(-1);
   detailService = inject(DetailProjectService);
@@ -49,7 +52,7 @@ export class DetailClient {
     if (value.nom_interlocuteur == '') {
       deleted = true;
     }
-    console.log('requete', value.nom_interlocuteur , 'envoyer' , { id, value, name, deleted });
+    console.log('requete', value.nom_interlocuteur, 'envoyer', { id, value, name, deleted });
     const result: any = await this.detailService.updateUnitaire(id, value, name, deleted);
     console.log('resultat', result);
 
@@ -126,19 +129,26 @@ export class DetailClient {
 
 
   deleteLigne(index: number) {
+    let dialogref = this.dialog.open(Confirm, {
+      data: { message: 'Êtes-vous sûr de vouloir supprimer cet interlocuteur ?' }
+    })
 
-    let id_interlocuteur = this.FormGroup.at(index)?.get('id_interlocuteur')?.value;
-    let name = 'detail_projet.interlocuteur';
-    this.detailService.deleteDonne(id_interlocuteur, name)
-    .then((result:any) => {
-      console.log('Suppression réussie', result, this.FormGroup.at(index));
-      if(this.FormGroup){
-        this.FormGroup.removeAt(index);
-        this.cdref.detectChanges();
+    dialogref.afterClosed().subscribe(result => {
+      if (result) {
+        let id_interlocuteur = this.FormGroup.at(index)?.get('id_interlocuteur')?.value;
+        let name = 'detail_projet.interlocuteur';
+        this.detailService.deleteDonne(id_interlocuteur, name)
+          .then((result: any) => {
+            console.log('Suppression réussie', result, this.FormGroup.at(index));
+            if (this.FormGroup) {
+              this.FormGroup.removeAt(index);
+              this.cdref.detectChanges();
+            }
+          })
+          .catch((error: any) => { alert(error.message); });
       }
     })
-    .catch((error:any) => {alert(error.message);});
-    
+
   }
 
   checkValid() {

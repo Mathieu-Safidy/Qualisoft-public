@@ -1,0 +1,4 @@
+.mat-mdc-dialog-content {
+  overflow-x: hidden;
+  word-wrap: break-word; /* coupe les longs mots */
+}

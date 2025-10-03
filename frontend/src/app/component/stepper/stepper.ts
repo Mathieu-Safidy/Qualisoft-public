@@ -37,6 +37,7 @@ import { Injectable } from '@angular/core';
 import { BcqParameter } from "../bcq-parameter/bcq-parameter";
 import { ExterneParameter } from "../externe-parameter/externe-parameter";
 import { A } from '@angular/cdk/keycodes';
+import { Confirm } from '../confirm/confirm';
 
 @Injectable({ providedIn: 'root' })
 export class StepperStateService {
@@ -97,7 +98,7 @@ export class Stepper {
   unites!: Unite[];
   selectedLigne = '';
   filteredOperations!: Observable<Erreur[]>[];
-  tableauOperations : Array<Erreur[]> = [];
+  tableauOperations: Array<Erreur[]> = [];
   colonne: Observable<string[]>[] = [];
   verification: any;
   existVerif: boolean = false;
@@ -118,7 +119,7 @@ export class Stepper {
   // coloneEtape = this.colonneObserver.asObservable();
 
   cdr = inject(ChangeDetectorRef)
-
+  dialog = inject(MatDialog);
 
   allUser = [
     { matricule: 'CP1', pseudo: 'Rakoto' },
@@ -169,7 +170,7 @@ export class Stepper {
   //   });
   // }
 
-  addColonne(colonne: string, id: string | number, form: FormArray ,value?: any) {
+  addColonne(colonne: string, id: string | number, form: FormArray, value?: any) {
     let actuel = this.colonneObserver.value;
     this.colonneObserver.next([...actuel, { name: colonne, id: id }]);
     this.addEtapeArray(colonne, form, value);
@@ -193,7 +194,7 @@ export class Stepper {
     }
   }
 
-  addEtapeArray(name: string, formArray: FormArray ,value?: any) {
+  addEtapeArray(name: string, formArray: FormArray, value?: any) {
     // const formArray = this.form2.get('formArray') as FormArray;
     formArray.controls.forEach((fg) => {
       if (!(fg as FormGroup).contains(name)) {
@@ -206,7 +207,7 @@ export class Stepper {
   deleteEtapeArray(name: string, form: FormArray) {
     // const formArray = this.form2.get('formArray') as FormArray;
     console.log('deleteEtapeArray', name, form);
-    
+
     form.controls.forEach((fg) => {
       if (fg instanceof FormGroup && fg.contains(name)) {
         fg.removeControl(name);
@@ -258,20 +259,20 @@ export class Stepper {
 
   filterGroupe(fg: FormGroup | null) {
     if (!fg) return;
-    
+
     console.log('filterGroupe', fg, 'TYPE ', fg.get('typeErreur'));
     fg.get('typeErreur')!.valueChanges.pipe(
-        startWith(''),
-        map((value) => {
-          let valiny = this._filter(value || '');
-          this.cdr.detectChanges();
-          return valiny;
-        })
-      ).subscribe(filtered => {
-        let index = this.formGroup3.indexOf(fg);
-        this.tableauOperations[index] = filtered;
-        console.log('Ajout du groupe car inexistant', this.tableauOperations);
-      
+      startWith(''),
+      map((value) => {
+        let valiny = this._filter(value || '');
+        this.cdr.detectChanges();
+        return valiny;
+      })
+    ).subscribe(filtered => {
+      let index = this.formGroup3.indexOf(fg);
+      this.tableauOperations[index] = filtered;
+      console.log('Ajout du groupe car inexistant', this.tableauOperations);
+
     })
 
   }
@@ -364,213 +365,213 @@ export class Stepper {
     return matches.length - 1;
   }
 
-  initVerification(id_plan:string) {
-     this.updateData = true;
-        this.existVerif = true;
+  initVerification(id_plan: string) {
+    this.updateData = true;
+    this.existVerif = true;
 
-        // console.log('client ', this.nom_client);
+    // console.log('client ', this.nom_client);
 
-        let projet_exist = this.verification.projet;
-        this.id_projet = projet_exist.id_projet;
+    let projet_exist = this.verification.projet;
+    this.id_projet = projet_exist.id_projet;
 
-        this.form1 = this.fb.group({
-          ligne: [this.defaultLine, Validators.required],
-          plan: [id_plan, Validators.required],
-          fonction: [this.defaultFonction, Validators.required],
-          description_traite: [projet_exist.description_traitement, Validators.required],
-          type_traite: [projet_exist.id_type_traitement, Validators.required],
-          client_nom: [''],
-          interlocuteur_nom: [projet_exist.nom_interlocuteur],
-          contact_interlocuteur: [projet_exist.contact_interlocuteur],
-          cp_responsable: [this.stepperState.cpResponsable || projet_exist.id_cp, Validators.required], // <-- injecte la valeur sauvegardée
-        });
+    this.form1 = this.fb.group({
+      ligne: [this.defaultLine, Validators.required],
+      plan: [id_plan, Validators.required],
+      fonction: [this.defaultFonction, Validators.required],
+      description_traite: [projet_exist.description_traitement, Validators.required],
+      type_traite: [projet_exist.id_type_traitement, Validators.required],
+      client_nom: [''],
+      interlocuteur_nom: [projet_exist.nom_interlocuteur],
+      contact_interlocuteur: [projet_exist.contact_interlocuteur],
+      cp_responsable: [this.stepperState.cpResponsable || projet_exist.id_cp, Validators.required], // <-- injecte la valeur sauvegardée
+    });
 
-        let verifInterlocuteur = this.verification.interlocuteurs;
-        // console.log('verifInterlocuteur', verifInterlocuteur);
-        this.formInterlocuteur = this.fb.group({
-          client: this.fb.group({
-            nom_client: [{ value: this.nom_client, disabled: true }]
-          }),
-          interlocuteur: this.fb.array(
-            (verifInterlocuteur && verifInterlocuteur.length > 0)
-              ? verifInterlocuteur.map((item: any) => {
-                const group = this.fb.group({
-                  id_interlocuteur: [item.id_interlocuteur],
-                  nom_interlocuteur: [item.nom_interlocuteur, Validators.required],
-                  contact_interlocuteur: this.fb.control(
-                    { value: item.contact_interlocuteur, disabled: !item.nom_interlocuteur },
-                    [Validators.required, Validators.email]
-                  )
-                });
+    let verifInterlocuteur = this.verification.interlocuteurs;
+    // console.log('verifInterlocuteur', verifInterlocuteur);
+    this.formInterlocuteur = this.fb.group({
+      client: this.fb.group({
+        nom_client: [{ value: this.nom_client, disabled: true }]
+      }),
+      interlocuteur: this.fb.array(
+        (verifInterlocuteur && verifInterlocuteur.length > 0)
+          ? verifInterlocuteur.map((item: any) => {
+            const group = this.fb.group({
+              id_interlocuteur: [item.id_interlocuteur],
+              nom_interlocuteur: [item.nom_interlocuteur, Validators.required],
+              contact_interlocuteur: this.fb.control(
+                { value: item.contact_interlocuteur, disabled: !item.nom_interlocuteur },
+                [Validators.required, Validators.email]
+              )
+            });
 
-                // 🔑 Ajout d'une logique dynamique
-                group.get('nom_interlocuteur')?.valueChanges.subscribe(value => {
-                  const contactCtrl = group.get('contact_interlocuteur');
-                  if (!value) {
-                    contactCtrl?.disable({ emitEvent: false });
-                    // contactCtrl?.reset(); // optionnel, si tu veux vider le champ
-                  } else {
-                    contactCtrl?.enable({ emitEvent: false });
-                  }
-                });
-
-                return group;
-              })
-              : [
-                (() => {
-                  const group = this.fb.group({
-                    id_interlocuteur: [-1],
-                    nom_interlocuteur: ['', Validators.required],
-                    contact_interlocuteur: this.fb.control(
-                      { value: '', disabled: true },
-                      [Validators.required, Validators.email]
-                    )
-                  });
-
-                  // même logique
-                  group.get('nom_interlocuteur')?.valueChanges.subscribe(value => {
-                    const contactCtrl = group.get('contact_interlocuteur');
-                    if (!value) {
-                      contactCtrl?.disable({ emitEvent: false });
-                      contactCtrl?.reset();
-                    } else {
-                      contactCtrl?.enable({ emitEvent: false });
-                    }
-                  });
-
-                  return group;
-                })()
-              ]
-          )
-        });
-
-
-
-        // Remplir form2 avec les données existantes si elles sont présentes dans verifier
-        const formArrayData = this.verification?.etape || [];
-
-        let bcqTypeControle = formArrayData.some((fa: any) => fa.type_de_controle === 1);
-        let externeTypeCtrl = formArrayData.some((fa: any) => fa.type_de_controle === 2);
-        console.log("bcqTypeControle", bcqTypeControle, formArrayData);
-        if (bcqTypeControle) {
-          this.isBcqControle = true;
-        }
-        if (externeTypeCtrl) {
-          this.isExterneControl = true;
-        }
-
-        this.form2 = this.fb.group({
-          formArray: this.fb.array(
-            (formArrayData.length > 0 ? formArrayData : this.items)
-            .sort((a :any, b :any) => {
-              if (a.ordre_generale !== b.ordre_generale) {
-                return a.ordre_generale - b.ordre_generale; // 🔹 tri par ordre général
+            // 🔑 Ajout d'une logique dynamique
+            group.get('nom_interlocuteur')?.valueChanges.subscribe(value => {
+              const contactCtrl = group.get('contact_interlocuteur');
+              if (!value) {
+                contactCtrl?.disable({ emitEvent: false });
+                // contactCtrl?.reset(); // optionnel, si tu veux vider le champ
+              } else {
+                contactCtrl?.enable({ emitEvent: false });
               }
-              return a.ordre - b.ordre; // 🔹 tri secondaire par ordre
-            })
-            .map((item: any) => {
-              console.log('id etapes  == ', item.id_etape_qualite);
+            });
 
+            return group;
+          })
+          : [
+            (() => {
               const group = this.fb.group({
-                id: [item.id || uuidv4()],
-                id_etape_qualite: [item.id_etape_qualite || ''],
-                operation: [item.operation_de_control?.toString() || '', Validators.required],
-                ordre: [item.ordre || 1],
-                ordre_generale: [item.ordre_generale || 1],
-                unite: this.fb.control(
-                  { value: item.id_unite_de_controle || '', disabled: true },
-                  Validators.required
-                ),
-                seuilQualite: this.fb.control(
-                  { value: item.seuil_qualite || '', disabled: !item.operation_de_control },
-                  [
-                    Validators.required,
-                    Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
-                    Validators.min(0),
-                    Validators.max(100),
-                  ]
-                ),
-                typeControl: this.fb.control(
-                  { value: (item.type_de_controle != null && item.type_de_controle != undefined) ? item.type_de_controle : 0, disabled: !item.operation_de_control },
-                  Validators.required
-                ),
-                operationAControler: this.fb.control(
-                  { value: item.operation_a_controller?.toString() || '', disabled: !item.operation_de_control },
-                  Validators.required
-                ),
-                critereRejet: this.fb.control(
-                  { value: item.coef_rejet || '', disabled: !item.operation_de_control },
-                  Validators.required
-                ),
+                id_interlocuteur: [-1],
+                nom_interlocuteur: ['', Validators.required],
+                contact_interlocuteur: this.fb.control(
+                  { value: '', disabled: true },
+                  [Validators.required, Validators.email]
+                )
               });
 
-              // 🔑 Abonnement dynamique
-              group.get('operation')?.valueChanges.subscribe(value => {
-                const controlsToToggle = [
-                  'unite',
-                  'seuilQualite',
-                  'typeControl',
-                  'operationAControler',
-                  'critereRejet'
-                ];
-                let ordreDernier = this.findDernierOrdre(value);
-                group.get('ordre')?.setValue(ordreDernier !== null ? ordreDernier : 0);
-                controlsToToggle.forEach(ctrlName => {
-                  const ctrl = group.get(ctrlName);
-                  if (!value) {
-                    ctrl?.disable({ emitEvent: false });
-                    // ctrl?.reset(); // optionnel : vide le champ
-                  } else {
-                    ctrl?.enable({ emitEvent: false });
-                  }
-                });
+              // même logique
+              group.get('nom_interlocuteur')?.valueChanges.subscribe(value => {
+                const contactCtrl = group.get('contact_interlocuteur');
+                if (!value) {
+                  contactCtrl?.disable({ emitEvent: false });
+                  contactCtrl?.reset();
+                } else {
+                  contactCtrl?.enable({ emitEvent: false });
+                }
               });
 
               return group;
-            })
-          )
-        });
-
-        console.log('donne form objectf ', this.form2.value);
-
+            })()
+          ]
+      )
+    });
 
 
-        this.bcqForm.patchValue({
-          consigne: {
-            id_param_bcq: this.verification.bcq_donnees[0]?.id_param_bcq || -1,
-            validite: this.verification.bcq_donnees[0]?.validite || '',
-            structure: this.verification.bcq_donnees[0]?.structure || '',
-            exhaustivite: this.verification.bcq_donnees[0]?.exhaustivite || '',
-          }
-        })
 
-        if (this.verification.info_bcq && this.verification.info_bcq.length > 0) {
-          this.verification.info_bcq.forEach((info: any) => {
-            this.addStockage(info.libelle, info.valeur, info.id_info_bcq);
+    // Remplir form2 avec les données existantes si elles sont présentes dans verifier
+    const formArrayData = this.verification?.etape || [];
+
+    let bcqTypeControle = formArrayData.some((fa: any) => fa.type_de_controle === 1);
+    let externeTypeCtrl = formArrayData.some((fa: any) => fa.type_de_controle === 2);
+    console.log("bcqTypeControle", bcqTypeControle, formArrayData);
+    if (bcqTypeControle) {
+      this.isBcqControle = true;
+    }
+    if (externeTypeCtrl) {
+      this.isExterneControl = true;
+    }
+
+    this.form2 = this.fb.group({
+      formArray: this.fb.array(
+        (formArrayData.length > 0 ? formArrayData : this.items)
+          .sort((a: any, b: any) => {
+            if (a.ordre_generale !== b.ordre_generale) {
+              return a.ordre_generale - b.ordre_generale; // 🔹 tri par ordre général
+            }
+            return a.ordre - b.ordre; // 🔹 tri secondaire par ordre
           })
-        } else {
-          this.addStockage();
-        }
+          .map((item: any) => {
+            console.log('id etapes  == ', item.id_etape_qualite);
 
-        if (this.verification.param_externe && this.verification.param_externe.length > 0) {
-          console.log("param_externe insertion", this.verification.param_externe);
-          this.verification.param_externe.forEach((info: any) => {
-            this.addIndexation(info.libelle, info.onglet || '', info.colonne || '', info.id_param_externe, info.id_champ_param_interne);
+            const group = this.fb.group({
+              id: [item.id || uuidv4()],
+              id_etape_qualite: [item.id_etape_qualite || ''],
+              operation: [item.operation_de_control?.toString() || '', Validators.required],
+              ordre: [item.ordre || 1],
+              ordre_generale: [item.ordre_generale || 1],
+              unite: this.fb.control(
+                { value: item.id_unite_de_controle || '', disabled: true },
+                Validators.required
+              ),
+              seuilQualite: this.fb.control(
+                { value: item.seuil_qualite || '', disabled: !item.operation_de_control },
+                [
+                  Validators.required,
+                  Validators.pattern(/^\d{1,3}([,.]\d{1,2})?$/),
+                  Validators.min(0),
+                  Validators.max(100),
+                ]
+              ),
+              typeControl: this.fb.control(
+                { value: (item.type_de_controle != null && item.type_de_controle != undefined) ? item.type_de_controle : 0, disabled: !item.operation_de_control },
+                Validators.required
+              ),
+              operationAControler: this.fb.control(
+                { value: item.operation_a_controller?.toString() || '', disabled: !item.operation_de_control },
+                Validators.required
+              ),
+              critereRejet: this.fb.control(
+                { value: item.coef_rejet || '', disabled: !item.operation_de_control },
+                Validators.required
+              ),
+            });
+
+            // 🔑 Abonnement dynamique
+            group.get('operation')?.valueChanges.subscribe(value => {
+              const controlsToToggle = [
+                'unite',
+                'seuilQualite',
+                'typeControl',
+                'operationAControler',
+                'critereRejet'
+              ];
+              let ordreDernier = this.findDernierOrdre(value);
+              group.get('ordre')?.setValue(ordreDernier !== null ? ordreDernier : 0);
+              controlsToToggle.forEach(ctrlName => {
+                const ctrl = group.get(ctrlName);
+                if (!value) {
+                  ctrl?.disable({ emitEvent: false });
+                  // ctrl?.reset(); // optionnel : vide le champ
+                } else {
+                  ctrl?.enable({ emitEvent: false });
+                }
+              });
+            });
+
+            return group;
           })
-          console.log("Valeur initiale externeForm après patch:", this.externeForm.controls);
-        }
+      )
+    });
+
+    console.log('donne form objectf ', this.form2.value);
 
 
-        console.log("Valeur initiale bcqForm:", this.bcqForm.value, this.verification.bcq_donnees[0]);
 
-        // console.log('form 2 value', this.form2.value);
-        // this.addErreur({ id_erreur: -1, type_erreur: '' });
-        if (this.verification.erreur.length == 0) {
-          this.addLigne();
-        } else {
-          this.generate();
-        }
-        this.initializing = false;
+    this.bcqForm.patchValue({
+      consigne: {
+        id_param_bcq: this.verification.bcq_donnees[0]?.id_param_bcq || -1,
+        validite: this.verification.bcq_donnees[0]?.validite || '',
+        structure: this.verification.bcq_donnees[0]?.structure || '',
+        exhaustivite: this.verification.bcq_donnees[0]?.exhaustivite || '',
+      }
+    })
+
+    if (this.verification.info_bcq && this.verification.info_bcq.length > 0) {
+      this.verification.info_bcq.forEach((info: any) => {
+        this.addStockage(info.libelle, info.valeur, info.id_info_bcq);
+      })
+    } else {
+      this.addStockage();
+    }
+
+    if (this.verification.param_externe && this.verification.param_externe.length > 0) {
+      console.log("param_externe insertion", this.verification.param_externe);
+      this.verification.param_externe.forEach((info: any) => {
+        this.addIndexation(info.libelle, info.onglet || '', info.colonne || '', info.id_param_externe, info.id_champ_param_interne);
+      })
+      console.log("Valeur initiale externeForm après patch:", this.externeForm.controls);
+    }
+
+
+    console.log("Valeur initiale bcqForm:", this.bcqForm.value, this.verification.bcq_donnees[0]);
+
+    // console.log('form 2 value', this.form2.value);
+    // this.addErreur({ id_erreur: -1, type_erreur: '' });
+    if (this.verification.erreur.length == 0) {
+      this.addLigne();
+    } else {
+      this.generate();
+    }
+    this.initializing = false;
   }
 
   ngOnInit() {
@@ -793,17 +794,26 @@ export class Stepper {
   }
 
   deleteStockage(index: number) {
-    let id = (this.stockage.at(index) as FormGroup)?.get('id_info_bcq')?.value || -1;
-    let name = 'detail_projet.info_bcq';
-    this.detailService.deleteDonne(id, name)
-      .then((donne) => {
-        console.log("Donnée supprimée :", donne);
-        this.stockage.removeAt(index);
-        this.cdr.detectChanges();
-      })
-      .catch((res: any) => {
-        alert('Erreur lors de la suppression : ' + res.message);
-      });
+
+    let matdialogref = this.dialog.open(Confirm, {
+      data: { message: 'Êtes-vous sûr de vouloir supprimer cette entrée BCQ ?' }
+    })
+    matdialogref.afterClosed().subscribe(res => {
+      if (res) {
+        let id = (this.stockage.at(index) as FormGroup)?.get('id_info_bcq')?.value || -1;
+        let name = 'detail_projet.info_bcq';
+        this.detailService.deleteDonne(id, name)
+          .then((donne) => {
+            console.log("Donnée supprimée :", donne);
+            this.stockage.removeAt(index);
+            this.cdr.detectChanges();
+          })
+          .catch((res: any) => {
+            alert('Erreur lors de la suppression : ' + res.message);
+          });
+      }
+    })
+
   }
 
   initOperation(donne: any) {
@@ -934,7 +944,7 @@ export class Stepper {
     const removed_colonne = colCurrentNames.filter(c => !colonneForm.includes(c));
 
     // Supprime les colonnes
-    removed_colonne.forEach(c => this.deleteColone(c,formErreur));
+    removed_colonne.forEach(c => this.deleteColone(c, formErreur));
 
     // Ajoute les nouvelles colonnes
     const nouvellesColonnes = new_colonne.map(c => {
@@ -942,7 +952,7 @@ export class Stepper {
       return { name: c, id: op?.id_operation || -1 };
     });
 
-    console.log('value', values,'new_colonne', new_colonne, 'removed_colonne', removed_colonne, 'nouvellesColonnes', nouvellesColonnes, 'colnne', colone_form3 , 'colcurrent', colCurrentNames ,'colonneform', colonneForm, 'current', colCurrent);
+    console.log('value', values, 'new_colonne', new_colonne, 'removed_colonne', removed_colonne, 'nouvellesColonnes', nouvellesColonnes, 'colnne', colone_form3, 'colcurrent', colCurrentNames, 'colonneform', colonneForm, 'current', colCurrent);
 
 
     if (nouvellesColonnes.length) {
@@ -953,13 +963,13 @@ export class Stepper {
         // if (this.checkKeysInFormGroup())
         this.addEtapeArray(c.name, formErreur, false);
         console.log('Ajout de la colonne :', c.name);
-        
+
       });
     }
 
     // formArray.controls.forEach((fg) => {
     //   if (fg instanceof FormGroup) {
-        
+
     //   }
     // })
 
@@ -995,7 +1005,7 @@ export class Stepper {
 
       this.colonneObserver.next(this.id_form_colonne.map((id, index) => ({ name: colonneForm[index], id: id })));
       this.cdr.detectChanges();
-      console.log('colonne generer',this.colonneObserver.getValue());
+      console.log('colonne generer', this.colonneObserver.getValue());
 
       let colonneFormu = this.colonneObserver.getValue().map(c => c.name);
 
@@ -1003,7 +1013,7 @@ export class Stepper {
         return;
       }
       if (this.verification) {
-        console.log('colonne a generer',this.colonneObserver.getValue(), this.id_form_colonne);
+        console.log('colonne a generer', this.colonneObserver.getValue(), this.id_form_colonne);
         let update = 1;
         if (this.verification.erreur) this.updateErreur = true;
         for (const erreur of this.verification.erreur) {
@@ -1354,7 +1364,7 @@ export class Stepper {
       ctrl.get('typeErreur')?.value === group.get('typeErreur')?.value
     );
 
-    console.log('existIndex', existIndex, this.typeErreur.value, value ,' colonne', this.colonneObserver.getValue());
+    console.log('existIndex', existIndex, this.typeErreur.value, value, ' colonne', this.colonneObserver.getValue());
 
 
     if (existIndex !== -1) {
@@ -1409,12 +1419,12 @@ export class Stepper {
   annuler(value: { form: FormGroup, controlName: string, ancienValue: any }) {
     value.form.get(value.controlName)?.setValue(value.ancienValue, { emitEvent: false });
     const toggle = (enable: boolean) =>
-    Object.keys(value.form.controls).forEach(k => 
-      k !== value.controlName &&
-      (enable
-        ? value.form.get(k)?.enable({ emitEvent: false })
-        : value.form.get(k)?.disable({ emitEvent: false }))
-    );
+      Object.keys(value.form.controls).forEach(k =>
+        k !== value.controlName &&
+        (enable
+          ? value.form.get(k)?.enable({ emitEvent: false })
+          : value.form.get(k)?.disable({ emitEvent: false }))
+      );
 
     const enable = !!value.ancienValue && value.ancienValue.toString().trim() !== '';
     toggle(enable);
@@ -1423,7 +1433,7 @@ export class Stepper {
   addLigne() {
     let before = this.updateData;
     this.updateErreur = false;
-    
+
     this.ajouterLigne(this.colone_form3, '', 0).then(res => {
       let response = this.filterGroupe(res)
       // if (response) {
@@ -1433,7 +1443,7 @@ export class Stepper {
     });
     this.updateErreur = before;
     // this.updateFiltered3();
-    
+
   }
   removeEmptyTypeErreurGroups() {
 

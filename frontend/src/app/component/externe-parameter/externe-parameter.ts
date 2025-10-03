@@ -4,6 +4,8 @@ import { FormArray, FormGroup, ReactiveFormsModule, FormsModule, FormBuilder } f
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Debounced } from '../../directive/debounced';
 import { DetailProjectService } from '../../service/DetailProjectService';
+import { MatDialog } from '@angular/material/dialog';
+import { Confirm } from '../confirm/confirm';
 
 @Component({
   selector: 'app-externe-parameter',
@@ -14,12 +16,12 @@ import { DetailProjectService } from '../../service/DetailProjectService';
     Debounced,
     FormsModule,
     FormsModule
-],
+  ],
   templateUrl: './externe-parameter.html',
   styleUrl: './externe-parameter.css'
 })
 export class ExterneParameter {
-  form =  input<FormGroup>();
+  form = input<FormGroup>();
   projectID = input<number>();
   paramInterne = input<any[]>([]);
   addLigne = output<void>();
@@ -27,7 +29,8 @@ export class ExterneParameter {
   detailService = inject(DetailProjectService);
   fb = inject(FormBuilder);
   cdr = inject(ChangeDetectorRef);
-  paramModel : { id_champ_param_interne: string, onglet: string, colonne: string } = { id_champ_param_interne: '', onglet: '', colonne: '' };
+  dialog = inject(MatDialog);
+  paramModel: { id_champ_param_interne: string, onglet: string, colonne: string } = { id_champ_param_interne: '', onglet: '', colonne: '' };
 
   get paramExterne() {
     // console.log("Accès à paramExterne, form value:", this.form()?.value);
@@ -35,7 +38,7 @@ export class ExterneParameter {
   }
 
   async updateValue(event: any, deleted: boolean = false) {
-    const { id, value , name } = event;
+    const { id, value, name } = event;
     console.log("Debounced event:", event);
     return await this.detailService.updateUnitaire(id, value, name, deleted)
   }
@@ -46,7 +49,7 @@ export class ExterneParameter {
 
   addLigneParam() {
     console.log("Ajout de la ligne avec paramModel:", this.paramModel);
-    
+
     if (this.paramModel.id_champ_param_interne) {
       const event = {
         id: -1,
@@ -62,7 +65,7 @@ export class ExterneParameter {
           // let data = res.parametre[0];
           this.detailService.getExterne(this.projectID()!).then((response: any) => {
             const data = response;
-            console.log("Data reçue après ajout:", data);        
+            console.log("Data reçue après ajout:", data);
             data.forEach((item: any) => this.ajouterManquant(item));
           })
         }
@@ -72,17 +75,27 @@ export class ExterneParameter {
   }
 
   deleteLigneParam(index: number, id_param_externe: number) {
-    const event = {
-      id: id_param_externe,
-      value: null,
-      name: 'detail_projet.param_externe'
-    }
-    this.updateValue(event, true).then((res: any) => {
-      if (res) {
-        (this.form()?.get('indexation') as FormArray).removeAt(index);
-        this.cdr.detectChanges();
+
+    let dialogref = this.dialog.open(Confirm, {
+      data: { message: "Confirmez-vous la suppression de ce paramètre externe ?" }
+    })
+
+    dialogref.afterClosed().subscribe(result => {
+      if (result) {
+        const event = {
+          id: id_param_externe,
+          value: null,
+          name: 'detail_projet.param_externe'
+        }
+        this.updateValue(event, true).then((res: any) => {
+          if (res) {
+            (this.form()?.get('indexation') as FormArray).removeAt(index);
+            this.cdr.detectChanges();
+          }
+        });
       }
-    });
+    })
+
   }
 
 
@@ -101,7 +114,7 @@ export class ExterneParameter {
         colonne: [item.colonne]
       }));
       console.log("Ajout de l'item manquant:", item);
-      
+
       this.cdr.detectChanges();
     }
   }

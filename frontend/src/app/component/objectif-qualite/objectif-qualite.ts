@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, input, Input, output, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, input, Input, output, SimpleChanges, ViewChild } from '@angular/core';
 import { Form, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, SelectControlValueAccessor, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
@@ -18,6 +18,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { k } from "../../../../node_modules/@angular/material/module.d-m-qXd3m8";
 import { MatTooltip } from '@angular/material/tooltip';
 import { Debounced } from '../../directive/debounced';
+import { Confirm } from '../confirm/confirm';
 
 @Component({
   selector: 'app-objectif-qualite',
@@ -59,6 +60,7 @@ export class ObjectifQualite {
   operationSelected!: { index: number, value: string }[];
   filteredOperation: Operation[][] = [];
   optionChoisie: boolean = false;
+  dialogRefConfirm = inject(MatDialog);
   // @ViewChild('autOperation') autOperation!: MatAutocomplete;
   ondelete: boolean = false;
 
@@ -70,13 +72,13 @@ export class ObjectifQualite {
 
   get formGroups(): FormGroup[] {
     const formArray = this.form()?.controls["formArray"];
-    return (formArray as FormArray).controls as FormGroup[] ;
+    return (formArray as FormArray).controls as FormGroup[];
   }
 
   get formArray() {
     const formArray = this.form()?.controls["formArray"];
     // console.log('formArray', formArray?.value);
-    
+
     return formArray as FormArray<FormGroup>;
   }
 
@@ -84,7 +86,7 @@ export class ObjectifQualite {
     return this.form();
   }
 
-  async updateValue(event: any) : Promise<any> {
+  async updateValue(event: any): Promise<any> {
     let { id, value, name } = event;
     console.log("Debounced event:", event);
 
@@ -94,29 +96,29 @@ export class ObjectifQualite {
     let { index, ...reste } = value;
     value = reste;
     if (name.includes('seuil_qualite')) {
-        this.formatSeuilQualite(index).subscribe((res) => {
-          if (res) {
-            console.log('Mety ve ny format');
-            
-            this.detailService.updateUnitaire(id, value, name, this.ondelete).then((resultat: any) => {
-              console.log("Update result:", resultat );
-              this.handlerUpdate(resultat, index);
-              this.updateEtape.emit();
-              return true;
-            }).catch((error) => {
-              return false;
-            });
-          } else {
-            let valueAncien = this.verification().etape[index]?.seuil_qualite || 0;
-            console.log('Format tsy mety',this.formGroups?.at(index)?.get('seuilQualite')?.value , 'ancien', valueAncien);
-            this.formGroups?.at(index)?.get('seuilQualite')?.setValue(valueAncien, { emitEvent: false });
-            this.cdref.detectChanges();
-          }
-        })
-    } 
+      this.formatSeuilQualite(index).subscribe((res) => {
+        if (res) {
+          console.log('Mety ve ny format');
+
+          this.detailService.updateUnitaire(id, value, name, this.ondelete).then((resultat: any) => {
+            console.log("Update result:", resultat);
+            this.handlerUpdate(resultat, index);
+            this.updateEtape.emit();
+            return true;
+          }).catch((error) => {
+            return false;
+          });
+        } else {
+          let valueAncien = this.verification().etape[index]?.seuil_qualite || 0;
+          console.log('Format tsy mety', this.formGroups?.at(index)?.get('seuilQualite')?.value, 'ancien', valueAncien);
+          this.formGroups?.at(index)?.get('seuilQualite')?.setValue(valueAncien, { emitEvent: false });
+          this.cdref.detectChanges();
+        }
+      })
+    }
     else {
       this.detailService.updateUnitaire(id, value, name, this.ondelete).then((resultat: any) => {
-        console.log("Update result:", resultat );
+        console.log("Update result:", resultat);
         this.handlerUpdate(resultat, index);
         this.updateEtape.emit();
 
@@ -137,7 +139,7 @@ export class ObjectifQualite {
       console.log('index trouvé', index, param);
 
       if (index !== -1) {
-         const group = interlocuteurs.at(index);
+        const group = interlocuteurs.at(index);
         group.get('id_etape_qualite')?.setValue(param.id_etape_qualite, { emitEvent: false });
         this.cdref.detectChanges();
       }
@@ -440,7 +442,7 @@ export class ObjectifQualite {
         }
       });
     });
-      
+
     console.log("Nouvel ordre:", newOrder);
 
     this.cdref.detectChanges();
@@ -540,27 +542,35 @@ export class ObjectifQualite {
 
   removeItem(index: number) {
     // const formArray = this.form.get('formArray') as FormArray | null;
-
-    const formArray = this.formArray
-
-    let id_etape_qualite = formArray.at(index)?.get('id_etape_qualite')?.value;
-    let name = 'detail_projet.etape_qualite';
-
-    let confirm = false;
-
-    this.detailService.deleteDonne(id_etape_qualite, name).then((value: any) => {
-      console.log('donne', value)
-      if (formArray) {
-        formArray.removeAt(index);
-        formArray.updateValueAndValidity();
-        this.updateEtape.emit();
-        this.cdref.detectChanges();
-      }
-    }).catch((error) => {
-      confirm = false;
-      alert(error.message)
+    let dialogRef = this.dialogRefConfirm.open(Confirm, {
+      data: { message: "Confirmez-vous la suppression de cette étape ?" }
     })
 
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const formArray = this.formArray
+
+        let id_etape_qualite = formArray.at(index)?.get('id_etape_qualite')?.value;
+        let name = 'detail_projet.etape_qualite';
+
+        let confirm = false;
+
+        this.detailService.deleteDonne(id_etape_qualite, name).then((value: any) => {
+          console.log('donne', value)
+          if (formArray) {
+            formArray.removeAt(index);
+            formArray.updateValueAndValidity();
+            this.updateEtape.emit();
+            this.cdref.detectChanges();
+          }
+        }).catch((error) => {
+          confirm = false;
+          alert(error.message)
+        })
+
+
+      }
+    })
 
   }
 

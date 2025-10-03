@@ -14,6 +14,8 @@ import { Debounced } from '../../directive/debounced';
 import { DetailProjectService } from '../../service/DetailProjectService';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { MatDialog } from '@angular/material/dialog';
+import { Confirm } from '../confirm/confirm';
 
 @Component({
   selector: 'app-type-erreur',
@@ -54,6 +56,7 @@ export class TypeErreur {
   valider = false;
   rollback = false;
   messageService = inject(MessageService);
+  private dialog = inject(MatDialog);
 
   readonly filteredOperations = input.required<Observable<Erreur[]>[]>();
   readonly filteredOperationsSignal = input<Array<Erreur[]>>([]);
@@ -61,7 +64,7 @@ export class TypeErreur {
   constructor() {
     effect(() => {
       // console.log("appel operation filtrer", firstValueFrom(this.filteredOperations() as any));
-      
+
       const form = this.form();
       if (!form) return;
       // group = this.fb.group({
@@ -73,7 +76,7 @@ export class TypeErreur {
       //   });
       this.ensureControl(form, 'formErreur', this.fb.array([]));
       const formErreur = form.get('formErreur') as FormArray;
-      
+
       // On boucle sur chaque FormGroup du FormArray
       let colonne = ['idErreur', 'typeErreur', 'degre', 'coef', 'raccourci'];
       if (formErreur.length === 0) {
@@ -147,7 +150,7 @@ export class TypeErreur {
 
 
   initFormGroup() {
-  
+
   }
 
   lister(): string[] {
@@ -197,7 +200,7 @@ export class TypeErreur {
   async updateValue(event: any) {
     let { id, value, name } = event;
     console.log("UpdateValue appelé avec :", event, 'typeof value', typeof value);
-    
+
     let { id_projet, libelle, index, est_majeur, raccourci } = value;
     if (libelle && index !== undefined && index !== null) {
       let doublageInterdit = this.formGroup.map(fg => fg.get('typeErreur')?.value?.toLowerCase()).some((val, idx) => val === libelle.toLowerCase() && idx !== index);
@@ -210,15 +213,15 @@ export class TypeErreur {
     }
 
     if (typeof value === 'object') {
-      console.log("Valeur avant vérification type value:", this.verify(libelle), this.valider , value);
-      
+      console.log("Valeur avant vérification type value:", this.verify(libelle), this.valider, value);
+
       // if (value.libelle !== null && value.libelle !== undefined) {
       //   value = { id_projet, libelle };
       //   console.log('libelle modifié', value);
       // } 
       // if (value.est_majeur !== null && value.est_majeur !== undefined) {
       //   console.log('est_majeur modifié', value.est_majeur);
-        
+
       //   value = est_majeur;
       //   this.valider = true;
       // } else if (value.raccourci !== null && value.raccourci !== undefined) {
@@ -228,7 +231,7 @@ export class TypeErreur {
       // } else if (value.coef !== null && value.coef !== undefined) {
       //   value = value.coef;
       //   console.log('coef modifié', value);
-        
+
       //   this.valider = true;
       // }
       const champs = [
@@ -276,7 +279,7 @@ export class TypeErreur {
 
       this.detailService.updateUnitaire(id, value, name)
         .then((res: any) => {
-          console.log("Update result:", res, this.formGroup[index], index,this.formGroup);
+          console.log("Update result:", res, this.formGroup[index], index, this.formGroup);
           this.formGroup[index].patchValue({ idErreur: res.parametre[0].id_type_erreur }, { emitEvent: false })
         })
         .catch(err => {
@@ -295,10 +298,10 @@ export class TypeErreur {
     console.log("Debounced event:", event, 'update value ', updateValue, 'name', champ);
     let result: any = null;
     let checker = this.formArray.at(champ.index).get(champ.col.name);
-    console.log("Valeur avant vérification: validite", this.formArray.at(champ.index)?.get(champ.col.name)?.value, 'chekcer',checker?.value);
+    console.log("Valeur avant vérification: validite", this.formArray.at(champ.index)?.get(champ.col.name)?.value, 'chekcer', checker?.value);
     if (checker?.value) {
       id = -1;
-      
+
       let form = this.formArray.at(champ.index).value;
       // if (this.verify(updateValue.))
       this.detailService.updateUnitaire(id, updateValue, name).then(res => {
@@ -340,22 +343,33 @@ export class TypeErreur {
 
   trigerRemove(index: number) {
 
-    let id = this.formArray.at(index).get('idErreur')?.value;
-    let name = 'detail_projet.type_erreur';
-    if (!this.rollback) {
-      this.detailService.deleteDonne(id, name)
-        .then(res => {
-          if (res) {
-            this.removeLigne.emit(index);
-            this.updateValue
-          }
-        })
-        .catch((err: any) => {
-          alert("Erreur lors de la suppression de l'erreur " + err.message);
-        });
-    } else {
-      this.removeLigne.emit(index);
-    }
+
+    const dialogRef = this.dialog.open(Confirm, {
+      data: { message: "Confirmez-vous la suppression de cette erreur ?" }
+    })
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        let id = this.formArray.at(index).get('idErreur')?.value;
+        let name = 'detail_projet.type_erreur';
+        if (!this.rollback) {
+          this.detailService.deleteDonne(id, name)
+            .then(res => {
+              if (res) {
+                this.removeLigne.emit(index);
+                this.updateValue
+              }
+            })
+            .catch((err: any) => {
+              alert("Erreur lors de la suppression de l'erreur " + err.message);
+            });
+        } else {
+          this.removeLigne.emit(index);
+        }
+      }
+    });
+
+
   }
 
   displayErreur = (id: string): string => {
