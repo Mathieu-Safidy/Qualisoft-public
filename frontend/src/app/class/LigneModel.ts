@@ -25,35 +25,6 @@ export class LigneModel implements Ligne {
         this.lig_tof = lig_tof;
     }
 
-    // cast(vue: VueGlobal[]): Ligne[] {
-    //     throw new Error("Method not implemented.");
-    // }
-
-    // cast(vue: VueGlobal[]): LigneModel[] {
-    //     return vue.map(item => {
-    //         return {
-    //         id_cgu: item.id_cgu ?? '',
-    //         id_ligne: item.id_ligne ?? '',
-    //         libelle: item.lib_ligne ?? '',
-    //         } as LigneModel;
-    //     });
-    // }
-    // cast(vue: VueGlobal[]): LigneModel[] {
-    //     const uniques = new Map<string, LigneModel>();
-    //     vue.forEach(item => {
-    //         const key = `${item.id_ligne}-${item.id_plan}-${item.id_fonction}`;
-    //         if (!uniques.has(key)) {
-    //             uniques.set(key, {
-    //                 id_cgu: item.id_cgu ?? '',
-    //                 id_ligne: item.id_ligne ?? '',
-    //                 libelle: item.lib_ligne ?? ''
-    //             } as LigneModel);
-    //         }
-    //     });
-    //     return Array.from(uniques.values());
-    // }
-
-
     cast(vue: VueGlobal[]): Ligne[] {
         const uniques = new Map<string, Ligne>();
 
@@ -70,10 +41,5 @@ export class LigneModel implements Ligne {
 
         return Array.from(uniques.values());
     }
-
-    
-    // find(lignes: Ligne[], id: string) : Ligne | undefined{
-    //     return lignes.find(ligne => ligne.id_ligne === id);
-    // }
 
 }

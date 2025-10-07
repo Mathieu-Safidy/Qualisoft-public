@@ -62,6 +62,15 @@ export class MigrationDonne {
 
   startingMigration(operation: string) {
     this.operation = operation;
+    this.selected.set([]); // réinitialiser les sélections
+    this.allData.set([]);
+    // this.colonne = [];
+    this.previewData.set([]);
+    this.fichier.set(null);
+    this.fileName.set('');
+    this.progress.set(0);
+    // this.load.set(false);
+    // let table = this.data.column.columnNames.find((col: any) => col.table_name === operation);
   }
 
 
@@ -219,8 +228,12 @@ export class MigrationDonne {
         data.push(rowData);
       });
       if (data.length > 0) {
+        this.selected.set([]); // réinitialiser les sélections
         data[0] = data[0].map(cell => typeof cell === 'string' ? cell.trim() : cell);
-        this.selected.set(data[0] as string[]);
+        let colonne = data[0].filter(cell => this.getColonnes(this.operation).includes(cell?.toString()));
+        this.selected.set(colonne as string[]);
+        console.log('Colonnes sélectionnées après filtrage:', this.selected());
+        
       }
 
       const header = data[0]; // la première ligne = en-tête

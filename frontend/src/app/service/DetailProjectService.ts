@@ -292,9 +292,7 @@ export class DetailProjectService {
       }),
       map(res => new FonctionModele().cast(res))
     );
-
-
-
+    
     // ✅ On retourne un objet contenant les 3 observables
     return {
       lignes: lignes$,
@@ -363,12 +361,13 @@ export class DetailProjectService {
 
     //   return this.http.post(`/import/data`, body);
     // } else {
-
+      let formdata = donne.formData;
+      formdata?.append('applicationName', 'qualisoft');
       let configuration = {
         reportProgress: true,
       }
 
-      return this.http.postLoad(`/import/file`, donne.formData, configuration);
+      return this.http.postLoad(`/import/file`, formdata, configuration);
     // }
 
   }

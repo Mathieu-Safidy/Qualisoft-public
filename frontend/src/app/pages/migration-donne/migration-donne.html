@@ -70,7 +70,7 @@
                                         <label for="">Fichier :</label>
                                     </div>
                                     <div class="col-6">
-                                        <input type="file" (change)="onFileChange($event)" class="form-control" name="" id="" [attr.accept]="fileType() === 'csv' ? '.csv' : '.xlsx,.xls'">
+                                        <input type="file" [(ngModel)]="fichier" (change)="onFileChange($event)" class="form-control" name="" id="" [attr.accept]="fileType() === 'csv' ? '.csv' : '.xlsx,.xls'">
                                     </div>
                                     <div class="col-2">
                                         @if (watch()) {

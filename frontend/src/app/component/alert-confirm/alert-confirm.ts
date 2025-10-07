@@ -7,10 +7,14 @@ import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-alert-confirm',
-  imports: [MatDialogContent, MatDialogModule,
+  imports: [
+    MatDialogContent, 
+    MatDialogModule,
     CommonModule,
     MatIconModule,
-    MatInputModule, MatButtonModule],
+    MatInputModule,
+    MatButtonModule
+  ],
   templateUrl: './alert-confirm.html',
   styleUrl: './alert-confirm.css'
 })

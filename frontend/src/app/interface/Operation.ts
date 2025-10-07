@@ -1,4 +1,6 @@
-export interface Operation {
+import { Initiator } from "./Initiator"
+
+export interface Operation extends Initiator<Operation> {
     id_cgu : string,
     id_operation : string,
     libelle : string,

@@ -1,6 +1,7 @@
+import { Initiator } from "./Initiator";
 import { VueGlobal } from "./VueGlobal";
 
-export interface Fonction {
+export interface Fonction extends Initiator<Fonction> {
     id_cgu : string,
     id_fonction :  string,
     libelle : string,
@@ -8,5 +9,5 @@ export interface Fonction {
     taux_h : number
 
     
-        cast(vue: VueGlobal[]): Fonction[];
+    cast(vue: VueGlobal[]): Fonction[];
 }
