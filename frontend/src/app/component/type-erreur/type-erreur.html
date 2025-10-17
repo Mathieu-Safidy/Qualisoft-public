@@ -45,6 +45,11 @@
               </div>
             </th>
             <th>
+              <div>
+                Operation a controle
+              </div>
+            </th>
+            <th>
               <div
                 ngbPopover="Le coefficient de pondération ou coefficient de gravité est un chiffre qui reflète l'importance ou la criticité de l'erreur"
                 [placement]="'bottom'"
@@ -136,6 +141,33 @@
               </mat-autocomplete>
             </td>
             <td>
+              <div class="card">
+                <div class="card-body overflow-y-scroll" style="height: 12vh;" formArrayName="operation_a_controller">
+
+                  @for (controlled of getOperationsController(i); track $index) {
+                    @if(verifierName(i, controlled , item)) {
+                    <div class="mb-1" [formGroupName]="$index">
+                      <span>
+                        <input
+                        name="detail_projet.erreur_valable:validite"
+                        appDebounced
+                        [foreign]="[{name:'id_operation', value: controlled.get('operation')?.value },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: i , col: null } },{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()},{name:'controled', value: controlled.get('operationAcontroller')?.value }]"
+                        (debouncedValue)="updateValueCheck($event)"
+                        [identity]="formArray.at(i).get('idErreur')?.value"
+                        type="checkbox" formControlName="valid" id="">
+                      </span>
+                      <span>
+                        {{ controlled.get('name')?.value }}
+                         <!-- - {{ controlled.get('operationAcontroller')?.value }} -->
+                      </span>
+                    </div>
+                    }
+                  }
+
+                </div>
+              </div>
+            </td>
+            <td>
               <select
                 name=""
                 id=""
@@ -184,18 +216,18 @@
               />
             </td>
             <ng-container *ngFor="let col of colonneObserve() | async ; let j = index ">
-              <td class="text-center align-middle checker">
+              <td class="text-center checker pt-2">
                 <div class="d-flex justify-content-center align-items-center">
                   <input
                     *ngIf="col && col.name !== '' && formArray.at(i).get(col.name)"
                     type="checkbox"
-                    class="form-check-input"
+                    class="form-check-input mt-0"
                     id="{{ 'check' + col.id }}"
-                    style="width: 30px; height: 30px"
+                    style="width: 39px; height: 39px"
                     formControlName="{{ col.name }}"
                     name="detail_projet.erreur_valable:validite"
                     appDebounced
-                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: i , col} },{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()}]"
+                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: i , col} },{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()},{name:'controled', value: 'indefinie'}]"
                     (debouncedValue)="updateValueCheck($event)"
                     [identity]="formArray.at(i).get('idErreur')?.value"
                     (click)="(lister()[1] == '' && !exist()) ? $event.preventDefault() : null"
@@ -205,13 +237,13 @@
                     formControlName="{{ col.name }}"
                     type="checkbox"
                     name="control"
-                    class="form-check-input"
+                    class="form-check-input mt-0"
                     id="{{ 'check' + col.id }}"
                     appDebounced
-                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()}]"
+                    [foreign]="[{name:'id_operation', value: id_colonne()[j] },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()},{name:'controled', value: 'indefinie'}]"
                     (debouncedValue)="updateValueCheck($event)"
                     [identity]="formArray.at(i).get('idErreur')?.value"
-                    style="width: 30px; height: 30px"
+                    style="width: 39px; height: 39px"
                     [disabled]="true"
                     
                   />

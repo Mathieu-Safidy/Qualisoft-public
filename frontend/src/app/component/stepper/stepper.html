@@ -166,7 +166,7 @@
 
   <mat-step [stepControl]="form3" label="Type d'erreur">
     <app-type-erreur
-      *ngIf="erreurs.length > 0 && generated"
+      *ngIf="erreurs.length > 0 && generated && operations.length > 0"
       [filteredOperations]="filteredOperations"
       [form]="form3"
       [formEtape]="form2"
@@ -174,7 +174,11 @@
       [filteredOperationsSignal]="tableauOperations"
       [id_colonne]="id_form_colonne"
       [erreurs]="erreurs"
+      [operations]="operations"
+      [operationAcontrole]="listController"
+      [operationAcontrollerFiltrer]="filtrerColonnes()"
       [colonneObserve]="colonneObserver.asObservable()"
+      [colonneReactif]="colonneReactif()"
       (addErreur)="addErreur($event)"
       (annuler)="annuler($event)"
       [projectID]="id_projet"

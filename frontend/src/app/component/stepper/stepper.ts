@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, Inject, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, Inject, Signal, signal, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -98,8 +98,8 @@ export class Stepper {
   unites!: Unite[];
   selectedLigne = '';
   filteredOperations!: Observable<Erreur[]>[];
-  tableauOperations: Array<Erreur[]> = [];
   colonne: Observable<string[]>[] = [];
+  tableauOperations: Array<Erreur[]> = [];
   verification: any;
   existVerif: boolean = false;
   id!: Observable<string>;
@@ -116,8 +116,9 @@ export class Stepper {
   isBcqControle: boolean = false;
   isExterneControl: boolean = false;
   colonneObserver: BehaviorSubject<{ name: string, id: string | number }[]> = new BehaviorSubject<{ name: string, id: string | number }[]>([]);
+  colonneReactif = signal<{ name: string, id: string | number }[]>([]);
   // coloneEtape = this.colonneObserver.asObservable();
-
+  listController: { [operation: string]: { operationAcontroller: string, name: string; valid: boolean, operation: string }[]; } = {};
   cdr = inject(ChangeDetectorRef)
   dialog = inject(MatDialog);
 
@@ -155,6 +156,7 @@ export class Stepper {
     });
   }
 
+
   currentStep = 0;
 
   // openDialog(): void {
@@ -171,6 +173,9 @@ export class Stepper {
   // }
 
   addColonne(colonne: string, id: string | number, form: FormArray, value?: any) {
+    this.colonneReactif.update(old => {
+      return [...old, { name: colonne, id: id }];
+    })
     let actuel = this.colonneObserver.value;
     this.colonneObserver.next([...actuel, { name: colonne, id: id }]);
     this.addEtapeArray(colonne, form, value);
@@ -181,6 +186,10 @@ export class Stepper {
   // }
 
   deleteColone(nom: string, form: FormArray) {
+
+    this.colonneReactif.update(old => {
+      return old.filter(c => c.name !== nom);
+    })
     let actuel = this.colonneObserver.value;
     this.colonneObserver.next(actuel.filter(c => c.name !== nom));
     this.deleteEtapeArray(nom, form);
@@ -188,6 +197,8 @@ export class Stepper {
 
   addEtapeGroup(name: string, form: FormGroup, value?: any) {
     if (value != null && value != undefined && typeof value === 'boolean') {
+      console.log('parametre ', name, value);
+
       form.addControl(name, this.fb.control(value));
     } else {
       form.addControl(name, this.fb.control(value || ''));
@@ -199,7 +210,7 @@ export class Stepper {
     formArray.controls.forEach((fg) => {
       if (!(fg as FormGroup).contains(name)) {
         // (fg as FormGroup).addControl(name, this.fb.control([value || '']));
-        this.addEtapeGroup(name, fg as FormGroup, value);
+        // this.addEtapeGroup(name, fg as FormGroup, value);
       }
     })
   }
@@ -229,8 +240,29 @@ export class Stepper {
 
       // La génération ne se fait que si elle n'a pas encore été faite
       if (!this.generated) {
+        let typeErreurPasser: string[] = [];
         // this.generate(); 
         console.log('generate called from step change', this.form3.value);
+        this.updateListController();
+        let resultPatch = this.patchControlErreurAController();
+        console.log('resultat attendue', resultPatch);
+        (this.typeErreur.controls as FormGroup[]).forEach((fg: FormGroup, index) => {
+          // const operation = fg.get('typeErreur')?.value;
+          // const patch = resultPatch.find(res => res.operation === operation);
+          // if (patch) {
+          console.log('passer', index);
+          let operationAControllerArray = fg.get('operation_a_controller') as FormArray;
+          operationAControllerArray.clear();
+
+          resultPatch.forEach(patch => {
+            // typeErreurPasser.push(patch.);
+            if (patch.libelle === fg.get('typeErreur')?.value) {
+              this.updateOperationAController(patch.operationAController, fg);
+            }
+          })
+        })
+
+        console.log('form erreur', this.typeErreur.value);
 
         this.generated = true;
       }
@@ -927,6 +959,32 @@ export class Stepper {
 
 
   // }
+  updateListController() {
+    const formArray = this.form2.get('formArray') as FormArray;
+    // const formErreur = this.form3.get('formErreur') as FormArray;
+    const values = formArray.value;
+    // Crée un objet où chaque opération a une liste de ses opérations à contrôler
+    // const listController: { [operation: string]: string[] } = {};
+
+    values.forEach((item: any) => {
+      if (!item.operation) return;
+      if (!this.listController[item.operation]) {
+        this.listController[item.operation] = [];
+      }
+      // Ajoute l'opération à contrôler si elle existe et n'est pas déjà dans la liste
+      if (item.operationAControler && !this.listController[item.operation].some(op => op.operationAcontroller === item.operationAControler)) {
+        let name = this.operations.find(op => op.id_operation === item.operationAControler)?.libelle || '';
+        this.listController[item.operation].push({ operationAcontroller: item.operationAControler, name, valid: false, operation: item.operation });
+      }
+    });
+
+    // Si tu veux une liste d'objets [{operation, operationsAControler: [...]}, ...] :
+    // const result = Object.entries(listController).map(([operation, operationsAControler]) => ({
+    //   operation,
+    //   operationsAControler
+    // }));
+  }
+
   updateColonne() {
     const formArray = this.form2.get('formArray') as FormArray;
     const formErreur = this.form3.get('formErreur') as FormArray;
@@ -937,7 +995,8 @@ export class Stepper {
       .filter(op => colone_form3.includes(op.id_operation))
       .map(op => op.libelle);
 
-    const colCurrent = this.colonneObserver.getValue();
+    const colCurrent = this.colonneReactif();
+    // const colCurrent = this.colonneObserver.getValue();
     const colCurrentNames = colCurrent.map(c => c.name);
 
     const new_colonne = colonneForm.filter(c => !colCurrentNames.includes(c));
@@ -956,6 +1015,7 @@ export class Stepper {
 
 
     if (nouvellesColonnes.length) {
+      this.colonneReactif.update(old => [...old.filter(c => !removed_colonne.includes(c.name)), ...nouvellesColonnes]);
       this.colonneObserver.next([...colCurrent.filter(c => !removed_colonne.includes(c.name)), ...nouvellesColonnes]);
       nouvellesColonnes.forEach(c => {
         if (!c.name) return;
@@ -1002,21 +1062,26 @@ export class Stepper {
         .filter((ind) => ind !== null && ind !== undefined);
 
       this.colone_form3 = colonneForm;
-
+      this.colonneReactif.set(this.id_form_colonne.map((id, index) => ({ name: colonneForm[index], id: id })));
       this.colonneObserver.next(this.id_form_colonne.map((id, index) => ({ name: colonneForm[index], id: id })));
       this.cdr.detectChanges();
       console.log('colonne generer', this.colonneObserver.getValue());
 
-      let colonneFormu = this.colonneObserver.getValue().map(c => c.name);
+      // let colonneFormu = this.colonneObserver.getValue().map(c => c.name);
+      let colonneFormu = this.colonneReactif().map(c => c.name);
 
-      if (!this.colonneObserver.getValue()) {
+      // if (!this.colonneObserver.getValue()) {
+      if (!this.colonneReactif() || this.colonneReactif().length === 0) {
         return;
       }
       if (this.verification) {
         console.log('colonne a generer', this.colonneObserver.getValue(), this.id_form_colonne);
         let update = 1;
         if (this.verification.erreur) this.updateErreur = true;
-        for (const erreur of this.verification.erreur) {
+        let erreurs = this.groupErreur(this.verification.erreur);
+        console.log('erreur grouper', erreurs);
+        
+        for (const erreur of erreurs) {
           this.ajouterLigne(colonneFormu, erreur, update);
           this.cdr.detectChanges();
         }
@@ -1041,22 +1106,187 @@ export class Stepper {
     }
   }
 
-  chargement() {
-    return this.checkKeysInFormGroup(this.typeErreur.at(0) as FormGroup, this.colone_form3);
-  }
+  groupErreur(erreurs: any[]) {
+    const map = new Map<string, any>();
 
-  checkKeysInFormGroup(formGroup: FormGroup, keys: string[]): boolean {
-    // Check if the formGroup is valid and has controls.
-    if (!formGroup || !formGroup.controls) {
-      return false;
+    for (const err of erreurs) {
+      // const key = err.libelle_erreur;
+      const key = `${err.libelle_erreur}|${err.coef ?? 'null'}|${err.est_majeur}|${err.raccourci ?? 'null'}`;
+
+      if (!map.has(key)) {
+        // On initialise le groupe avec les infos de base
+        map.set(key, {
+          coef: err.coef,
+          est_majeur: err.est_majeur,
+          id_etape_qualite: err.id_etape_qualite,
+          id_projet: err.id_projet,
+          id_type_erreur: err.id_type_erreur,
+          libelle_erreur: err.libelle_erreur,
+          raccourci: err.raccourci,
+          operations: []
+        });
+      }
+
+      // Ajout de l’opération dans le groupe correspondant
+      map.get(key)!.operations.push({
+        operation_de_control: err.operation_de_control,
+        operation_a_controller: err.operation_a_controller,
+        valid: err.valid
+      });
     }
 
-    // Use the every() method to ensure all keys meet the condition.
-    return keys.every(key => {
-      // The get() method returns null if the control does not exist.
-      return formGroup.get(key) !== null;
-    });
+    // console.log('map value erreur', map);
+    
+
+    return Array.from(map.values());
   }
+
+    //   function grouperErreurs(erreurs: Erreur[]): ErreurGroupee[] {
+    //   const map = new Map<string, ErreurGroupee>();
+
+    //   for (const err of erreurs) {
+    //     const key = err.libelle_erreur;
+
+    //     if (!map.has(key)) {
+    //       // On initialise le groupe avec les infos de base
+    //       map.set(key, {
+    //         coef: err.coef,
+    //         est_majeur: err.est_majeur,
+    //         id_etape_qualite: err.id_etape_qualite,
+    //         id_projet: err.id_projet,
+    //         id_type_erreur: err.id_type_erreur,
+    //         libelle_erreur: err.libelle_erreur,
+    //         raccourci: err.raccourci,
+    //         operations: []
+    //       });
+    //     }
+
+    //     // Ajout de l’opération dans le groupe correspondant
+    //     map.get(key)!.operations.push({
+    //       operation_de_control: err.operation_de_control,
+    //       operation_a_controller: err.operation_a_controller,
+    //       valid: err.valid
+    //     });
+    //   }
+
+    //   return Array.from(map.values());
+    // }
+
+    filtrerColonnes() {
+      // Regroupe par libelle et operation, puis rassemble les operationAController dans un tableau
+      const erreurs = this.verification?.erreur || [];
+      const map = new Map<string, { operation: any, libelle: string, operationAController: any[] }>();
+
+      for (const err of erreurs) {
+        const key = `${err.libelle_erreur}`;
+
+        if (!map.has(key)) {
+          map.set(key, {
+            operation: err.operation_de_control,
+            libelle: err.libelle_erreur,
+            operationAController: [],
+          });
+        }
+        const entry = map.get(key)!;
+        if (err.valid) {
+          entry.operationAController.push(err.operation_a_controller);
+        }
+      }
+
+      console.log('mapping', map);
+
+      return Array.from(map.values());
+    }
+
+
+    patchControlErreurAController() {
+      let filtrer = this.filtrerColonnes();
+      let list = this.listController;
+      let result: { operationAController: { operationAcontroller: string, name: string, valid: boolean, operation: string }[], libelle: string }[] = [];
+      let operationControlled: { operationAcontroller: string, name: string, valid: boolean, operation: string }[] = [];
+      console.log('matching', filtrer, list);
+      for (let item of filtrer) {
+        operationControlled = [];
+        for (let [key, value] of Object.entries(list)) {
+          for (const opCtrl of value) {
+            if (operationControlled.some(op => op.operationAcontroller === opCtrl.operationAcontroller && op.operation === key)) {
+              continue;
+            }
+            console.log('filtrer a verifier ', item);
+
+            if (item.operationAController.includes(opCtrl.operationAcontroller) && item.operation === key) {
+              operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: true, operation: key });
+            } else {
+              operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: false, operation: key });
+            }
+          }
+        }
+        result.push({
+          operationAController: operationControlled,
+          libelle: item.libelle || '',
+        });
+      }
+      // for (let key in list) {
+      //   const match = filtrer.find(f => f.operation === key);
+      //   console.log('matching',match, filtrer, list);
+      //   // if (result.some(r => r.operation === key)) {
+      //   //   break;
+      //   // }
+
+      //   for (const [index, item] of list[key].entries()) {
+      //     console.log('item', item, 'index', index, 'filtrer', filtrer[index]);
+      //     if (filtrer[index].operationAController.includes(item.operationAcontroller)) {
+      //       operationControlled.push({ operationAcontroller: item.operationAcontroller, name: item.name, valid: true, operation: key });
+      //     } else {
+      //       operationControlled.push({ operationAcontroller: item.operationAcontroller, name: item.name, valid: false, operation: key });
+      //     }
+      //   }
+      //   // operation: key,
+      //   // console.log('comparaison',JSON.stringify(result), ' avec ', JSON.stringify(operationControlled));
+
+      //   // if (result.some(r => JSON.stringify(r.operationAController) === JSON.stringify(operationControlled))) {
+      //   //   continue;
+      //   // }
+
+      //   result.push({
+      //       operationAController: operationControlled,
+      //       libelle: filtrer.find(f => f.operation === key)?.libelle || '', 
+      //     });
+
+      //   //   const groupedOperationAController = list[key].map(item => item.operationAcontroller);
+      //   //   if (result.some(r => r.operation === key)) {
+      //   //     break;
+      //   //   }
+      //   //   console.log('item', item,'groupedOperationAController', groupedOperationAController, 'match', match);
+
+      //   //   result.push({
+      //   //     operation: key,
+      //   //     operationAController: match ? match.operationAController.map(op => ({ operationAcontroller: op, valid: !!match })) : groupedOperationAController.map(op => ({ operationAcontroller: op, valid: false })),
+      //   //     libelle: match ? match.libelle : '',
+      //   //     valid: !!match 
+      //   //   });
+      //   // }
+      // }
+
+      return result;
+    }
+
+    chargement() {
+      return this.checkKeysInFormGroup(this.typeErreur.at(0) as FormGroup, this.colone_form3);
+    }
+
+    checkKeysInFormGroup(formGroup: FormGroup, keys: string[]): boolean {
+      // Check if the formGroup is valid and has controls.
+      if (!formGroup || !formGroup.controls) {
+        return false;
+      }
+
+      // Use the every() method to ensure all keys meet the condition.
+      return keys.every(key => {
+        // The get() method returns null if the control does not exist.
+        return formGroup.get(key) !== null;
+      });
+    }
 
   // filtre() {
   //   let donne = this.form1.value;
@@ -1068,14 +1298,14 @@ export class Stepper {
   // }
 
   get typeErreur() {
-    return this.form3.get('formErreur') as FormArray;
-  }
+      return this.form3.get('formErreur') as FormArray;
+    }
 
-  remplirFormArray() {
-    this.colone_form3.forEach((item) => {
-      this.typeErreur.push(this.fb);
-    });
-  }
+    remplirFormArray() {
+      this.colone_form3.forEach((item) => {
+        this.typeErreur.push(this.fb);
+      });
+    }
 
   // genererGroup(colonne: string[] = [], value: any, update: number): FormGroup | null {
   //   let unique: boolean = false;
@@ -1150,65 +1380,91 @@ export class Stepper {
   // }
 
   async genererGroup(
-    colonne: string[] = [],
-    value: any,
-    update: number
-  ): Promise<FormGroup | null> {
-    console.log("genererGroup...", colonne, value, update);
+      colonne: string[] = [],
+      value: any,
+      update: number
+    ): Promise < FormGroup | null > {
+      console.log("genererGroup...", colonne, value, update);
 
-    const col = await firstValueFrom(this.colonneObserver.asObservable());
-    let fg: FormGroup | null = null;
+      // const col = await firstValueFrom(this.colonneObserver.asObservable());
+      const col = this.colonneReactif();
+      let fg: FormGroup | null = null;
+      let operations = value.operations;
+      if(value) {
+        console.log('value', value);
 
-    if (value) {
-      console.log('value', value);
+        const err = this.verifierTypeErreur(value.libelle_erreur);
+        console.log('erreur verifier', err, this.typeErreur.value);
 
-      const err = this.verifierTypeErreur(value.libelle_erreur);
-      console.log('erreur verifier', err, this.typeErreur.value);
+        if (!err) {
+          console.log("generer 1...");
 
-      if (!err) {
-        console.log("generer 1...");
+          fg = this.fb.group({
+            idErreur: [value.id_type_erreur || -1],
+            typeErreur: [value.libelle_erreur || '', Validators.required],
+            operation_a_controller: this.fb.array([]),
+            degre: [value.est_majeur ? 1 : 0, Validators.required],
+            coef: [value.coef || 0, Validators.required],
+            raccourci: [value.raccourci || '', Validators.required],
+          });
 
-        fg = this.fb.group({
-          idErreur: [value.id_type_erreur || -1],
-          typeErreur: [value.libelle_erreur || '', Validators.required],
-          degre: [value.est_majeur ? 1 : 0, Validators.required],
-          coef: [value.coef || 0, Validators.required],
-          raccourci: [value.raccourci || '', Validators.required],
-        });
+          
 
-        col.forEach(c => {
-          const valueCol = c.id === value.operation_de_control ? value.valable : false;
-          this.addEtapeGroup(c.name, fg!, valueCol);
-        });
-
-      } else {
-        // si déjà existant : on met à jour
-        col.forEach(c => {
-          if (c.id === value.operation_de_control) {
-            const fgErr = err as FormGroup;
-            console.log("generer 3...", fgErr, c.name, value.valable);
-            if (fgErr.get(c.name)) {
-              fgErr.get(c.name)?.setValue(value.valable);
-            } else {
-              this.addEtapeGroup(c.name, fgErr, value.valable);
+      //      col.forEach((c : any) => {
+      //   if (c.id === value.operation_de_control) {
+      //     const fgErr = fgExist as FormGroup;
+      //     let name = colonne.find(res => res.id == c.operation_de_control)?.name
+      //     console.log("generer 3...", fgErr, name, col, c.valid);
+      //     if (name && fgErr.get(name)) {
+      //       fgErr.get(name)?.setValue(c.valid);
+      //       console.log('formulaire apres set ', name, fgErr.get(name) , fgErr);
+            
+      //     } else {
+      //       this.addEtapeGroup(name || '', fgErr, c.valid);
+      //     }
+      //   }
+      // });
+          operations.forEach((c:any) => {
+            // const valueCol = c.id === value.operation_de_control ? value.valid : false;
+            let name = col.find(res => res.id == c.operation_de_control)?.name
+            console.log('value col', c, c.valid);
+            if (name) {
+              this.addEtapeGroup(name, fg!, c.valid);
             }
-            fg = fgErr; // on réutilise le groupe existant
-          }
+            console.log('form apres set', fg);
+
+          });
+
+        } else {
+          // si déjà existant : on met à jour
+          const fgErr = err as FormGroup;
+          operations.forEach((c:any) => {
+          // col.forEach(c => {
+           let name = col.find(res => res.id == c.operation_de_control)?.name
+            // if (c.id === value.operation_de_control) {
+              console.log("generer 3...", fgErr, name, value.valid);
+              if (name && fgErr.get(name)) {
+                fgErr.get(name)?.setValue(value.valid);
+              } else {
+                this.addEtapeGroup(name || '', fgErr, value.valid);
+              }
+              fg = fgErr; // on réutilise le groupe existant
+            // }
+          });
+        }
+
+      } else if(!value && update === 0) {
+        fg = this.fb.group({
+          idErreur: [-1],
+          typeErreur: ['', Validators.required],
+          degre: ['', Validators.required],
+          coef: ['', Validators.required],
+          raccourci: ['', Validators.required],
         });
-      }
 
-    } else if (!value && update === 0) {
-      fg = this.fb.group({
-        idErreur: [-1],
-        typeErreur: ['', Validators.required],
-        degre: ['', Validators.required],
-        coef: ['', Validators.required],
-        raccourci: ['', Validators.required],
-      });
-
-      col.forEach(c => {
-        this.addEtapeGroup(c.name, fg!, false);
-      });
+        col.forEach(c => {
+          this.addEtapeGroup(c.name, fg!, false);
+        });
     }
 
     if (!fg) return null;
@@ -1230,6 +1486,24 @@ export class Stepper {
     });
 
     return fg;
+  }
+
+  updateOperationAController(value: { operationAcontroller: string, name: string, valid: boolean, operation: string }[], typeErreur: FormGroup) {
+    // let typeErreur = this.typeErreur.get(index.toString()) as FormGroup;
+    let operationAControllerArray = typeErreur.get('operation_a_controller') as FormArray;
+    // operationAControllerArray.clear();
+
+    value.forEach(v => {
+      operationAControllerArray.push(
+        this.fb.group({
+          operationAcontroller: [v.operationAcontroller],
+          name: [v.name],
+          valid: [v.valid],
+          operation: [v.operation]
+        }));
+    });
+    console.log('update value form', value, typeErreur.value);
+
   }
 
   // async genererGroup(colonne: string[] = [], value: any, update: number): Promise<FormGroup | null> {
@@ -1350,7 +1624,7 @@ export class Stepper {
     const colonneNonVide = colonne.filter(c => c != '' && c != null && c != undefined);
     let existIndex = this.typeErreur.controls.findIndex(ctrl =>
       // ctrl.get('idErreur')?.value === group.get('idErreur')?.value &&
-      ctrl.get('typeErreur')?.value === group.get('typeErreur')?.value
+      ctrl.get('typeErreur')?.value === group.get('typeErreur')?.value && ctrl.get('coef')?.value === group.get('coef')?.value && ctrl.get('degre')?.value === group.get('degre')?.value && ctrl.get('raccourci')?.value === group.get('raccourci')?.value
     );
     if (existIndex === -1) {
       this.filterGroupe(group);
@@ -1361,43 +1635,49 @@ export class Stepper {
     // Vérifier si le FormGroup existe déjà dans typeErreur
     existIndex = this.typeErreur.controls.findIndex(ctrl =>
       // ctrl.get('idErreur')?.value === group.get('idErreur')?.value &&
-      ctrl.get('typeErreur')?.value === group.get('typeErreur')?.value
+      ctrl.get('typeErreur')?.value === group.get('typeErreur')?.value && ctrl.get('coef')?.value === group.get('coef')?.value && ctrl.get('degre')?.value === group.get('degre')?.value && ctrl.get('raccourci')?.value === group.get('raccourci')?.value
     );
 
     console.log('existIndex', existIndex, this.typeErreur.value, value, ' colonne', this.colonneObserver.getValue());
 
 
-    if (existIndex !== -1) {
-      // FormGroup existant → juste patcher les valeurs nécessaires
-      const fgExist = this.typeErreur.at(existIndex);
-      // colonneNonVide.forEach(col => {
-      //   fgExist.get(col)?.setValue(group.get(col)?.value);
-      // });
+    // if (existIndex !== -1) {
+    //   // FormGroup existant → juste patcher les valeurs nécessaires
+    //   const fgExist = this.typeErreur.at(existIndex);
+    //   // colonneNonVide.forEach(col => {
+    //   //   fgExist.get(col)?.setValue(group.get(col)?.value);
+    //   // });
 
-      const col = await firstValueFrom(this.colonneObserver.asObservable());
-      col.forEach(c => {
-        if (c.id === value.operation_de_control) {
-          const fgErr = fgExist as FormGroup;
-          console.log("generer 3...", fgErr, c.name, value.valable);
-          if (fgErr.get(c.name)) {
-            fgErr.get(c.name)?.setValue(value.valable);
-          } else {
-            this.addEtapeGroup(c.name, fgErr, value.valable);
-          }
-        }
-      });
-      return group;
-    }
+    //   const colonne = this.colonneReactif();
+    //   const col = value.operations;
+    //   // const col = await firstValueFrom(this.colonneObserver.asObservable());
+    //   col.forEach((c : any) => {
+    //     // if (c.id === value.operation_de_control) {
+    //       const fgErr = fgExist as FormGroup;
+    //       let name = colonne.find(res => res.id == c.operation_de_control)?.name
+    //       console.log("generer 3...", fgErr, name, col, c.valid);
+    //       if (name && fgErr.get(name)) {
+    //         fgErr.get(name)?.setValue(c.valid);
+    //         console.log('formulaire apres set ', name, fgErr.get(name) , fgErr);
+            
+    //       } else {
+    //         // this.addEtapeGroup(name || '', fgErr, c.valid);
+    //       }
+    //     // }
+    //   });
+    //   return group;
+    // }
 
     // Sinon → initialisation classique
     if (!this.updateErreur) {
       for (const col of colonneNonVide) {
-        group.get(col)?.setValue(false);
+        console.log('formulaire avant set false ', col, group.get(col));
+        // group.get(col)?.setValue(false);
       }
 
       if (colonneNonVide.length === 1 && !value) {
         const col = colonneNonVide[0];
-        group.get(col)?.setValue(true);
+        // group.get(col)?.setValue(true);
       }
     }
 
