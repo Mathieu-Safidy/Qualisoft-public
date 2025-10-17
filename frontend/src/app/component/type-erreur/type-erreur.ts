@@ -605,59 +605,31 @@ export class TypeErreur {
     id_operation: string,
     operationAcontroller: string
   ): string | null {
-    console.log('form array verifier doublon', formArray, index, id_operation, operationAcontroller);
+    for (let idx = 0; idx < formArray.length; idx++) {
+      const fg = formArray.at(idx) as FormGroup;
+      
+      if (!fg || idx === index) continue;
+      if (fg.get('typeErreur')?.value !== typeErreur) continue;
+      
+      console.log('operation', id_operation, idx, index , fg.value);
+      const opArray = fg.get('operation_a_controller') as FormArray;
+      if (!opArray) continue;
 
-    // for (let idx = 0; idx < formArray.length; idx++) {
-    //   if (idx === index) continue;
-
-    //   const opArray = formArray.at(idx).get('operation_a_controller') as FormArray;
-    //   if (!opArray) continue;
-    //   console.log('opArray', opArray);
-
-
-    //   const doublon = opArray.controls.find(op =>
-    //     op.get('operation')?.value === id_operation &&
-    //     op.get('operationAcontroller')?.value === operationAcontroller &&
-    //     op.get('valid')?.value === true
-    //   );
-
-    //   console.log('find doublon',doublon);
-
-
-    //   if (doublon) {
-    //     return doublon.get('operationAcontroller')?.value ?? null;
-    //   }
-    // }
-
-    const doublon = formArray.controls.find((fg, idx) => {
-      console.log('operation', fg, id_operation, operationAcontroller, idx, index);
-      let opArray = (fg.get('operation_a_controller') as FormArray);
-      if (idx === index || !opArray) return false;
-      return opArray.controls.some(op =>
-        op.get('typeErreur')?.value === typeErreur &&
+      const doublon = opArray.controls.find(op =>
         op.get('operation')?.value === id_operation &&
         op.get('operationAcontroller')?.value === operationAcontroller &&
         op.get('valid')?.value === true
       );
-    }
-    //   if (
-    //     fg.get('operation')?.value === id_operation &&
-    //     fg.get('operationAcontroller')?.value === operationAcontroller &&
-    //     fg.get('valid')?.value === true
-    //   ) {
-    //     return fg;
-    //   } else {
-    //     return null;
-    //   }
-    // }
-    );
 
-    if (doublon) {
-      return doublon.get('operationAcontroller')?.value ?? null;
+      if (doublon) {
+        console.log('✅ Doublon trouvé :', doublon.value);
+        return doublon.get('operationAcontroller')?.value ?? null;
+      }
     }
 
     return null;
   }
+
 
 
   async updateValueCheck(event: any) {
@@ -698,18 +670,22 @@ export class TypeErreur {
 
         let form = this.formArray.at(champ.index).value;
         // if (this.verify(updateValue.))
-        let doublon = this.verifierDoublonControled(value.libelle,this.formArray, champ.index, id_operation, etape.get('operationAControler')?.value);
+        let doublon = this.verifierDoublonControled(value.libelle, this.formArray, champ.index, id_operation, etape.get('operationAControler')?.value);
         console.log('doublon trouver ', value.id_operation, doublon);
         if (!!doublon) {
           if (value.controled === 'indefinie' || !value.controled) {
 
             etape = this.takeEtape(value.id_operation, doublon, false);
+            console.log('etape trouver apart', etape);
+            updateValue = { 'id_etape_qualite': etape?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur };
           } else {
             checker?.setValue(false, { emitEvent: false });
+            this.showError("Ce choix a deja ete fait pour cette erreur");
             throw new Error("Doublon d'opération contrôlée non accepté");
           }
 
         }
+        
         this.detailService.updateUnitaire(id, updateValue, name).then(res => {
           console.log("Update result:", res, etape);
 
@@ -730,8 +706,10 @@ export class TypeErreur {
 
           this.showSuccess("Option ajoutée avec succès");
         }).catch(err => {
-          // checker?.setValue(form[champ.col.name], { emitEvent: false });
-          this.showError("Erreur lors de l'ajout d'option\n" + err.message);
+          console.log('form pendant erreur', form, checker);
+          
+          checker?.setValue(false, { emitEvent: false });
+          this.showError("Erreur lors de l'ajout d'option , verifier si l'option a deja été cocher");
         });
 
         console.log("Update result insert:", this.formArray.at(champ.index).value);
@@ -766,7 +744,7 @@ export class TypeErreur {
           console.log("Valeur après suppression:", this.formArray.at(champ.index).value);
           this.showSuccess("Option supprimée avec succès");
         }).catch(err => {
-          this.showError("Erreur lors de la suppression d'option");
+          this.showError("Erreur lors de la suppression d'option\n"+ err.message);
         })
       }
 

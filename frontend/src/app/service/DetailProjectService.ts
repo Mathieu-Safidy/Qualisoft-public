@@ -103,6 +103,7 @@ export class DetailProjectService {
     }
     const { lignes, plans, fonctions, operations, typetraitements, erreurTypes, unites, verifs, clients } = dataFilter;
     const allUsers = this.getAllUser();
+    const pointages = this.getTypePointage();
 
     return forkJoin({
       ligne: lignes,
@@ -114,8 +115,13 @@ export class DetailProjectService {
       unites: unites,
       verif: verifs,
       client: clients,
-      users: allUsers
+      users: allUsers,
+      pointages: pointages
     });
+  }
+
+  async getTypePointage() {
+    return await this.http.get(`/type-pointages`);
   }
 
   async resolveFilterSimple(ligne: any, plan: any, fonction: any) {

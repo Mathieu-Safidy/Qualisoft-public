@@ -130,7 +130,6 @@
             <select
               class="form-control"
               id="fonction"
-              name="type-traitement"
               formControlName="type_traite"
               name="detail_projet.projet:id_type_traitement"
               appDebounced
@@ -249,7 +248,28 @@
             </div>
           </div>
         </div>
+        
+        <div class="row mb-2">
+        <div class="col-3">
+          <label>Type de pointage</label>
+        </div>
+        <div class="col-9">
+          <select 
+              name="detail_projet.projet:pointage_matricule"
+              appDebounced
+              (debouncedValue)="updateValue($event)"
+              [identity]="projectID()"
+              [isAutoComplete]="{value: false}"
+              formControlName="pointage" class="form-control">
+            @for (item of typePointages(); track $index) {
+              <option [value]="item.id_type_pointage">{{ item.libelle }}</option>
+            }
+          </select>
+        </div>
       </div>
+
+
+    </div>
     </div>
   </form>
 </div>

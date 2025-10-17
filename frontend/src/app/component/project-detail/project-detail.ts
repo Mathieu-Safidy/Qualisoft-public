@@ -22,6 +22,7 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { Debounced } from '../../directive/debounced';
 import { Identification } from '../../directive/identification';
 import { DetailProjectService } from '../../service/DetailProjectService';
+import { TypePointage } from '../../class/TypePointage';
 
 export interface Contact {
   matricule: string;
@@ -57,6 +58,8 @@ export class ProjectDetail {
   filteredOptionsLigne !: Observable<Ligne[]>;
 
   readonly form = input.required<FormGroup>();
+
+  typePointages = input<TypePointage[]>([]);
 
   private detailService = inject(DetailProjectService);
 

@@ -38,6 +38,7 @@ import { BcqParameter } from "../bcq-parameter/bcq-parameter";
 import { ExterneParameter } from "../externe-parameter/externe-parameter";
 import { A } from '@angular/cdk/keycodes';
 import { Confirm } from '../confirm/confirm';
+import { TypePointage } from '../../class/TypePointage';
 
 @Injectable({ providedIn: 'root' })
 export class StepperStateService {
@@ -98,6 +99,7 @@ export class Stepper {
   unites!: Unite[];
   selectedLigne = '';
   filteredOperations!: Observable<Erreur[]>[];
+  typePointages!: TypePointage[];
   colonne: Observable<string[]>[] = [];
   tableauOperations: Array<Erreur[]> = [];
   verification: any;
@@ -254,10 +256,14 @@ export class Stepper {
           let operationAControllerArray = fg.get('operation_a_controller') as FormArray;
           operationAControllerArray.clear();
 
-          resultPatch.forEach(patch => {
+          resultPatch.forEach((patch, idx) => {
             // typeErreurPasser.push(patch.);
-            if (patch.libelle === fg.get('typeErreur')?.value) {
-              this.updateOperationAController(patch.operationAController, fg);
+            console.log('patch ', patch, fg.value);
+            if (!this.verifierIdentique(patch, fg)) {
+              if (patch.libelle === fg.get('typeErreur')?.value) {
+                this.updateOperationAController(patch.operationAController, fg);
+                resultPatch.splice(idx, 1); // Retirer l'élément traité
+              }
             }
           })
         })
@@ -270,6 +276,35 @@ export class Stepper {
       this.generated = false; // Réinitialiser si on n'est pas à la dernière étape
     }
   }
+
+  verifierIdentique(patch: any, fg: FormGroup): boolean {
+    const opArray1 = patch.operationAController;
+    const opArray2 = fg.get('operation_a_controller')?.value;
+
+    // Vérifie la longueur d'abord
+    if (!opArray1 || !opArray2 || opArray1.length !== opArray2.length) {
+      return false; // différents
+    }
+
+    // Vérifie chaque élément
+    for (let i = 0; i < opArray1.length; i++) {
+      const op1 = opArray1[i];
+      const op2 = opArray2[i];
+
+      if (
+        op1.operation !== op2.operation ||
+        op1.operationAcontroller !== op2.operationAcontroller ||
+        op1.name !== op2.name ||
+        op1.valid !== op2.valid
+      ) {
+        return false; // au moins une différence trouvée
+      }
+    }
+
+    // Tout est identique
+    return true;
+  }
+
 
 
   onLigneChange(event: any) {
@@ -344,6 +379,7 @@ export class Stepper {
     this.erreurs = this.data.erreurs;
     this.operations = this.data.operation;
     this.unites = [];
+    this.typePointages = this.data.pointages;
     this.verification = this.data.verif;
     console.log('verifier', this.verification);
   }
@@ -416,6 +452,7 @@ export class Stepper {
       interlocuteur_nom: [projet_exist.nom_interlocuteur],
       contact_interlocuteur: [projet_exist.contact_interlocuteur],
       cp_responsable: [this.stepperState.cpResponsable || projet_exist.id_cp, Validators.required], // <-- injecte la valeur sauvegardée
+      pointage: [projet_exist.pointage_matricule || 1],
     });
 
     let verifInterlocuteur = this.verification.interlocuteurs;
@@ -612,6 +649,8 @@ export class Stepper {
       this.data = res['data'];
       this.initData(false);
 
+      console.log('donne initial', this.data);
+
       // let id = this.route.snapshot.paramMap.get('id') || '';
 
       this.defaultLine = this.ligne[0]?.id_ligne || '';
@@ -624,7 +663,6 @@ export class Stepper {
       this.nom_client = this.plan[0].libelle || '';
       this.nom_fonction = this.fonction[0].libelle || '';
       this.nom_line = this.ligne[0].libelle || '';
-
 
       this.bcqForm = this.fb.group({
         consigne: this.fb.group({
@@ -647,7 +685,7 @@ export class Stepper {
       } else {
         let donne = {
           id: -1,
-          value: { id_ligne: this.defaultLine, id_plan: idValue, id_fonction: this.defaultFonction, id_client: idValue },
+          value: { id_ligne: this.defaultLine, id_plan: idValue, id_fonction: this.defaultFonction, id_client: idValue, pointage_matricule: 1 },
           name: 'detail_projet.projet:_'
         };
 
@@ -1080,7 +1118,7 @@ export class Stepper {
         if (this.verification.erreur) this.updateErreur = true;
         let erreurs = this.groupErreur(this.verification.erreur);
         console.log('erreur grouper', erreurs);
-        
+
         for (const erreur of erreurs) {
           this.ajouterLigne(colonneFormu, erreur, update);
           this.cdr.detectChanges();
@@ -1136,157 +1174,224 @@ export class Stepper {
     }
 
     // console.log('map value erreur', map);
-    
+
 
     return Array.from(map.values());
   }
 
-    //   function grouperErreurs(erreurs: Erreur[]): ErreurGroupee[] {
-    //   const map = new Map<string, ErreurGroupee>();
+  //   function grouperErreurs(erreurs: Erreur[]): ErreurGroupee[] {
+  //   const map = new Map<string, ErreurGroupee>();
 
-    //   for (const err of erreurs) {
-    //     const key = err.libelle_erreur;
+  //   for (const err of erreurs) {
+  //     const key = err.libelle_erreur;
 
-    //     if (!map.has(key)) {
-    //       // On initialise le groupe avec les infos de base
-    //       map.set(key, {
-    //         coef: err.coef,
-    //         est_majeur: err.est_majeur,
-    //         id_etape_qualite: err.id_etape_qualite,
-    //         id_projet: err.id_projet,
-    //         id_type_erreur: err.id_type_erreur,
-    //         libelle_erreur: err.libelle_erreur,
-    //         raccourci: err.raccourci,
-    //         operations: []
-    //       });
-    //     }
+  //     if (!map.has(key)) {
+  //       // On initialise le groupe avec les infos de base
+  //       map.set(key, {
+  //         coef: err.coef,
+  //         est_majeur: err.est_majeur,
+  //         id_etape_qualite: err.id_etape_qualite,
+  //         id_projet: err.id_projet,
+  //         id_type_erreur: err.id_type_erreur,
+  //         libelle_erreur: err.libelle_erreur,
+  //         raccourci: err.raccourci,
+  //         operations: []
+  //       });
+  //     }
 
-    //     // Ajout de l’opération dans le groupe correspondant
-    //     map.get(key)!.operations.push({
-    //       operation_de_control: err.operation_de_control,
-    //       operation_a_controller: err.operation_a_controller,
-    //       valid: err.valid
-    //     });
-    //   }
+  //     // Ajout de l’opération dans le groupe correspondant
+  //     map.get(key)!.operations.push({
+  //       operation_de_control: err.operation_de_control,
+  //       operation_a_controller: err.operation_a_controller,
+  //       valid: err.valid
+  //     });
+  //   }
 
-    //   return Array.from(map.values());
-    // }
+  //   return Array.from(map.values());
+  // }
 
-    filtrerColonnes() {
-      // Regroupe par libelle et operation, puis rassemble les operationAController dans un tableau
-      const erreurs = this.verification?.erreur || [];
-      const map = new Map<string, { operation: any, libelle: string, operationAController: any[] }>();
+  filtrerColonnes() {
+    // Regroupe par libelle et operation, puis rassemble les operationAController dans un tableau
+    const erreurs = this.verification?.erreur || [];
+    const map = new Map<string, { operation: any, libelle: string, operationAController: any[] }>();
 
-      for (const err of erreurs) {
-        const key = `${err.libelle_erreur}`;
+    for (const err of erreurs) {
+      // const key = `${err.libelle_erreur}`;
+      const key = `${err.libelle_erreur}|${err.coef ?? 'null'}|${err.est_majeur}|${err.raccourci ?? 'null'}`;
 
-        if (!map.has(key)) {
-          map.set(key, {
-            operation: err.operation_de_control,
-            libelle: err.libelle_erreur,
-            operationAController: [],
-          });
-        }
-        const entry = map.get(key)!;
-        if (err.valid) {
-          entry.operationAController.push(err.operation_a_controller);
-        }
-      }
-
-      console.log('mapping', map);
-
-      return Array.from(map.values());
-    }
-
-
-    patchControlErreurAController() {
-      let filtrer = this.filtrerColonnes();
-      let list = this.listController;
-      let result: { operationAController: { operationAcontroller: string, name: string, valid: boolean, operation: string }[], libelle: string }[] = [];
-      let operationControlled: { operationAcontroller: string, name: string, valid: boolean, operation: string }[] = [];
-      console.log('matching', filtrer, list);
-      for (let item of filtrer) {
-        operationControlled = [];
-        for (let [key, value] of Object.entries(list)) {
-          for (const opCtrl of value) {
-            if (operationControlled.some(op => op.operationAcontroller === opCtrl.operationAcontroller && op.operation === key)) {
-              continue;
-            }
-            console.log('filtrer a verifier ', item);
-
-            if (item.operationAController.includes(opCtrl.operationAcontroller) && item.operation === key) {
-              operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: true, operation: key });
-            } else {
-              operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: false, operation: key });
-            }
-          }
-        }
-        result.push({
-          operationAController: operationControlled,
-          libelle: item.libelle || '',
+      if (!map.has(key)) {
+        map.set(key, {
+          operation: err.operation_de_control,
+          libelle: err.libelle_erreur,
+          operationAController: [],
         });
       }
-      // for (let key in list) {
-      //   const match = filtrer.find(f => f.operation === key);
-      //   console.log('matching',match, filtrer, list);
-      //   // if (result.some(r => r.operation === key)) {
-      //   //   break;
-      //   // }
-
-      //   for (const [index, item] of list[key].entries()) {
-      //     console.log('item', item, 'index', index, 'filtrer', filtrer[index]);
-      //     if (filtrer[index].operationAController.includes(item.operationAcontroller)) {
-      //       operationControlled.push({ operationAcontroller: item.operationAcontroller, name: item.name, valid: true, operation: key });
-      //     } else {
-      //       operationControlled.push({ operationAcontroller: item.operationAcontroller, name: item.name, valid: false, operation: key });
-      //     }
-      //   }
-      //   // operation: key,
-      //   // console.log('comparaison',JSON.stringify(result), ' avec ', JSON.stringify(operationControlled));
-
-      //   // if (result.some(r => JSON.stringify(r.operationAController) === JSON.stringify(operationControlled))) {
-      //   //   continue;
-      //   // }
-
-      //   result.push({
-      //       operationAController: operationControlled,
-      //       libelle: filtrer.find(f => f.operation === key)?.libelle || '', 
-      //     });
-
-      //   //   const groupedOperationAController = list[key].map(item => item.operationAcontroller);
-      //   //   if (result.some(r => r.operation === key)) {
-      //   //     break;
-      //   //   }
-      //   //   console.log('item', item,'groupedOperationAController', groupedOperationAController, 'match', match);
-
-      //   //   result.push({
-      //   //     operation: key,
-      //   //     operationAController: match ? match.operationAController.map(op => ({ operationAcontroller: op, valid: !!match })) : groupedOperationAController.map(op => ({ operationAcontroller: op, valid: false })),
-      //   //     libelle: match ? match.libelle : '',
-      //   //     valid: !!match 
-      //   //   });
-      //   // }
-      // }
-
-      return result;
-    }
-
-    chargement() {
-      return this.checkKeysInFormGroup(this.typeErreur.at(0) as FormGroup, this.colone_form3);
-    }
-
-    checkKeysInFormGroup(formGroup: FormGroup, keys: string[]): boolean {
-      // Check if the formGroup is valid and has controls.
-      if (!formGroup || !formGroup.controls) {
-        return false;
+      const entry = map.get(key)!;
+      if (err.valid) {
+        entry.operationAController.push(err.operation_a_controller);
       }
+    }
 
-      // Use the every() method to ensure all keys meet the condition.
-      return keys.every(key => {
-        // The get() method returns null if the control does not exist.
-        return formGroup.get(key) !== null;
+    console.log('mapping', map);
+
+    return Array.from(map.values());
+  }
+
+
+  patchControlErreurAController() {
+    let filtrer = this.filtrerColonnes();
+    let list = this.listController;
+    let result: { operationAController: { operationAcontroller: string, name: string, valid: boolean, operation: string }[], libelle: string }[] = [];
+    let operationControlled: { operationAcontroller: string, name: string, valid: boolean, operation: string }[] = [];
+    console.log('matching', filtrer, list);
+    for (let item of filtrer) {
+      operationControlled = [];
+      for (let [key, value] of Object.entries(list)) {
+        for (const opCtrl of value) {
+          if (operationControlled.some(op => op.operationAcontroller === opCtrl.operationAcontroller && op.operation === key)) {
+            continue;
+          }
+          
+          if (item.operationAController.includes(opCtrl.operationAcontroller)) {
+
+              console.log('filtrer a verifier ', item, opCtrl.operationAcontroller, key);
+              operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: true, operation: key });
+
+          } else {
+            operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: false, operation: key });
+          }
+        }
+      }
+      result.push({
+        operationAController: operationControlled,
+        libelle: item.libelle || '',
       });
     }
+
+    // for (let item of filtrer) {
+    //   operationControlled = [];
+    //   let operationAcontrollerFiltrer = item.operationAController;
+    //   operationAcontrollerFiltrer.forEach(opCtrl => {
+    //     for (let [key, value] of Object.entries(list)) {
+    //       if (item.operation === key) {
+    //         for (let dispoControl of value) {
+    //           console.log('annalyse dispo contrl', dispoControl , opCtrl);
+
+    //           if (dispoControl.operationAcontroller === opCtrl) {
+    //             operationControlled.push({ operationAcontroller: dispoControl.operationAcontroller, name: dispoControl.name, valid: true, operation: key });
+    //           }
+    //           else {
+    //             operationControlled.push({ operationAcontroller: dispoControl.operationAcontroller, name: dispoControl.name, valid: false, operation: key });
+    //           }
+    //         }
+    //       }
+    //     }
+    //   })
+    //   console.log('resultat ajouter ', item.libelle,operationControlled);
+    //   result.push({
+    //     operationAController: operationControlled,
+    //     libelle: item.libelle || '',
+    //   });
+
+    // }
+
+    // for (const item of filtrer) {
+    //   const operationControlled: any[] = [];
+
+    //   for (const [key, value] of Object.entries(list)) {
+    //     for (const opCtrl of value as any[]) {
+    //       // éviter doublons
+    //       if (operationControlled.some(op => op.operationAcontroller === opCtrl.operationAcontroller && op.operation === key)) {
+    //         continue;
+    //       }
+
+    //       const isValid =
+    //         item.operation === key &&
+    //         item.operationAController.includes(opCtrl.operationAcontroller);
+
+    //       operationControlled.push({
+    //         operationAcontroller: opCtrl.operationAcontroller,
+    //         name: opCtrl.name,
+    //         valid: isValid,
+    //         operation: key
+    //       });
+    //     }
+    //   }
+    //   console.log('resultat ajouter ', item.libelle,operationControlled);
+
+    //   result.push({
+    //     libelle: item.libelle,
+    //     // operation: item.operation,
+    //     operationAController: operationControlled
+    //   });
+    // }
+
+
+
+
+
+    // for (let key in list) {
+    //   const match = filtrer.find(f => f.operation === key);
+    //   console.log('matching',match, filtrer, list);
+    //   // if (result.some(r => r.operation === key)) {
+    //   //   break;
+    //   // }
+
+    //   for (const [index, item] of list[key].entries()) {
+    //     console.log('item', item, 'index', index, 'filtrer', filtrer[index]);
+    //     if (filtrer[index].operationAController.includes(item.operationAcontroller)) {
+    //       operationControlled.push({ operationAcontroller: item.operationAcontroller, name: item.name, valid: true, operation: key });
+    //     } else {
+    //       operationControlled.push({ operationAcontroller: item.operationAcontroller, name: item.name, valid: false, operation: key });
+    //     }
+    //   }
+    //   // operation: key,
+    //   // console.log('comparaison',JSON.stringify(result), ' avec ', JSON.stringify(operationControlled));
+
+    //   // if (result.some(r => JSON.stringify(r.operationAController) === JSON.stringify(operationControlled))) {
+    //   //   continue;
+    //   // }
+
+    //   result.push({
+    //       operationAController: operationControlled,
+    //       libelle: filtrer.find(f => f.operation === key)?.libelle || '', 
+    //     });
+
+    //   //   const groupedOperationAController = list[key].map(item => item.operationAcontroller);
+    //   //   if (result.some(r => r.operation === key)) {
+    //   //     break;
+    //   //   }
+    //   //   console.log('item', item,'groupedOperationAController', groupedOperationAController, 'match', match);
+
+    //   //   result.push({
+    //   //     operation: key,
+    //   //     operationAController: match ? match.operationAController.map(op => ({ operationAcontroller: op, valid: !!match })) : groupedOperationAController.map(op => ({ operationAcontroller: op, valid: false })),
+    //   //     libelle: match ? match.libelle : '',
+    //   //     valid: !!match 
+    //   //   });
+    //   // }
+    // }  
+    console.log('resultat interne', result);
+
+    return result;
+  }
+
+  chargement() {
+    return this.checkKeysInFormGroup(this.typeErreur.at(0) as FormGroup, this.colone_form3);
+  }
+
+  checkKeysInFormGroup(formGroup: FormGroup, keys: string[]): boolean {
+    // Check if the formGroup is valid and has controls.
+    if (!formGroup || !formGroup.controls) {
+      return false;
+    }
+
+    // Use the every() method to ensure all keys meet the condition.
+    return keys.every(key => {
+      // The get() method returns null if the control does not exist.
+      return formGroup.get(key) !== null;
+    });
+  }
 
   // filtre() {
   //   let donne = this.form1.value;
@@ -1298,14 +1403,14 @@ export class Stepper {
   // }
 
   get typeErreur() {
-      return this.form3.get('formErreur') as FormArray;
-    }
+    return this.form3.get('formErreur') as FormArray;
+  }
 
-    remplirFormArray() {
-      this.colone_form3.forEach((item) => {
-        this.typeErreur.push(this.fb);
-      });
-    }
+  remplirFormArray() {
+    this.colone_form3.forEach((item) => {
+      this.typeErreur.push(this.fb);
+    });
+  }
 
   // genererGroup(colonne: string[] = [], value: any, update: number): FormGroup | null {
   //   let unique: boolean = false;
@@ -1380,91 +1485,91 @@ export class Stepper {
   // }
 
   async genererGroup(
-      colonne: string[] = [],
-      value: any,
-      update: number
-    ): Promise < FormGroup | null > {
-      console.log("genererGroup...", colonne, value, update);
+    colonne: string[] = [],
+    value: any,
+    update: number
+  ): Promise<FormGroup | null> {
+    console.log("genererGroup...", colonne, value, update);
 
-      // const col = await firstValueFrom(this.colonneObserver.asObservable());
-      const col = this.colonneReactif();
-      let fg: FormGroup | null = null;
-      let operations = value.operations;
-      if(value) {
-        console.log('value', value);
+    // const col = await firstValueFrom(this.colonneObserver.asObservable());
+    const col = this.colonneReactif();
+    let fg: FormGroup | null = null;
+    let operations = value.operations;
+    if (value) {
+      console.log('value', value);
 
-        const err = this.verifierTypeErreur(value.libelle_erreur);
-        console.log('erreur verifier', err, this.typeErreur.value);
+      const err = this.verifierTypeErreur(value.libelle_erreur);
+      console.log('erreur verifier', err, this.typeErreur.value);
 
-        if (!err) {
-          console.log("generer 1...");
+      if (!err) {
+        console.log("generer 1...");
 
-          fg = this.fb.group({
-            idErreur: [value.id_type_erreur || -1],
-            typeErreur: [value.libelle_erreur || '', Validators.required],
-            operation_a_controller: this.fb.array([]),
-            degre: [value.est_majeur ? 1 : 0, Validators.required],
-            coef: [value.coef || 0, Validators.required],
-            raccourci: [value.raccourci || '', Validators.required],
-          });
-
-          
-
-      //      col.forEach((c : any) => {
-      //   if (c.id === value.operation_de_control) {
-      //     const fgErr = fgExist as FormGroup;
-      //     let name = colonne.find(res => res.id == c.operation_de_control)?.name
-      //     console.log("generer 3...", fgErr, name, col, c.valid);
-      //     if (name && fgErr.get(name)) {
-      //       fgErr.get(name)?.setValue(c.valid);
-      //       console.log('formulaire apres set ', name, fgErr.get(name) , fgErr);
-            
-      //     } else {
-      //       this.addEtapeGroup(name || '', fgErr, c.valid);
-      //     }
-      //   }
-      // });
-          operations.forEach((c:any) => {
-            // const valueCol = c.id === value.operation_de_control ? value.valid : false;
-            let name = col.find(res => res.id == c.operation_de_control)?.name
-            console.log('value col', c, c.valid);
-            if (name) {
-              this.addEtapeGroup(name, fg!, c.valid);
-            }
-            console.log('form apres set', fg);
-
-          });
-
-        } else {
-          // si déjà existant : on met à jour
-          const fgErr = err as FormGroup;
-          operations.forEach((c:any) => {
-          // col.forEach(c => {
-           let name = col.find(res => res.id == c.operation_de_control)?.name
-            // if (c.id === value.operation_de_control) {
-              console.log("generer 3...", fgErr, name, value.valid);
-              if (name && fgErr.get(name)) {
-                fgErr.get(name)?.setValue(value.valid);
-              } else {
-                this.addEtapeGroup(name || '', fgErr, value.valid);
-              }
-              fg = fgErr; // on réutilise le groupe existant
-            // }
-          });
-        }
-
-      } else if(!value && update === 0) {
         fg = this.fb.group({
-          idErreur: [-1],
-          typeErreur: ['', Validators.required],
-          degre: ['', Validators.required],
-          coef: ['', Validators.required],
-          raccourci: ['', Validators.required],
+          idErreur: [value.id_type_erreur || -1],
+          typeErreur: [value.libelle_erreur || '', Validators.required],
+          operation_a_controller: this.fb.array([]),
+          degre: [value.est_majeur ? 1 : 0, Validators.required],
+          coef: [value.coef || 0, Validators.required],
+          raccourci: [value.raccourci || '', Validators.required],
         });
 
-        col.forEach(c => {
-          this.addEtapeGroup(c.name, fg!, false);
+
+
+        //      col.forEach((c : any) => {
+        //   if (c.id === value.operation_de_control) {
+        //     const fgErr = fgExist as FormGroup;
+        //     let name = colonne.find(res => res.id == c.operation_de_control)?.name
+        //     console.log("generer 3...", fgErr, name, col, c.valid);
+        //     if (name && fgErr.get(name)) {
+        //       fgErr.get(name)?.setValue(c.valid);
+        //       console.log('formulaire apres set ', name, fgErr.get(name) , fgErr);
+
+        //     } else {
+        //       this.addEtapeGroup(name || '', fgErr, c.valid);
+        //     }
+        //   }
+        // });
+        operations.forEach((c: any) => {
+          // const valueCol = c.id === value.operation_de_control ? value.valid : false;
+          let name = col.find(res => res.id == c.operation_de_control)?.name
+          console.log('value col', c, c.valid);
+          if (name) {
+            this.addEtapeGroup(name, fg!, c.valid);
+          }
+          console.log('form apres set', fg);
+
         });
+
+      } else {
+        // si déjà existant : on met à jour
+        const fgErr = err as FormGroup;
+        operations.forEach((c: any) => {
+          // col.forEach(c => {
+          let name = col.find(res => res.id == c.operation_de_control)?.name
+          // if (c.id === value.operation_de_control) {
+          console.log("generer 3...", fgErr, name, value.valid);
+          if (name && fgErr.get(name)) {
+            fgErr.get(name)?.setValue(value.valid);
+          } else {
+            this.addEtapeGroup(name || '', fgErr, value.valid);
+          }
+          fg = fgErr; // on réutilise le groupe existant
+          // }
+        });
+      }
+
+    } else if (!value && update === 0) {
+      fg = this.fb.group({
+        idErreur: [-1],
+        typeErreur: ['', Validators.required],
+        degre: ['', Validators.required],
+        coef: ['', Validators.required],
+        raccourci: ['', Validators.required],
+      });
+
+      col.forEach(c => {
+        this.addEtapeGroup(c.name, fg!, false);
+      });
     }
 
     if (!fg) return null;
@@ -1659,7 +1764,7 @@ export class Stepper {
     //       if (name && fgErr.get(name)) {
     //         fgErr.get(name)?.setValue(c.valid);
     //         console.log('formulaire apres set ', name, fgErr.get(name) , fgErr);
-            
+
     //       } else {
     //         // this.addEtapeGroup(name || '', fgErr, c.valid);
     //       }
