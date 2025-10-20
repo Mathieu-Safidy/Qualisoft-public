@@ -787,6 +787,8 @@ export class TypeErreur {
           if (value.controled === 'indefinie' || !value.controled) {
             let aController = etape?.get('operationAControler')?.value;
             let controlAController = this.formArray.at(champ.index).get('operation_a_controller') as FormArray;
+            console.log('controls ', controlAController, this.formArray.value, champ);
+            
             let checkController = controlAController.controls.find(ctrl => ctrl.get('operationAcontroller')?.value === aController);
 
             if (checkController) {
@@ -801,10 +803,10 @@ export class TypeErreur {
 
           this.showSuccess("Option ajoutée avec succès");
         }).catch(err => {
-          console.log('form pendant erreur', form, checker);
+          console.log('form pendant erreur', form, checker, err);
 
           checker?.setValue(false, { emitEvent: false });
-          this.showError("Erreur lors de l'ajout d'option , verifier si l'option a deja été cocher");
+          this.showError("Erreur lors de l'ajout d'option , verifier si l'option a deja été cocher" + err.message);
         });
 
         console.log("Update result insert:", this.formArray.at(champ.index).value);

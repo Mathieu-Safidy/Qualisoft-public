@@ -1237,7 +1237,7 @@ export class Stepper {
       }
     }
 
-    console.log('mapping', map);
+    // console.log('mapping', map);
 
     return Array.from(map.values());
   }
@@ -1604,6 +1604,10 @@ export class Stepper {
   updateOperationAController(value: { operationAcontroller: string, name: string, valid: boolean, operation: string }[], typeErreur: FormGroup) {
     // let typeErreur = this.typeErreur.get(index.toString()) as FormGroup;
     let operationAControllerArray = typeErreur.get('operation_a_controller') as FormArray;
+    if (!operationAControllerArray) {
+      operationAControllerArray = this.fb.array([]);
+      typeErreur.addControl('operation_a_controller', operationAControllerArray);
+    }
     // operationAControllerArray.clear();
 
     value.forEach(v => {
@@ -1826,12 +1830,21 @@ export class Stepper {
   addLigne() {
     let before = this.updateData;
     this.updateErreur = false;
-
+    
+    // operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: true, operation: key });
     this.ajouterLigne(this.colone_form3, '', 0).then(res => {
-      let response = this.filterGroupe(res)
+      // let response = this.filterGroupe(res)
+      let list = this.listController;
+      let ensemble: { operationAcontroller: string, name: string, valid: boolean, operation: string }[] = [];
+      Object.entries(list).forEach(([key, value]) => {
+        // { operationAcontroller: string, name: string, valid: boolean, operation: string }[]
+        ensemble.push(...value);
+      })
+
+      this.updateOperationAController(ensemble, res as FormGroup);
+
       // if (response) {
       //   // this.filteredOperations = [response];
-
       // }
     });
     this.updateErreur = before;
