@@ -234,7 +234,7 @@ export class Stepper {
     let selectedIndex = event.selectedIndex;
     const isLastStep = selectedIndex === this.stepper.steps.length - 1;
     console.log('step ', selectedIndex);
-
+    let sauter = false;
     // Si on arrive à l'avant-dernière étape (juste avant la dernière), on peut lancer la génération.
     // L'index de l'étape "Type d'erreur" est (total steps - 1)
     if (isLastStep) {
@@ -249,20 +249,25 @@ export class Stepper {
         let resultPatch = this.patchControlErreurAController();
         console.log('resultat attendue', resultPatch);
         (this.typeErreur.controls as FormGroup[]).forEach((fg: FormGroup, index) => {
-          // const operation = fg.get('typeErreur')?.value;
-          // const patch = resultPatch.find(res => res.operation === operation);
-          // if (patch) {
-          console.log('passer', index);
-          let operationAControllerArray = fg.get('operation_a_controller') as FormArray;
-          operationAControllerArray.clear();
-
+          sauter = false;
           resultPatch.forEach((patch, idx) => {
-            // typeErreurPasser.push(patch.);
-            console.log('patch ', patch, fg.value);
-            if (!this.verifierIdentique(patch, fg)) {
-              if (patch.libelle === fg.get('typeErreur')?.value) {
-                this.updateOperationAController(patch.operationAController, fg);
-                resultPatch.splice(idx, 1); // Retirer l'élément traité
+            if (!sauter) {
+              // const operation = fg.get('typeErreur')?.value;
+              // const patch = resultPatch.find(res => res.operation === operation);
+              // if (patch) {
+              console.log('passer', idx, index);
+              let operationAControllerArray = fg.get('operation_a_controller') as FormArray;
+              // operationAControllerArray.clear();
+
+              // typeErreurPasser.push(patch.);
+              console.log('patch ', patch, fg.value);
+              if (!this.verifierIdentique(patch, fg)) {
+                if (patch.libelle === fg.get('typeErreur')?.value) {
+                  this.updateOperationAController(patch.operationAController, fg);
+                  resultPatch.splice(idx, 1); // Retirer l'élément traité
+                  sauter = true;
+                  return;
+                }
               }
             }
           })
@@ -1251,17 +1256,20 @@ export class Stepper {
           if (operationControlled.some(op => op.operationAcontroller === opCtrl.operationAcontroller && op.operation === key)) {
             continue;
           }
-          
+
           if (item.operationAController.includes(opCtrl.operationAcontroller)) {
 
-              console.log('filtrer a verifier ', item, opCtrl.operationAcontroller, key);
-              operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: true, operation: key });
+            console.log('filtrer a verifier ', item, opCtrl.operationAcontroller, key);
+            operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: true, operation: key });
 
           } else {
             operationControlled.push({ operationAcontroller: opCtrl.operationAcontroller, name: opCtrl.name, valid: false, operation: key });
           }
         }
       }
+
+      console.log('operationControlled', operationControlled, item.libelle);
+
       result.push({
         operationAController: operationControlled,
         libelle: item.libelle || '',
@@ -1371,7 +1379,7 @@ export class Stepper {
     //   //   });
     //   // }
     // }  
-    console.log('resultat interne', result);
+    console.log('resultat interne', result, result.length);
 
     return result;
   }

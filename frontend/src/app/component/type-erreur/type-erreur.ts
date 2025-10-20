@@ -218,35 +218,126 @@ export class TypeErreur {
     return colonne;
   }
 
-  takeEtape(id_operation: string, id_controlle?: string, egale: boolean = true) {
-    const etape_qualite_control = this.formEtape()?.get('formArray');
-    let etape: FormGroup | undefined;
-    console.log('etape', id_operation, 'operation a controller');
+  takeEtape(
+    id_operation: string,
+    id_controlle: string,
+    egale: boolean = true,
+    deleted: boolean = false,
+    option: { formerreur?: FormGroup[] } = {}
+  ): FormGroup | undefined {
+    const etapeArray = this.formEtape()?.get('formArray');
 
-    if (etape_qualite_control instanceof FormArray) {
-      const etape_qualite = etape_qualite_control as FormArray;
-      if (id_controlle === 'indefinie' || !id_controlle) {
-        etape = etape_qualite.controls.find((fg) => (fg as FormGroup).get('operation')?.value === id_operation) as FormGroup | undefined;
-      } else {
-        etape = etape_qualite.controls.find((fg) => {
-          const fgGroup = fg as FormGroup;
-          const operation_a_controller = fgGroup.get('operationAControler')?.value;
-          const operation = fgGroup.get('operation')?.value;
-          console.log('trouver id etape', fgGroup);
-          if (egale && operation_a_controller && operation && operation_a_controller === id_controlle && operation === id_operation) {
-            return fgGroup;
-          } else if (!egale && operation === id_operation && operation_a_controller !== id_controlle) {
-            return fgGroup;
-          }
-          else {
-            return undefined;
-          }
-        }) as FormGroup | undefined;
-      }
-      return etape ?? undefined;
+    if (!(etapeArray instanceof FormArray)) return undefined;
+
+    console.log('Étape', id_operation, '→ opération à contrôler');
+
+    const etapes = etapeArray as FormArray;
+
+    // 🔹 Cas 1 : contrôle indéfini ou supprimé
+    if (id_controlle === 'indefinie' || !id_controlle || deleted) {
+      return etapes.controls.find(
+        fg => (fg as FormGroup).get('operation')?.value === id_operation
+      ) as FormGroup | undefined;
     }
-    return undefined;
+
+    // 🔹 Cas 2 : recherche spécifique
+    const etape = etapes.controls.find(fg => {
+      const fgGroup = fg as FormGroup;
+      const operation = fgGroup.get('operation')?.value;
+      const operation_a_controller = fgGroup.get('operationAControler')?.value;
+
+      console.log('→ Vérification id étape', fgGroup, id_controlle);
+
+      // ✅ Cas exact : operationAControler == id_controlle
+      if (egale && operation === id_operation && operation_a_controller === id_controlle) {
+        return true;
+      }
+
+      // ✅ Cas différent : operationAControler != id_controlle
+      if (!egale && operation === id_operation && operation_a_controller !== id_controlle) {
+        // Si une liste d’erreurs est fournie
+        if (option.formerreur?.length) {
+          const dejaChoisi = new Map<string, string>();
+
+          for (const ctrl of option.formerreur) {
+            const ops = ctrl.get('operation_a_controller')?.value;
+            if (Array.isArray(ops)) {
+              for (const op of ops) {
+                if (op.valid && !dejaChoisi.has(op.name)) {
+                  dejaChoisi.set(op.name, op.operationAcontroller);
+                }
+              }
+            }
+          }
+
+          console.log('Déjà choisis :', dejaChoisi, operation_a_controller);
+
+          // Vérifie si l’opération actuelle fait partie des valeurs déjà choisies
+          return !Array.from(dejaChoisi.values()).includes(operation_a_controller);
+        }
+
+        return true;
+      }
+
+      return false;
+    }) as FormGroup | undefined;
+
+    return etape ?? undefined;
   }
+
+
+  // takeEtape(id_operation: string, id_controlle: string, egale: boolean = true, deleted: boolean = false, option: { formerreur?: FormGroup[] } = {}): FormGroup | undefined {
+  //   const etape_qualite_control = this.formEtape()?.get('formArray');
+  //   let etape: FormGroup | undefined;
+  //   console.log('etape', id_operation, 'operation a controller');
+
+  //   if (etape_qualite_control instanceof FormArray) {
+  //     const etape_qualite = etape_qualite_control as FormArray;
+  //     if (id_controlle === 'indefinie' || !id_controlle || deleted) {
+  //       etape = etape_qualite.controls.find((fg) => (fg as FormGroup).get('operation')?.value === id_operation) as FormGroup | undefined;
+  //     } else {
+  //       etape = etape_qualite.controls.find((fg) => {
+  //         const fgGroup = fg as FormGroup;
+  //         const operation_a_controller = fgGroup.get('operationAControler')?.value;
+  //         const operation = fgGroup.get('operation')?.value;
+  //         console.log('trouver id etape', fgGroup, id_controlle);
+  //         if (egale && operation_a_controller && operation && operation_a_controller === id_controlle && operation === id_operation) {
+  //           return fgGroup;
+  //         } else if (!egale && operation === id_operation && operation_a_controller !== id_controlle) {
+  //           if (option.formerreur) {
+  //             const operationAcontrollerArray = option.formerreur as FormGroup[];
+
+  //             console.log('trouver valid ', operationAcontrollerArray);
+  //             // const trouverNonValable =  operationAcontrollerArray.find((ctrl) => ctrl.get('valid')?.value === false && ctrl.get('operation')?.value === id_operation && ctrl.get('operationAControler')?.value !== id_controlle) ? fgGroup : undefined;
+  //             let dejachoisi:Map<string, string> = new Map<string, string>();
+  //             operationAcontrollerArray.forEach((ctrl) => {
+  //               let operationAcontrollerValue = ctrl.get('operation_a_controller')?.value;
+  //               operationAcontrollerValue.forEach((op: any) => {
+  //                 if (op.valid && !dejachoisi.has(op.name)) {
+  //                   dejachoisi.set(op.name, op.operationAcontroller);
+  //                 }
+  //               });
+  //             })
+  //             console.log('deja choisi',dejachoisi);
+
+  //             if (operation_a_controller && Array.from(dejachoisi.values()).includes(operation_a_controller)) {
+  //               return fgGroup;
+  //             } else {
+  //               return undefined;
+  //             }
+
+  //           }
+  //           return fgGroup;
+  //         }
+  //         else {
+  //           return undefined;
+  //         }
+  //       }) as FormGroup | undefined;
+  //     }
+  //     return etape ?? undefined;
+  //   }
+  //   return undefined;
+  // }
 
 
   get formGroup() {
@@ -541,7 +632,7 @@ export class TypeErreur {
       return copy;
     });
 
-    console.log('✅ Ligne mise à jour à l’index', index, this.operation_a_controller());
+    console.log('✅ Ligne mise à jour à l’index', index, this.formGroup.at(index)?.value, this.operation_a_controller());
   }
 
 
@@ -574,6 +665,8 @@ export class TypeErreur {
   verifierControledDispo(formArray: FormArray, index: number, id_operation: string) {
     const formGroup = formArray.at(index) as FormGroup;
     const operationAcontroller = formGroup.get('operation_a_controller') as FormArray;
+    console.log('verification dispo', operationAcontroller);
+
     if (!operationAcontroller || operationAcontroller.length === 0) {
       return [];
     }
@@ -607,11 +700,11 @@ export class TypeErreur {
   ): string | null {
     for (let idx = 0; idx < formArray.length; idx++) {
       const fg = formArray.at(idx) as FormGroup;
-      
+
       if (!fg || idx === index) continue;
       if (fg.get('typeErreur')?.value !== typeErreur) continue;
-      
-      console.log('operation', id_operation, idx, index , fg.value);
+
+      console.log('operation', id_operation, idx, index, fg.value);
       const opArray = fg.get('operation_a_controller') as FormArray;
       if (!opArray) continue;
 
@@ -637,24 +730,12 @@ export class TypeErreur {
     try {
       let listoperation = this.operationAcontrole();
       let etape: any = null;
-
-      // const col = await firstValueFrom(this.colonneObserver.asObservable());
-      etape = this.takeEtape(value.id_operation, value.controled);
-      // if (!value.controled) {
-      //   id_etape = this.takeIdEtape(value.id_operation, undefined);
-      // } else {
-      // }
-
-
       let { validite, id_operation, id_type_erreur, champ } = value;
-      let updateValue = { 'id_etape_qualite': etape?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur };
-      let result: any = null;
-      let colname = this.operations().find(op => op.id_operation.toString() === id_operation.toString())?.libelle || '';
-      console.log('operations', this.operations(), id_operation);
-
-      console.log("Debounced event:", event, 'update value ', updateValue, 'name', champ, 'colname', colname, ' value', value);
-      let principalValidation: any = null;
       let checker: any = null;
+      let colname = this.operations().find(op => op.id_operation.toString() === id_operation.toString())?.libelle || '';
+      let principalValidation: any = null;
+      console.log('formgroup at ', this.formGroup.at(champ.index)?.value);
+
       if (value.controled === 'indefinie' || !value.controled) {
         checker = this.formArray.at(champ.index).get(colname);
       } else {
@@ -663,9 +744,23 @@ export class TypeErreur {
         checker = form.controls.find(ctrl => ctrl.get('operationAcontroller')?.value === value.controled)?.get('valid');
         principalValidation = this.formArray.at(champ.index).get(colname);
       }
+      // const col = await firstValueFrom(this.colonneObserver.asObservable());
+      // if (!value.controled) {
+      //   id_etape = this.takeIdEtape(value.id_operation, undefined);
+      // } else {
+      // }
 
-      console.log("Valeur avant vérification: validite", this.formArray.at(champ.index)?.get(colname)?.value, 'chekcer', checker?.value);
+      let result: any = null;
+
       if (checker?.value) {
+        etape = this.takeEtape(value.id_operation, value.controled);
+        let updateValue = { 'id_etape_qualite': etape?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur };
+        console.log('operations', this.operations(), id_operation);
+
+        console.log("Debounced event:", event, 'update value ', updateValue, 'name', champ, 'colname', colname, ' value', value);
+
+
+        console.log("Valeur avant vérification: validite", this.formArray.at(champ.index)?.get(colname)?.value, 'chekcer', checker?.value);
         id = -1;
 
         let form = this.formArray.at(champ.index).value;
@@ -675,17 +770,17 @@ export class TypeErreur {
         if (!!doublon) {
           if (value.controled === 'indefinie' || !value.controled) {
 
-            etape = this.takeEtape(value.id_operation, doublon, false);
+            etape = this.takeEtape(value.id_operation, doublon, false, false, { formerreur: this.formArray.controls.filter(ctrl => ctrl.get('typeErreur')?.value === value.libelle) as FormGroup[] });
             console.log('etape trouver apart', etape);
             updateValue = { 'id_etape_qualite': etape?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur };
           } else {
             checker?.setValue(false, { emitEvent: false });
-            this.showError("Ce choix a deja ete fait pour cette erreur");
-            throw new Error("Doublon d'opération contrôlée non accepté");
+            // this.showError("Ce choix a deja ete fait pour cette erreur");
+            throw new Error("Doublon d'opération contrôlée non accepté, Ce choix a deja ete fait pour cette erreur");
           }
 
         }
-        
+
         this.detailService.updateUnitaire(id, updateValue, name).then(res => {
           console.log("Update result:", res, etape);
 
@@ -696,56 +791,117 @@ export class TypeErreur {
 
             if (checkController) {
               checkController.get('valid')?.setValue(true, { emitEvent: false });
+              this.updateUnitControledValue(listoperation, value.id_operation, value.champ.index);
             }
           }
 
           checker?.setValue(true, { emitEvent: false });
           console.log('Operation total', listoperation, value);
 
-          this.updateUnitControledValue(listoperation, value.id_operation, value.champ.index);
 
           this.showSuccess("Option ajoutée avec succès");
         }).catch(err => {
           console.log('form pendant erreur', form, checker);
-          
+
           checker?.setValue(false, { emitEvent: false });
           this.showError("Erreur lors de l'ajout d'option , verifier si l'option a deja été cocher");
         });
 
         console.log("Update result insert:", this.formArray.at(champ.index).value);
       } else {
-        // id = 0;
-        this.detailService.updateUnitaire(id, updateValue, name, true).then(res => {
-          result = res;
-          let valid = this.verifierControledDispo(this.formArray, champ.index, id_operation);
-          console.log('valeur des check ', valid, principalValidation);
-          if (value.controled === 'indefinie' || !value.controled) {
-            if (valid.length > 0) {
-              valid.map(v => {
-                let data = { 'id_etape_qualite': this.takeEtape(v.get('operation')?.value, v.get('operationAcontroller')?.value)?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur }
-                this.detailService.updateUnitaire(id, data, name, true).then(res => {
-                  this.showSuccess("Option supprimée avec succès");
-                }).catch(err => {
-                  this.showError("Erreur lors de la suppression d'option");
-                });
-              });
-            }
 
-            this.removeUnitControledValue(listoperation, value.id_operation, value.champ.index);
+        if (value.controled === 'indefinie' || !value.controled) {
+          let valid = this.verifierControledDispo(this.formArray, champ.index, id_operation);
+          if (valid.length > 0) {
+            valid.map(v => {
+              let data = { 'id_etape_qualite': this.takeEtape(v.get('operation')?.value, v.get('operationAcontroller')?.value)?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur }
+              this.detailService.updateUnitaire(id, data, name, true).then(res => {
+                v.get('valid')?.setValue(false, { emitEvent: false });
+                this.showSuccess("Option supprimée avec succès");
+              }).catch(err => {
+                this.showError("Erreur lors de la suppression d'option");
+              });
+            });
           } else {
-            if (valid.length === 0) {
+            etape = this.takeEtape(value.id_operation, value.controled, false, true);
+            let updateValue = { 'id_etape_qualite': etape?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur };
+            this.detailService.updateUnitaire(id, updateValue, name, true).then(res => {
+              this.showSuccess("Option supprimée avec succès aucune operation contrôlée restante");
               principalValidation?.setValue(false, { emitEvent: false });
-              this.removeUnitControledValue(listoperation, value.id_operation, value.champ.index);
-            }
+            }).catch(err => {
+              this.showError("Erreur lors de la suppression d'option\n" + err.message);
+            });
           }
 
-          console.log("Update result delete :", result);
-          checker?.setValue(false, { emitEvent: false });
-          console.log("Valeur après suppression:", this.formArray.at(champ.index).value);
-          this.showSuccess("Option supprimée avec succès");
-        }).catch(err => {
-          this.showError("Erreur lors de la suppression d'option\n"+ err.message);
-        })
+          this.removeUnitControledValue(listoperation, value.id_operation, value.champ.index);
+
+        } else {
+          etape = this.takeEtape(value.id_operation, value.controled);
+          let updateValue = { 'id_etape_qualite': etape?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur };
+          this.detailService.updateUnitaire(id, updateValue, name, true).then(res => {
+            console.log("Update result delete :", result);
+            checker?.setValue(false, { emitEvent: false });
+            console.log("Valeur après suppression:", this.formArray.at(champ.index).value);
+            this.showSuccess("Option supprimée avec succès");
+          }).catch(err => {
+            this.showError("Erreur lors de la suppression d'option\n" + err.message);
+          })
+        }
+
+        //   this.detailService.updateUnitaire(id, updateValue, name, true).then(res => {
+        //     result = res;
+        //     console.log('valeur des check ', valid, principalValidation);
+        //     // if (valid.length > 0) {
+        //     //   valid.map(v => {
+        //     //     let data = { 'id_etape_qualite': this.takeEtape(v.get('operation')?.value, v.get('operationAcontroller')?.value)?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur }
+        //     //     this.detailService.updateUnitaire(id, data, name, true).then(res => {
+        //     //       this.showSuccess("Option supprimée avec succès");
+        //     //     }).catch(err => {
+        //     //       this.showError("Erreur lors de la suppression d'option");
+        //     //     });
+        //     //   });
+        //     // }
+
+        //     this.removeUnitControledValue(listoperation, value.id_operation, value.champ.index);
+        //   } else {
+        //     if(valid.length === 0) {
+        //     principalValidation?.setValue(false, { emitEvent: false });
+        //     this.removeUnitControledValue(listoperation, value.id_operation, value.champ.index);
+        //   }
+        // }
+
+        // this.detailService.updateUnitaire(id, updateValue, name, true).then(res => {
+        //   result = res;
+        //   let valid = this.verifierControledDispo(this.formArray, champ.index, id_operation);
+        //   console.log('valeur des check ', valid, principalValidation);
+        //   if (value.controled === 'indefinie' || !value.controled) {
+        //     if (valid.length > 0) {
+        //       valid.map(v => {
+        //         let data = { 'id_etape_qualite': this.takeEtape(v.get('operation')?.value, v.get('operationAcontroller')?.value)?.get('id_etape_qualite')?.value, 'id_type_erreur': id_type_erreur }
+        //         this.detailService.updateUnitaire(id, data, name, true).then(res => {
+        //           this.showSuccess("Option supprimée avec succès");
+        //         }).catch(err => {
+        //           this.showError("Erreur lors de la suppression d'option");
+        //         });
+        //       });
+        //     }
+
+        //     this.removeUnitControledValue(listoperation, value.id_operation, value.champ.index);
+        //   } else {
+        //     if (valid.length === 0) {
+        //       principalValidation?.setValue(false, { emitEvent: false });
+        //       this.removeUnitControledValue(listoperation, value.id_operation, value.champ.index);
+        //     }
+        //   }
+
+        //   console.log("Update result delete :", result);
+        //   checker?.setValue(false, { emitEvent: false });
+        //   console.log("Valeur après suppression:", this.formArray.at(champ.index).value);
+        //   this.showSuccess("Option supprimée avec succès");
+
+        // }).catch(err => {
+        //   this.showError("Erreur lors de la suppression d'option\n"+ err.message);
+        // })
       }
 
     } catch (error: any) {
