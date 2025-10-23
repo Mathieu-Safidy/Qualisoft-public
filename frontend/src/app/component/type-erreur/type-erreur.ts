@@ -789,7 +789,7 @@ export class TypeErreur {
             let controlAController = this.formArray.at(champ.index).get('operation_a_controller') as FormArray;
             console.log('controls ', controlAController, this.formArray.value, champ);
             
-            let checkController = controlAController.controls.find(ctrl => ctrl.get('operationAcontroller')?.value === aController);
+            let checkController = controlAController?.controls.find(ctrl => ctrl.get('operationAcontroller')?.value === aController);
 
             if (checkController) {
               checkController.get('valid')?.setValue(true, { emitEvent: false });

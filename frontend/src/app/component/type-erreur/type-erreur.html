@@ -1,4 +1,3 @@
-
 <p-toast></p-toast>
 <div class="mt-4">
   <div class="table-responsive typer_table">
@@ -13,7 +12,7 @@
     <ng-template #popoverTyppeErreur>
       <div>
         <ul>
-          <li>Mineur (L'erreur ne modifie pas le sens de l'information) </li>
+          <li>Mineur (L'erreur ne modifie pas le sens de l'information)</li>
           <li>Majeur (L'erreur modifie le sens de l'information)</li>
         </ul>
       </div>
@@ -34,6 +33,9 @@
               </div>
             </th>
             <th>
+              <div>Operation a controle</div>
+            </th>
+            <th>
               <div
                 [ngbPopover]="popoverTyppeErreur"
                 [placement]="'bottom'"
@@ -42,11 +44,6 @@
                 popoverClass="my-custom-popover"
               >
                 Degre
-              </div>
-            </th>
-            <th>
-              <div>
-                Operation a controle
               </div>
             </th>
             <th>
@@ -71,19 +68,21 @@
                 Raccourci
               </div>
             </th>
-            <ng-container *ngFor="let col of colonneObserve() | async ; let j = index ">
+            <ng-container
+              *ngFor="let col of colonneObserve() | async ; let j = index "
+            >
               <th class="checker">
-                <div 
-                
-                >
-                <span class="titre-verticale" 
-                [ngbPopover]="col.name"
-                [placement]="'top'"
-                [autoClose]="'true'"
-                [triggers]="'mouseenter:mouseleave'"
-                popoverClass="my-custom-popover-info">
-                  {{ col.name }}
-                </span>
+                <div>
+                  <span
+                    class="titre-verticale"
+                    [ngbPopover]="col.name"
+                    [placement]="'top'"
+                    [autoClose]="'true'"
+                    [triggers]="'mouseenter:mouseleave'"
+                    popoverClass="my-custom-popover-info"
+                  >
+                    {{ col.name }}
+                  </span>
                 </div>
               </th>
             </ng-container>
@@ -95,7 +94,7 @@
             class="p-3"
             [formGroupName]="i"
           >
-          @if(item) {
+            @if(item) {
             <td>
               <!-- <input type="text" name="typeErreur" class="col-12 form-control" id="" formControlName="typeErreur"> -->
               <input
@@ -125,45 +124,49 @@
                 [matTooltip]="formGroup.at(i)?.get('typeErreur')?.value"
                 [matAutocomplete]="autErreur"
               />
-              <mat-autocomplete #autErreur="matAutocomplete" 
-                panelClass="auto-width-panel">
+              <mat-autocomplete
+                #autErreur="matAutocomplete"
+                panelClass="auto-width-panel"
+              >
                 @for (erreur of filteredOperationsSignal()[i]; track $index) {
 
-                  <!-- *ngFor="let erreur of filteredOperationsSignal()[i]" -->
-                  <mat-option
-                  [value]="erreur.type_erreur"
-                  >
+                <!-- *ngFor="let erreur of filteredOperationsSignal()[i]" -->
+                <mat-option [value]="erreur.type_erreur">
                   {{ erreur.type_erreur }}
                 </mat-option>
-              } @empty {
+                } @empty {
                 <mat-option disabled>Aucun résultat</mat-option>
-              }
+                }
               </mat-autocomplete>
             </td>
             <td>
               <div class="card">
-                <div class="card-body overflow-y-scroll" style="height: 12vh;" formArrayName="operation_a_controller">
-
-                  @for (controlled of getOperationsController(i); track $index) {
-                    @if(verifierName(i, controlled , item)) {
-                    <div class="mb-1" [formGroupName]="$index">
-                      <span>
-                        <input
+                <div
+                  class="card-body overflow-y-scroll"
+                  style="height: 12vh"
+                  formArrayName="operation_a_controller"
+                >
+                  @for (controlled of getOperationsController(i); track $index)
+                  { @if(verifierName(i, controlled , item)) {
+                  <div class="mb-1" [formGroupName]="$index">
+                    <span>
+                      <input
                         name="detail_projet.erreur_valable:validite"
                         appDebounced
                         [foreign]="[{name:'id_operation', value: controlled.get('operation')?.value },{name:'id_type_erreur', value: formArray.at(i).get('idErreur')?.value },{name:'champ', value: { index: i , col: null } },{name:'libelle', value: formGroup.at(i)?.get('typeErreur')?.value},{name:'id_projet', value: projectID()},{name:'controled', value: controlled.get('operationAcontroller')?.value }]"
                         (debouncedValue)="updateValueCheck($event)"
                         [identity]="formArray.at(i).get('idErreur')?.value"
-                        type="checkbox" formControlName="valid" id="">
-                      </span>
-                      <span>
-                        {{ controlled.get('name')?.value }}
-                         <!-- - {{ controlled.get('operationAcontroller')?.value }} -->
-                      </span>
-                    </div>
-                    }
-                  }
-
+                        type="checkbox"
+                        formControlName="valid"
+                        id=""
+                      />
+                    </span>
+                    <span>
+                      {{ controlled.get('name')?.value }}
+                      <!-- - {{ controlled.get('operationAcontroller')?.value }} -->
+                    </span>
+                  </div>
+                  } }
                 </div>
               </div>
             </td>
@@ -215,7 +218,9 @@
                 [identity]="formArray.at(i).get('idErreur')?.value"
               />
             </td>
-            <ng-container *ngFor="let col of colonneObserve() | async ; let j = index ">
+            <ng-container
+              *ngFor="let col of colonneObserve() | async ; let j = index "
+            >
               <td class="text-center checker pt-2">
                 <div class="d-flex justify-content-center align-items-center">
                   <input
@@ -245,7 +250,6 @@
                     [identity]="formArray.at(i).get('idErreur')?.value"
                     style="width: 39px; height: 39px"
                     [disabled]="true"
-                    
                   />
                 </div>
               </td>
@@ -254,14 +258,13 @@
               <button
                 type="button"
                 class="btn btn-danger form-control"
-                
                 (click)="trigerRemove(i)"
               >
                 Suprimer
               </button>
             </td>
 
-          }
+            }
           </tr>
         </tbody>
         <tfoot></tfoot>
