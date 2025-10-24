@@ -100,13 +100,13 @@ jobs:
         shell: powershell
         run: |
           # 1. Applique le namespace en premier (si namespace.yaml existe)
-          kubectl apply -f ${{ env.PROCESSED_K8S_DIR }}\namespace.yaml -ErrorAction SilentlyContinue
+          kubectl apply -f ${{ env.PROCESSED_K8S_DIR }}\namespace.yaml
 
           # 2. Applique tous les autres manifestes (Deployment, Service, Ingress, etc.)
           kubectl apply -f ${{ env.PROCESSED_K8S_DIR }}\
 
           # 3. Applique le monitoring en dernier
-          Get-ChildItem -Path $env:PROCESSED_K8S_DIR -Filter "*-monitor.yaml" -ErrorAction SilentlyContinue | ForEach-Object {
+          Get-ChildItem -Path $env:PROCESSED_K8S_DIR -Filter "*-monitor.yaml" | ForEach-Object {
               kubectl apply -f $_.FullName
           }
           
