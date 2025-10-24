@@ -58,7 +58,7 @@ jobs:
 
       # 3. CRÉATION DU SECRET K8S : Nécessaire pour que Minikube puisse pull l'image
       - name: Create or Update Docker Registry Secret (regcred)
-        shell: pwsh
+        shell: powershell
         run: |
           # Crée ou met à jour le secret 'regcred' dans Minikube
           kubectl create secret docker-registry regcred `
@@ -74,12 +74,12 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
       - name: Process Kubernetes Manifests
-        shell: pwsh
+        shell: powershell
         run: |
           # Création du dossier temporaire
           New-Item -ItemType Directory -Force -Path $env:PROCESSED_K8S_DIR
           
-          # Remplacement des placeholders avec pwsh natif
+          # Remplacement des placeholders avec powershell natif
           Get-ChildItem $env:K8S_MANIFESTS_FOLDER -Filter *.yaml | ForEach-Object {
               $file = $_.FullName
               $filename = $_.Name
@@ -97,7 +97,7 @@ jobs:
           }
 
       - name: Apply Kubernetes Manifests (Locally)
-        shell: pwsh
+        shell: powershell
         run: |
           # 1. Applique le namespace en premier (si namespace.yaml existe)
           kubectl apply -f ${{ env.PROCESSED_K8S_DIR }}\namespace.yaml -ErrorAction SilentlyContinue
