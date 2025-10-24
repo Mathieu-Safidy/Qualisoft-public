@@ -17,9 +17,14 @@ spec:
     spec:
       containers:
         - name: {{APP_NAME}}
-          image: {{REGISTRY_HOST}}/{{APP_NAME}}:latest
+          # ATTENTION : Utiliser le placeholder FULL TAG pour pointer vers le registre distant
+          image: {{IMAGE_FULL_TAG}} 
+          # Conservez IfNotPresent ou passez à Always (recommandé pour SHA unique)
+          imagePullPolicy: IfNotPresent 
           ports:
             - containerPort: {{CONTAINER_PORT}}
-              # hostPort: 80 # To allow deployment to be accessed via port 80 explicitly for testing
+      
+      # OBLIGATOIRE : Réfèrence au secret 'regcred' créé par le workflow 
+      # pour permettre à Minikube de s'authentifier et de tirer l'image depuis Docker Hub.
       imagePullSecrets:
-        - name: regcred # Use this secret to pull the image from the local registry
+        - name: regcred
