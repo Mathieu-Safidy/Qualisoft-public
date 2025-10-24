@@ -102,7 +102,7 @@ jobs:
           }
           
       - name: Upload K8s manifests artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: k8s-artifacts
           path: ${{env.PROCESSED_K8S_DIR}}
