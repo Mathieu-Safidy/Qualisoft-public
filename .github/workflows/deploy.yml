@@ -12,7 +12,7 @@ env:
   
   # Le tag doit être unique, basé sur le SHA ou un ID de Run pour éviter les problèmes de cache
   IMAGE_TAG: ${{ github.sha }} 
-  IMAGE_FULL_TAG: ${{ secrets.REGISTRY_HOST }}/qualisoft:${{ github.sha }} # Chemin complet du registre
+  IMAGE_FULL_TAG: ${{ secrets.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/qualisoft:${{ github.sha }} # Chemin complet du registre
   
   # Variables pour le remplacement dans les manifestes
   APP_ROUTE: qualisoft
