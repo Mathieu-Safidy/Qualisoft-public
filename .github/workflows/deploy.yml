@@ -21,7 +21,7 @@ env:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: self-hosted,windows
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
           network: host
 
   deploy:
-    runs-on: self-hosted
+    runs-on: self-hosted,windows
     needs: build
     steps:
       - name: Checkout Code
