@@ -52,6 +52,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Ensure Namespace Exists
+        run: |
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+
       # 3. CRÉATION DU SECRET K8S : Nécessaire pour que Minikube puisse pull l'image
       - name: Create or Update Docker Registry Secret (regcred)
         shell: powershell
