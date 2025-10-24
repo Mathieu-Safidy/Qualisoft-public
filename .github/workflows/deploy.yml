@@ -58,7 +58,7 @@ jobs:
 
       # 3. CRÉATION DU SECRET K8S : Nécessaire pour que Minikube puisse pull l'image
       - name: Create or Update Docker Registry Secret (regcred)
-        shell: powershell
+        shell: pwsh
         run: |
           # Crée ou met à jour le secret 'regcred' dans Minikube
           kubectl create secret docker-registry regcred `
@@ -74,25 +74,30 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
       - name: Process Kubernetes Manifests
-        shell: powershell
+        shell: pwsh
         run: |
+          # Création du dossier temporaire
           New-Item -ItemType Directory -Force -Path $env:PROCESSED_K8S_DIR
           
-          # Remplacement des placeholders (IMAGE_FULL_TAG est utilisé ici)
+          # Remplacement des placeholders avec pwsh natif
           Get-ChildItem $env:K8S_MANIFESTS_FOLDER -Filter *.yaml | ForEach-Object {
               $file = $_.FullName
               $filename = $_.Name
-              (Get-Content $file) -replace '{{APP_NAME}}', $env:APP_NAME `
-                                  -replace '{{NAMESPACE}}', $env:NAMESPACE `
-                                  -replace '{{IMAGE_FULL_TAG}}', $env:IMAGE_FULL_TAG ` # Nouveau remplacement pour l'image
-                                  -replace '{{APP_ROUTE}}', $env:APP_ROUTE `
-                                  -replace '{{SERVICE_PORT}}', "$($env:SERVICE_PORT)" `
-                                  -replace '{{CONTAINER_PORT}}', "$($env:CONTAINER_PORT)" |
-                  Set-Content -Path "$env:PROCESSED_K8S_DIR\$filename"
+
+              $content = Get-Content $file -Raw
+              $content = $content -replace '{{APP_NAME}}', $env:APP_NAME
+              $content = $content -replace '{{NAMESPACE}}', $env:NAMESPACE
+              $content = $content -replace '{{IMAGE_FULL_TAG}}', $env:IMAGE_FULL_TAG
+              $content = $content -replace '{{APP_ROUTE}}', $env:APP_ROUTE
+              $content = $content -replace '{{SERVICE_PORT}}', "$($env:SERVICE_PORT)"
+              $content = $content -replace '{{CONTAINER_PORT}}', "$($env:CONTAINER_PORT)"
+
+              $outputFile = Join-Path $env:PROCESSED_K8S_DIR $filename
+              $content | Set-Content -Path $outputFile
           }
 
       - name: Apply Kubernetes Manifests (Locally)
-        shell: powershell
+        shell: pwsh
         run: |
           # 1. Applique le namespace en premier (si namespace.yaml existe)
           kubectl apply -f ${{ env.PROCESSED_K8S_DIR }}\namespace.yaml -ErrorAction SilentlyContinue
