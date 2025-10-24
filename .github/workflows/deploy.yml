@@ -15,7 +15,7 @@ env:
   IMAGE_FULL_TAG: ${{ secrets.REGISTRY_HOST }}/qualisoft:${{ github.sha }} # Chemin complet du registre
   
   # Variables pour le remplacement dans les manifestes
-  APP_ROUTE: ${{ env.APP_NAME }}
+  APP_ROUTE: qualisoft
   SERVICE_PORT: 80
   CONTAINER_PORT: 80
 
